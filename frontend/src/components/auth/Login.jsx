@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import "./Login.css";
 
@@ -12,7 +12,7 @@ const Login = () => {
   const [formData, setFormData] = useState({
     username: "",
     password: "",
-    role: "citizen", // citizen | gn_officer
+    role: "citizen",
   });
 
   const handleChange = (e) => {
@@ -31,7 +31,12 @@ const Login = () => {
 
     try {
       await login(formData);
-      navigate("/dashboard");
+      // Redirect based on role
+      if (formData.role === "gn_officer") {
+        navigate("/officer-dashboard");
+      } else {
+        navigate("/dashboard");
+      }
     } catch (err) {
       setError(
         err.response?.data?.message || "Login failed. Please try again.",
@@ -53,7 +58,7 @@ const Login = () => {
 
         <form onSubmit={handleSubmit}>
           <div className="form-group">
-            <label>Role</label>
+            <label>Login as</label>
             <select
               name="role"
               value={formData.role}
@@ -66,13 +71,17 @@ const Login = () => {
           </div>
 
           <div className="form-group">
-            <label>Username / Email</label>
+            <label>{formData.role === "citizen" ? "Username" : "Email"}</label>
             <input
               type="text"
               name="username"
               value={formData.username}
               onChange={handleChange}
-              placeholder={formData.role === "citizen" ? "Username" : "Email"}
+              placeholder={
+                formData.role === "citizen"
+                  ? "Enter your username"
+                  : "Enter your email"
+              }
               required
             />
           </div>
@@ -96,7 +105,7 @@ const Login = () => {
 
         <div className="login-footer">
           <p>
-            Don't have an account? <a href="/register">Register here</a>
+            Don't have an account? <Link to="/register">Register here</Link>
           </p>
         </div>
       </div>

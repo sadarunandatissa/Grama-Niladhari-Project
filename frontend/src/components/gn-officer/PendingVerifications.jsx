@@ -90,13 +90,21 @@ const PendingVerifications = () => {
   };
 
   if (loading) {
-    return <div className="loading">Loading pending registrations...</div>;
+    return (
+      <div className="loading-container">
+        <div className="loading-spinner"></div>
+        <p>Loading pending registrations...</p>
+      </div>
+    );
   }
 
   return (
     <div className="pending-verifications">
       <div className="header">
-        <h2>Pending Registrations</h2>
+        <div className="header-left">
+          <h2>📋 Pending Registrations</h2>
+          <span className="badge">{pending.length} pending</span>
+        </div>
         <button className="btn-refresh" onClick={fetchPending}>
           🔄 Refresh
         </button>
@@ -107,52 +115,55 @@ const PendingVerifications = () => {
 
       {pending.length === 0 ? (
         <div className="empty-state">
-          <p>No pending registrations</p>
-          <p className="sub-text">All registrations have been processed.</p>
+          <div className="empty-icon">✅</div>
+          <p className="empty-title">All Clear!</p>
+          <p className="empty-subtitle">No pending registrations to review.</p>
         </div>
       ) : (
         <div className="requests-grid">
           {pending.map((req) => (
             <div key={req._id} className="request-card">
               <div className="request-header">
-                <h3>{req.full_name}</h3>
-                <span
-                  className={`status-badge ${req.is_family_head ? "head" : "member"}`}
-                >
-                  {req.is_family_head ? "👑 Family Head" : "👤 Family Member"}
+                <div className="request-name">
+                  <h3>{req.full_name}</h3>
+                  <span
+                    className={`role-badge ${req.is_family_head ? "head" : "member"}`}
+                  >
+                    {req.is_family_head ? "👑 Head" : "👤 Member"}
+                  </span>
+                </div>
+                <span className="date-badge">
+                  {new Date(req.created_at).toLocaleDateString()}
                 </span>
               </div>
 
               <div className="request-details">
-                <p>
-                  <strong>NIC:</strong> {req.nic}
-                </p>
-                <p>
-                  <strong>Village:</strong> {req.village}
-                </p>
-                <p>
-                  <strong>Username:</strong> {req.username}
-                </p>
-                <p>
-                  <strong>Address:</strong> {req.address}
-                </p>
-                <p>
-                  <strong>Phone:</strong> {req.phone_numbers.join(", ")}
-                </p>
-                {req.email && (
-                  <p>
-                    <strong>Email:</strong> {req.email}
-                  </p>
-                )}
+                <div className="detail-row">
+                  <span className="label">NIC</span>
+                  <span className="value">{req.nic}</span>
+                </div>
+                <div className="detail-row">
+                  <span className="label">Village</span>
+                  <span className="value">{req.village}</span>
+                </div>
+                <div className="detail-row">
+                  <span className="label">Username</span>
+                  <span className="value">{req.username}</span>
+                </div>
+                <div className="detail-row">
+                  <span className="label">Phone</span>
+                  <span className="value">{req.phone_numbers.join(", ")}</span>
+                </div>
                 {!req.is_family_head && (
-                  <p>
-                    <strong>Family Reg No:</strong> {req.family_reg_no}
-                  </p>
+                  <div className="detail-row">
+                    <span className="label">Family Reg No</span>
+                    <span className="value highlight">{req.family_reg_no}</span>
+                  </div>
                 )}
-                <p>
-                  <strong>Submitted:</strong>{" "}
-                  {new Date(req.created_at).toLocaleString()}
-                </p>
+                <div className="detail-row full">
+                  <span className="label">Address</span>
+                  <span className="value">{req.address}</span>
+                </div>
               </div>
 
               <div className="request-actions">
@@ -172,11 +183,24 @@ const PendingVerifications = () => {
 
               {selectedRequest === req._id && (
                 <div className="reject-modal">
+                  <div className="reject-header">
+                    <span>Rejection Reason</span>
+                    <button
+                      className="close-modal"
+                      onClick={() => {
+                        setSelectedRequest(null);
+                        setRejectReason("");
+                      }}
+                    >
+                      ×
+                    </button>
+                  </div>
                   <textarea
-                    placeholder="Enter rejection reason..."
+                    placeholder="Enter reason for rejection..."
                     value={rejectReason}
                     onChange={(e) => setRejectReason(e.target.value)}
                     rows="3"
+                    autoFocus
                   />
                   <div className="modal-actions">
                     <button

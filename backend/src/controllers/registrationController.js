@@ -85,7 +85,7 @@ exports.submitRegistration = async (req, res) => {
     const registration = new RegistrationRequest(registrationData);
     await registration.save();
 
-    // TODO: Send notification to GN Officer (will implement later)
+    // TODO: Send notification to GN Officer
     // await sendNotificationToGNOfficer(data.village, registration);
 
     res.status(201).json({
@@ -146,13 +146,62 @@ exports.getPendingRegistrations = async (req, res) => {
 };
 
 /**
+ * Get All Registrations for GN Officer (with filters)
+ * GET /api/registration/all
+ */
+exports.getAllRegistrations = async (req, res) => {
+  try {
+    const officer_id = req.user.id;
+    const { status, search } = req.query;
+
+    const officer = await GNOfficer.findById(officer_id);
+    if (!officer) {
+      return res.status(404).json({
+        success: false,
+        message: "GN Officer not found",
+      });
+    }
+
+    let filter = { village: officer.village_id };
+    if (status && status !== "all") {
+      filter.status = status;
+    }
+
+    if (search) {
+      filter.$or = [
+        { full_name: { $regex: search, $options: "i" } },
+        { nic: { $regex: search, $options: "i" } },
+        { username: { $regex: search, $options: "i" } },
+      ];
+    }
+
+    const registrations = await RegistrationRequest.find(filter).sort({
+      created_at: -1,
+    });
+
+    res.json({
+      success: true,
+      count: registrations.length,
+      data: registrations,
+    });
+  } catch (error) {
+    console.error("Error fetching registrations:", error);
+    res.status(500).json({
+      success: false,
+      message: "Server error",
+      error: error.message,
+    });
+  }
+};
+
+/**
  * Verify Registration Request
  * PUT /api/registration/verify/:registration_id
  */
 exports.verifyRegistration = async (req, res) => {
   try {
     const { registration_id } = req.params;
-    const { action, rejection_reason } = req.body; // action: 'verify' or 'reject'
+    const { action, rejection_reason } = req.body;
     const officer_id = req.user.id;
 
     // Get registration
@@ -197,8 +246,6 @@ exports.verifyRegistration = async (req, res) => {
       registration.verified_by = officer_id;
       registration.verified_at = new Date();
       await registration.save();
-
-      // TODO: Send rejection notification to citizen
 
       return res.json({
         success: true,
@@ -330,8 +377,6 @@ exports.verifyRegistration = async (req, res) => {
       registration.citizen_id = citizen._id;
       await registration.save();
 
-      // TODO: Send verification notification to citizen
-
       res.json({
         success: true,
         message: "Registration verified successfully",
@@ -344,6 +389,61 @@ exports.verifyRegistration = async (req, res) => {
     }
   } catch (error) {
     console.error("Verification error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Server error",
+      error: error.message,
+    });
+  }
+};
+
+/**
+ * Get Registration Statistics for Dashboard
+ * GET /api/registration/stats
+ */
+exports.getRegistrationStats = async (req, res) => {
+  try {
+    const officer_id = req.user.id;
+    const officer = await GNOfficer.findById(officer_id);
+    if (!officer) {
+      return res.status(404).json({
+        success: false,
+        message: "GN Officer not found",
+      });
+    }
+
+    const stats = {
+      total: 0,
+      pending: 0,
+      verified: 0,
+      rejected: 0,
+      family_heads: 0,
+      family_members: 0,
+    };
+
+    const registrations = await RegistrationRequest.find({
+      village: officer.village_id,
+    });
+
+    stats.total = registrations.length;
+    stats.pending = registrations.filter((r) => r.status === "pending").length;
+    stats.verified = registrations.filter(
+      (r) => r.status === "verified",
+    ).length;
+    stats.rejected = registrations.filter(
+      (r) => r.status === "rejected",
+    ).length;
+    stats.family_heads = registrations.filter((r) => r.is_family_head).length;
+    stats.family_members = registrations.filter(
+      (r) => !r.is_family_head,
+    ).length;
+
+    res.json({
+      success: true,
+      data: stats,
+    });
+  } catch (error) {
+    console.error("Error fetching stats:", error);
     res.status(500).json({
       success: false,
       message: "Server error",
