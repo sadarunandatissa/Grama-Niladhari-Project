@@ -11,7 +11,6 @@ exports.login = async (req, res) => {
   try {
     const { username, password, role } = req.body;
 
-    // Validate input
     if (!username || !password || !role) {
       return res.status(400).json({
         success: false,
@@ -38,7 +37,6 @@ exports.login = async (req, res) => {
       });
     }
 
-    // Check if user is active
     if (user.is_active === false) {
       return res.status(401).json({
         success: false,
@@ -46,7 +44,6 @@ exports.login = async (req, res) => {
       });
     }
 
-    // For citizens, check if verified
     if (role === "citizen" && !user.is_verified) {
       return res.status(401).json({
         success: false,
@@ -55,7 +52,6 @@ exports.login = async (req, res) => {
       });
     }
 
-    // Verify password
     const isMatch = await bcrypt.compare(password, user.password_hash);
     if (!isMatch) {
       return res.status(401).json({
@@ -64,7 +60,6 @@ exports.login = async (req, res) => {
       });
     }
 
-    // Generate JWT
     const token = jwt.sign(
       {
         id: user._id,
@@ -76,7 +71,6 @@ exports.login = async (req, res) => {
       { expiresIn: "7d" },
     );
 
-    // Prepare user response (remove sensitive data)
     const userResponse = {
       id: user._id,
       name: user.full_name,
