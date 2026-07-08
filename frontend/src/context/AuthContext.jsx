@@ -32,32 +32,26 @@ export const AuthProvider = ({ children }) => {
     setLoading(false);
   }, []);
 
+  // frontend/src/context/AuthContext.jsx
+
   const login = async (credentials) => {
+    // credentials = { email, password }  (no role)
     try {
       const response = await axios.post(
         `${process.env.REACT_APP_API_URL}/api/auth/login`,
         credentials,
       );
-
       const { token, user } = response.data;
-
-      // Store in state
       setToken(token);
       setUser(user);
-
-      // Store in localStorage
       localStorage.setItem("token", token);
       localStorage.setItem("user", JSON.stringify(user));
-
-      // Set axios default header
       axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
-
-      return response.data;
+      return response.data; // so we can read role
     } catch (error) {
       throw error;
     }
   };
-
   const logout = () => {
     setToken("");
     setUser(null);
