@@ -1,42 +1,34 @@
 const mongoose = require("mongoose");
 
-const GNOfficerSchema = new mongoose.Schema({
+/**
+ * Village Model - Grama Niladhari Division
+ */
+const VillageSchema = new mongoose.Schema({
   village_id: {
     type: String,
-    ref: "Village",
-    unique: true,
-    required: true,
-  },
-  employee_id: {
-    type: String,
     unique: true,
     required: true,
     trim: true,
   },
-  full_name: {
+  name: {
     type: String,
     required: true,
     trim: true,
   },
-  email: {
-    type: String,
-    unique: true,
-    required: true,
-    lowercase: true,
-    trim: true,
-  },
-  phone: {
+  ds_division: {
     type: String,
     required: true,
     trim: true,
   },
-  password_hash: {
+  district: {
     type: String,
     required: true,
+    trim: true,
   },
-  is_active: {
-    type: Boolean,
-    default: true,
+  province: {
+    type: String,
+    required: true,
+    trim: true,
   },
   created_at: {
     type: Date,
@@ -44,4 +36,4 @@ const GNOfficerSchema = new mongoose.Schema({
   },
 });
 
-module.exports = mongoose.model("GNOfficer", GNOfficerSchema);
+module.exports = mongoose.model("Village", VillageSchema);
