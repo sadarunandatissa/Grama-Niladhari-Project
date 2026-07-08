@@ -1,11 +1,25 @@
 const mongoose = require("mongoose");
 
+/**
+ * RegistrationRequest - Pending citizen registration awaiting GN Officer verification
+ */
 const RegistrationRequestSchema = new mongoose.Schema({
-  // Personal Details
+  // All citizen fields except password_hash (will be moved to Citizen on verification)
+  email: {
+    type: String,
+    required: true,
+    unique: true,
+    lowercase: true,
+    trim: true,
+  },
+  password_hash: {
+    type: String,
+    required: true,
+  },
   nic: {
     type: String,
-    unique: true,
     required: true,
+    unique: true,
     trim: true,
   },
   full_name: {
@@ -13,26 +27,11 @@ const RegistrationRequestSchema = new mongoose.Schema({
     required: true,
     trim: true,
   },
-  initials: {
-    type: String,
-    trim: true,
-  },
-  surname: {
-    type: String,
-    trim: true,
-  },
-  first_name: {
-    type: String,
-    trim: true,
-  },
-  middle_name: {
-    type: String,
-    trim: true,
-  },
-  last_name: {
-    type: String,
-    trim: true,
-  },
+  initials: String,
+  surname: String,
+  first_name: String,
+  middle_name: String,
+  last_name: String,
   date_of_birth: {
     type: Date,
     required: true,
@@ -45,28 +44,28 @@ const RegistrationRequestSchema = new mongoose.Schema({
   address: {
     type: String,
     required: true,
-    trim: true,
-  },
-  village: {
-    type: String,
-    required: true,
-    trim: true,
   },
   phone_numbers: {
     type: [String],
     required: true,
   },
-  email: {
+  occupation: String,
+
+  // Village (dropdown from existing villages)
+  village_id: {
     type: String,
-    lowercase: true,
-    trim: true,
-  },
-  occupation: {
-    type: String,
-    trim: true,
+    ref: "Village",
+    required: true,
+    index: true,
   },
 
-  // Family Information
+  // Profile picture (uploaded file path)
+  profile_picture: {
+    type: String,
+    required: true, // image is mandatory
+  },
+
+  // Family information
   is_family_head: {
     type: Boolean,
     required: true,
@@ -77,62 +76,36 @@ const RegistrationRequestSchema = new mongoose.Schema({
     trim: true,
     validate: {
       validator: function (value) {
-        if (!this.is_family_head && !value) {
-          return false;
-        }
+        if (!this.is_family_head && !value) return false;
         return true;
       },
-      message: "Family registration number is required for non-head members",
+      message: "Family registration number required for non-head members",
     },
   },
 
-  // Login Credentials
-  username: {
-    type: String,
-    unique: true,
-    required: true,
-    trim: true,
-    minlength: 3,
-  },
-  password_hash: {
-    type: String,
-    required: true,
-  },
-
-  // Status & Verification
+  // Status and verification
   status: {
     type: String,
     enum: ["pending", "verified", "rejected"],
     default: "pending",
-  },
-  village_id: {
-    type: String,
-    ref: "Village",
-    default: null,
   },
   verified_by: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "GNOfficer",
     default: null,
   },
-  verified_at: {
-    type: Date,
-    default: null,
-  },
-  rejection_reason: {
-    type: String,
-    default: null,
-  },
+  verified_at: Date,
+  rejection_reason: String,
 
   // References after verification
-  family_id: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "Family",
-    default: null,
-  },
   citizen_id: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Citizen",
+    default: null,
+  },
+  family_id: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Family",
     default: null,
   },
 
