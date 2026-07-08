@@ -1,20 +1,18 @@
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
 import "./RegistrationForm.css";
 
 const RegistrationForm = () => {
   const navigate = useNavigate();
+  const [villages, setVillages] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
   const [formData, setFormData] = useState({
-    // Family Status
     is_family_head: false,
     family_reg_no: "",
-
-    // Personal Details
     nic: "",
     full_name: "",
     initials: "",
@@ -25,76 +23,76 @@ const RegistrationForm = () => {
     date_of_birth: "",
     gender: "",
     address: "",
-    village: "",
+    village_id: "",
     phone_numbers: [""],
-    email: "",
     occupation: "",
-
-    // Login Credentials
-    username: "",
+    email: "",
     password: "",
     confirmPassword: "",
+    profile_picture: null, // file object
   });
 
+  // Fetch villages on mount
+  useEffect(() => {
+    const fetchVillages = async () => {
+      try {
+        const res = await axios.get(
+          `${process.env.REACT_APP_API_URL}/api/admin/villages`,
+        );
+        setVillages(res.data.data);
+      } catch (err) {
+        console.error("Failed to fetch villages", err);
+        setError("Could not load villages. Please refresh.");
+      }
+    };
+    fetchVillages();
+  }, []);
+
   const handleChange = (e) => {
-    const { name, value, type, checked } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: type === "checkbox" ? checked : value,
-    }));
+    const { name, value, type, checked, files } = e.target;
+    if (type === "file") {
+      setFormData((prev) => ({ ...prev, profile_picture: files[0] }));
+    } else {
+      setFormData((prev) => ({
+        ...prev,
+        [name]: type === "checkbox" ? checked : value,
+      }));
+    }
     setError("");
   };
 
   const handlePhoneChange = (index, value) => {
     const newPhones = [...formData.phone_numbers];
     newPhones[index] = value;
-    setFormData((prev) => ({
-      ...prev,
-      phone_numbers: newPhones,
-    }));
+    setFormData((prev) => ({ ...prev, phone_numbers: newPhones }));
   };
 
-  const addPhoneField = () => {
+  const addPhone = () => {
     setFormData((prev) => ({
       ...prev,
       phone_numbers: [...prev.phone_numbers, ""],
     }));
   };
 
-  const removePhoneField = (index) => {
+  const removePhone = (index) => {
     if (formData.phone_numbers.length > 1) {
-      const newPhones = formData.phone_numbers.filter((_, i) => i !== index);
       setFormData((prev) => ({
         ...prev,
-        phone_numbers: newPhones,
+        phone_numbers: prev.phone_numbers.filter((_, i) => i !== index),
       }));
     }
   };
 
   const validateForm = () => {
-    // Basic validation
+    // Basic validations (full validation handled by backend)
     if (formData.password !== formData.confirmPassword) {
-      setError("Passwords do not match");
+      setError("Passwords do not match.");
       return false;
     }
-
-    // Phone validation
-    for (let phone of formData.phone_numbers) {
-      if (phone && !/^[0-9]{10}$/.test(phone)) {
-        setError("Phone numbers must be exactly 10 digits");
-        return false;
-      }
-    }
-
-    // NIC validation
-    const nic = formData.nic.toUpperCase();
-    const oldNIC = /^[0-9]{9}V$/;
-    const newNIC = /^[0-9]{12}$/;
-    if (!oldNIC.test(nic) && !newNIC.test(nic)) {
-      setError("Invalid NIC format. Use 9 digits + V or 12 digits.");
+    if (!formData.profile_picture) {
+      setError("Profile picture is required.");
       return false;
     }
-
     return true;
   };
 
@@ -102,103 +100,77 @@ const RegistrationForm = () => {
     e.preventDefault();
     setError("");
     setSuccess("");
-
     if (!validateForm()) return;
 
     setLoading(true);
 
-    try {
-      // Format phone numbers - remove empty ones
-      const phoneNumbers = formData.phone_numbers.filter(
-        (p) => p.trim() !== "",
-      );
-
-      if (phoneNumbers.length === 0) {
-        setError("At least one phone number is required");
-        setLoading(false);
-        return;
-      }
-
-      const submitData = {
-        ...formData,
-        phone_numbers: phoneNumbers,
-        nic: formData.nic.toUpperCase().trim(),
-      };
-
-      const response = await axios.post(
-        `${process.env.REACT_APP_API_URL}/api/registration/submit`,
-        submitData,
-      );
-
-      if (response.data.success) {
-        setSuccess(response.data.message);
-        setTimeout(() => {
-          navigate("/registration-success", {
-            state: { message: response.data.message },
-          });
-        }, 2000);
-      }
-    } catch (err) {
-      if (err.response?.data?.errors) {
-        setError(err.response.data.errors.join(", "));
-      } else if (err.response?.data?.message) {
-        setError(err.response.data.message);
+    // Prepare FormData for multipart upload
+    const data = new FormData();
+    for (let key in formData) {
+      if (key === "profile_picture") {
+        if (formData.profile_picture) {
+          data.append("profile_picture", formData.profile_picture);
+        }
+      } else if (key === "phone_numbers") {
+        formData.phone_numbers.forEach((p, i) => {
+          if (p.trim()) data.append(`phone_numbers[${i}]`, p.trim());
+        });
       } else {
-        setError("Registration failed. Please try again.");
+        data.append(key, formData[key]);
       }
+    }
+
+    try {
+      const res = await axios.post(
+        `${process.env.REACT_APP_API_URL}/api/registration/submit`,
+        data,
+        { headers: { "Content-Type": "multipart/form-data" } },
+      );
+      setSuccess(res.data.message);
+      setTimeout(() => navigate("/registration-success"), 2000);
+    } catch (err) {
+      const msg =
+        err.response?.data?.message ||
+        err.response?.data?.errors?.join(", ") ||
+        "Registration failed.";
+      setError(msg);
     } finally {
       setLoading(false);
     }
   };
 
+  // ... rest of JSX (similar to earlier but with village dropdown and file input)
+  // I'll provide a compact version below:
   return (
     <div className="registration-container">
       <div className="registration-card">
         <h2>Citizen Registration</h2>
-        <p className="subtitle">Register to access GN services online</p>
-
         {error && <div className="alert alert-error">{error}</div>}
         {success && <div className="alert alert-success">{success}</div>}
-
         <form onSubmit={handleSubmit}>
-          {/* Role Selection */}
+          {/* Role selection */}
           <div className="form-section">
             <h3>Family Information</h3>
-            <div className="role-selector">
-              <label className="radio-option">
-                <input
-                  type="radio"
-                  name="is_family_head"
-                  value={false}
-                  checked={formData.is_family_head === false}
-                  onChange={() =>
-                    setFormData((prev) => ({
-                      ...prev,
-                      is_family_head: false,
-                      family_reg_no: "",
-                    }))
-                  }
-                />
-                <span>I am a Family Member (I have Family Reg No)</span>
-              </label>
-              <label className="radio-option">
-                <input
-                  type="radio"
-                  name="is_family_head"
-                  value={true}
-                  checked={formData.is_family_head === true}
-                  onChange={() =>
-                    setFormData((prev) => ({
-                      ...prev,
-                      is_family_head: true,
-                      family_reg_no: "",
-                    }))
-                  }
-                />
-                <span>I am the Family Head (I'll create a new family)</span>
-              </label>
-            </div>
-
+            <label>
+              <input
+                type="radio"
+                name="is_family_head"
+                value={false}
+                checked={!formData.is_family_head}
+                onChange={handleChange}
+              />
+              Family Member
+            </label>
+            <label>
+              <input
+                type="radio"
+                name="is_family_head"
+                value={true}
+                checked={formData.is_family_head}
+                onChange={handleChange}
+              />
+              Family Head
+            </label>
             {!formData.is_family_head && (
               <div className="form-group">
                 <label>Family Registration Number *</label>
@@ -207,44 +179,46 @@ const RegistrationForm = () => {
                   name="family_reg_no"
                   value={formData.family_reg_no}
                   onChange={handleChange}
-                  placeholder="e.g., GN-123-FAM-001"
                   required
                 />
-                <small>Get this from your family head</small>
               </div>
             )}
           </div>
 
-          {/* Personal Details */}
+          {/* Personal details */}
           <div className="form-section">
             <h3>Personal Details</h3>
-
-            <div className="form-row">
-              <div className="form-group">
-                <label>NIC Number *</label>
-                <input
-                  type="text"
-                  name="nic"
-                  value={formData.nic}
-                  onChange={handleChange}
-                  placeholder="e.g., 123456789V or 200012345678"
-                  required
-                />
-                <small>OLD: 9 digits + V | NEW: 12 digits</small>
-              </div>
-              <div className="form-group">
-                <label>Full Name *</label>
-                <input
-                  type="text"
-                  name="full_name"
-                  value={formData.full_name}
-                  onChange={handleChange}
-                  placeholder="Full name as per NIC"
-                  required
-                />
-              </div>
+            <div className="form-group">
+              <label>Email *</label>
+              <input
+                type="email"
+                name="email"
+                value={formData.email}
+                onChange={handleChange}
+                required
+              />
             </div>
-
+            <div className="form-group">
+              <label>NIC *</label>
+              <input
+                type="text"
+                name="nic"
+                value={formData.nic}
+                onChange={handleChange}
+                placeholder="9 digits + V or 12 digits"
+                required
+              />
+            </div>
+            <div className="form-group">
+              <label>Full Name *</label>
+              <input
+                type="text"
+                name="full_name"
+                value={formData.full_name}
+                onChange={handleChange}
+                required
+              />
+            </div>
             <div className="form-row">
               <div className="form-group">
                 <label>Initials</label>
@@ -253,7 +227,6 @@ const RegistrationForm = () => {
                   name="initials"
                   value={formData.initials}
                   onChange={handleChange}
-                  placeholder="e.g., K.G.M."
                 />
               </div>
               <div className="form-group">
@@ -263,11 +236,9 @@ const RegistrationForm = () => {
                   name="surname"
                   value={formData.surname}
                   onChange={handleChange}
-                  placeholder="e.g., Perera"
                 />
               </div>
             </div>
-
             <div className="form-row">
               <div className="form-group">
                 <label>First Name</label>
@@ -276,7 +247,6 @@ const RegistrationForm = () => {
                   name="first_name"
                   value={formData.first_name}
                   onChange={handleChange}
-                  placeholder="e.g., Saman"
                 />
               </div>
               <div className="form-group">
@@ -286,7 +256,6 @@ const RegistrationForm = () => {
                   name="middle_name"
                   value={formData.middle_name}
                   onChange={handleChange}
-                  placeholder="e.g., Kumara"
                 />
               </div>
               <div className="form-group">
@@ -296,11 +265,9 @@ const RegistrationForm = () => {
                   name="last_name"
                   value={formData.last_name}
                   onChange={handleChange}
-                  placeholder="e.g., Bandara"
                 />
               </div>
             </div>
-
             <div className="form-row">
               <div className="form-group">
                 <label>Date of Birth *</label>
@@ -326,142 +293,108 @@ const RegistrationForm = () => {
                   <option value="Other">Other</option>
                 </select>
               </div>
-              <div className="form-group">
-                <label>Occupation</label>
-                <input
-                  type="text"
-                  name="occupation"
-                  value={formData.occupation}
-                  onChange={handleChange}
-                  placeholder="e.g., Farmer, Teacher"
-                />
-              </div>
             </div>
-
             <div className="form-group">
               <label>Address *</label>
               <textarea
                 name="address"
                 value={formData.address}
                 onChange={handleChange}
-                rows="3"
-                placeholder="Enter your complete address"
                 required
+                rows="3"
               />
             </div>
-
             <div className="form-group">
               <label>Village *</label>
-              <input
-                type="text"
-                name="village"
-                value={formData.village}
+              <select
+                name="village_id"
+                value={formData.village_id}
                 onChange={handleChange}
-                placeholder="Enter your village name"
                 required
-              />
+              >
+                <option value="">Select your village</option>
+                {villages.map((v) => (
+                  <option key={v.village_id} value={v.village_id}>
+                    {v.name}
+                  </option>
+                ))}
+              </select>
             </div>
-
-            {/* Phone Numbers */}
+            {/* Phone numbers */}
             <div className="form-group">
               <label>Phone Numbers *</label>
-              {formData.phone_numbers.map((phone, index) => (
-                <div key={index} className="phone-input-group">
+              {formData.phone_numbers.map((p, i) => (
+                <div key={i} className="phone-input-group">
                   <input
                     type="tel"
-                    value={phone}
-                    onChange={(e) => handlePhoneChange(index, e.target.value)}
-                    placeholder="e.g., 0712345678"
+                    value={p}
+                    onChange={(e) => handlePhoneChange(i, e.target.value)}
+                    placeholder="0712345678"
                     required
                   />
-                  {index > 0 && (
-                    <button
-                      type="button"
-                      className="btn-remove"
-                      onClick={() => removePhoneField(index)}
-                    >
+                  {i > 0 && (
+                    <button type="button" onClick={() => removePhone(i)}>
                       ×
                     </button>
                   )}
                 </div>
               ))}
-              <button type="button" className="btn-add" onClick={addPhoneField}>
-                + Add Another Phone
+              <button type="button" onClick={addPhone}>
+                + Add Phone
               </button>
-              <small>Each phone must be exactly 10 digits</small>
             </div>
-
             <div className="form-group">
-              <label>Email</label>
-              <input
-                type="email"
-                name="email"
-                value={formData.email}
-                onChange={handleChange}
-                placeholder="your@email.com"
-              />
-            </div>
-          </div>
-
-          {/* Login Credentials */}
-          <div className="form-section">
-            <h3>Login Credentials</h3>
-
-            <div className="form-group">
-              <label>Username *</label>
+              <label>Occupation</label>
               <input
                 type="text"
-                name="username"
-                value={formData.username}
+                name="occupation"
+                value={formData.occupation}
                 onChange={handleChange}
-                placeholder="Choose a unique username (min 3 chars)"
-                required
-                minLength="3"
               />
-              <small>Letters, numbers, and underscores only</small>
             </div>
-
-            <div className="form-row">
-              <div className="form-group">
-                <label>Password *</label>
-                <input
-                  type="password"
-                  name="password"
-                  value={formData.password}
-                  onChange={handleChange}
-                  placeholder="Min 8 chars with letter and number"
-                  required
-                  minLength="8"
-                />
-                <small>At least 8 characters with 1 letter and 1 number</small>
-              </div>
-              <div className="form-group">
-                <label>Confirm Password *</label>
-                <input
-                  type="password"
-                  name="confirmPassword"
-                  value={formData.confirmPassword}
-                  onChange={handleChange}
-                  placeholder="Re-enter your password"
-                  required
-                />
-              </div>
+            {/* Profile Picture */}
+            <div className="form-group">
+              <label>Profile Picture *</label>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleChange}
+                name="profile_picture"
+                required
+              />
+              <small>JPEG, PNG, GIF, WEBP (max 5MB)</small>
             </div>
           </div>
 
-          <div className="form-actions">
-            <button type="submit" className="btn-submit" disabled={loading}>
-              {loading ? "Submitting..." : "Register"}
-            </button>
+          {/* Password */}
+          <div className="form-section">
+            <h3>Login Credentials</h3>
+            <div className="form-group">
+              <label>Password *</label>
+              <input
+                type="password"
+                name="password"
+                value={formData.password}
+                onChange={handleChange}
+                required
+                minLength="8"
+              />
+            </div>
+            <div className="form-group">
+              <label>Confirm Password *</label>
+              <input
+                type="password"
+                name="confirmPassword"
+                value={formData.confirmPassword}
+                onChange={handleChange}
+                required
+              />
+            </div>
           </div>
 
-          <div className="info-text">
-            <p>
-              After submission, your registration will be sent to your village
-              GN Officer for verification. You will receive a notification once
-              verified.
-            </p>
-          </div>
+          <button type="submit" className="btn-submit" disabled={loading}>
+            {loading ? "Submitting..." : "Register"}
+          </button>
         </form>
       </div>
     </div>
