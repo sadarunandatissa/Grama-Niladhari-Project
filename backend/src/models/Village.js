@@ -1,5 +1,8 @@
 const mongoose = require("mongoose");
 
+/**
+ * Village Model - Grama Niladhari Division
+ */
 const VillageSchema = new mongoose.Schema({
   village_id: {
     type: String,
