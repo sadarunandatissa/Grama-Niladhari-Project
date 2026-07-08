@@ -1,57 +1,55 @@
+// frontend/src/App.jsx
+
 import React from "react";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext";
-import PrivateRoute from "./components/common/PrivateRoutes";
-
-// Pages & Components
-import HomePage from "./pages/HomePage";
-import RegisterPage from "./pages/RegsterPage";
+import PrivateRoute from "./components/common/PrivateRoute";
 import LoginPage from "./pages/LoginPage";
-import OfficerDashboardPage from "./pages/OfficerDashboard";
-import RegistrationSuccess from "./components/registration/RegstrationSuccess";
-
-// Import your registration form (or use it directly in RegisterPage)
-import RegistrationForm from "./components/registration/RegistrationForm";
-import PendingVerifications from "./components/gn-officer/PendingVerifications";
+import RegisterPage from "./pages/RegisterPage";
+import AdminDashboard from "./pages/AdminDashboard";
+import OfficerDashboard from "./pages/OfficerDashboard";
+import CitizenDashboard from "./pages/CitizenDashboard";
 
 function App() {
   return (
-    <Router>
+    <BrowserRouter>
       <AuthProvider>
-        <div className="app">
-          <Routes>
-            {/* Public Routes */}
-            <Route path="/" element={<HomePage />} />
-            <Route path="/register" element={<RegisterPage />} />
-            <Route path="/login" element={<LoginPage />} />
-            <Route
-              path="/registration-success"
-              element={<RegistrationSuccess />}
-            />
+        <Routes>
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/register" element={<RegisterPage />} />
 
-            {/* GN Officer Protected Routes */}
-            <Route
-              path="/officer-dashboard"
-              element={
-                <PrivateRoute allowedRoles={["gn_officer"]}>
-                  <OfficerDashboardPage />
-                </PrivateRoute>
-              }
-            />
+          {/* Admin only */}
+          <Route
+            path="/admin/dashboard"
+            element={
+              <PrivateRoute allowedRoles={["admin"]}>
+                <AdminDashboard />
+              </PrivateRoute>
+            }
+          />
 
-            {/* Citizen Protected Routes (coming soon) */}
-            <Route
-              path="/dashboard"
-              element={
-                <PrivateRoute allowedRoles={["citizen"]}>
-                  <div>Citizen Dashboard (Coming Soon)</div>
-                </PrivateRoute>
-              }
-            />
-          </Routes>
-        </div>
+          {/* GN Officer only */}
+          <Route
+            path="/officer/dashboard"
+            element={
+              <PrivateRoute allowedRoles={["gn_officer"]}>
+                <OfficerDashboard />
+              </PrivateRoute>
+            }
+          />
+
+          {/* Citizen only */}
+          <Route
+            path="/citizen/dashboard"
+            element={
+              <PrivateRoute allowedRoles={["citizen"]}>
+                <CitizenDashboard />
+              </PrivateRoute>
+            }
+          />
+        </Routes>
       </AuthProvider>
-    </Router>
+    </BrowserRouter>
   );
 }
 
