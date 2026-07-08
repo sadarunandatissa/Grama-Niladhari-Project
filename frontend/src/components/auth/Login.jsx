@@ -1,16 +1,14 @@
+// frontend/src/components/auth/Login.jsx
+
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
-// import "./Login.css";
+import "./Login.css";
 
 const Login = () => {
   const { login } = useAuth();
   const navigate = useNavigate();
-  const [formData, setFormData] = useState({
-    email: "",
-    password: "",
-    role: "citizen",
-  });
+  const [formData, setFormData] = useState({ email: "", password: "" });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -24,10 +22,11 @@ const Login = () => {
     setLoading(true);
     setError("");
     try {
-      await login(formData);
-      // Redirect based on role
-      if (formData.role === "admin") navigate("/admin/dashboard");
-      else if (formData.role === "gn_officer") navigate("/officer/dashboard");
+      const response = await login(formData); // no role sent
+      // Redirect based on role returned from backend
+      const role = response.user.role;
+      if (role === "admin") navigate("/admin/dashboard");
+      else if (role === "gn_officer") navigate("/officer/dashboard");
       else navigate("/citizen/dashboard");
     } catch (err) {
       setError(err.response?.data?.message || "Login failed.");
@@ -43,14 +42,6 @@ const Login = () => {
         {error && <div className="alert error">{error}</div>}
         <form onSubmit={handleSubmit}>
           <div className="form-group">
-            <label>Role</label>
-            <select name="role" value={formData.role} onChange={handleChange}>
-              <option value="citizen">Citizen</option>
-              <option value="gn_officer">GN Officer</option>
-              <option value="admin">Admin</option>
-            </select>
-          </div>
-          <div className="form-group">
             <label>Email</label>
             <input
               type="email"
@@ -58,6 +49,7 @@ const Login = () => {
               value={formData.email}
               onChange={handleChange}
               required
+              placeholder="Enter your email"
             />
           </div>
           <div className="form-group">
@@ -68,6 +60,7 @@ const Login = () => {
               value={formData.password}
               onChange={handleChange}
               required
+              placeholder="Enter your password"
             />
           </div>
           <button type="submit" disabled={loading}>
