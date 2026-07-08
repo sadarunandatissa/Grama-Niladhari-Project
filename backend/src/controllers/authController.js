@@ -1,3 +1,5 @@
+// backend/src/controllers/authController.js
+
 const Admin = require("../models/Admin");
 const GNOfficer = require("../models/GNOfficer");
 const Citizen = require("../models/Citizen");
@@ -6,66 +8,85 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
 /**
- * Login - email + password, role-based
+ * Login - email + password only (auto-detect role)
  * POST /api/auth/login
  */
 exports.login = async (req, res) => {
   try {
-    const { email, password, role } = req.body;
+    const { email, password } = req.body;
 
-    if (!email || !password || !role) {
-      return res
-        .status(400)
-        .json({
-          success: false,
-          message: "Email, password, and role are required.",
-        });
+    // Validate input
+    if (!email || !password) {
+      return res.status(400).json({
+        success: false,
+        message: "Email and password are required.",
+      });
     }
 
-    let user, userModel;
-    if (role === "admin") {
-      user = await Admin.findOne({ email });
+    let user, role, userModel;
+
+    // 1️⃣ Check Admin collection
+    const admin = await Admin.findOne({ email });
+    if (admin) {
+      user = admin;
+      role = "admin";
       userModel = "Admin";
-    } else if (role === "gn_officer") {
-      user = await GNOfficer.findOne({ email });
-      userModel = "GNOfficer";
-    } else if (role === "citizen") {
-      user = await Citizen.findOne({ email });
-      userModel = "Citizen";
-    } else {
-      return res.status(400).json({ success: false, message: "Invalid role." });
     }
 
+    // 2️⃣ If not admin, check GN Officer
     if (!user) {
-      return res
-        .status(401)
-        .json({ success: false, message: "Invalid credentials." });
+      const officer = await GNOfficer.findOne({ email });
+      if (officer) {
+        user = officer;
+        role = "gn_officer";
+        userModel = "GNOfficer";
+      }
     }
 
-    if (!user.is_active) {
-      return res
-        .status(401)
-        .json({ success: false, message: "Account deactivated." });
+    // 3️⃣ If not officer, check Citizen
+    if (!user) {
+      const citizen = await Citizen.findOne({ email });
+      if (citizen) {
+        user = citizen;
+        role = "citizen";
+        userModel = "Citizen";
+      }
     }
 
-    // For citizen, check if verified
+    // If no user found in any collection
+    if (!user) {
+      return res.status(401).json({
+        success: false,
+        message: "Invalid credentials.",
+      });
+    }
+
+    // Check if account is active
+    if (user.is_active === false) {
+      return res.status(401).json({
+        success: false,
+        message: "Account deactivated. Please contact support.",
+      });
+    }
+
+    // For citizens, check if verified
     if (role === "citizen" && !user.is_verified) {
-      return res
-        .status(401)
-        .json({
-          success: false,
-          message: "Account not verified. Please wait for GN Officer approval.",
-        });
+      return res.status(401).json({
+        success: false,
+        message: "Account not verified. Please wait for GN Officer approval.",
+      });
     }
 
+    // Verify password
     const isMatch = await bcrypt.compare(password, user.password_hash);
     if (!isMatch) {
-      return res
-        .status(401)
-        .json({ success: false, message: "Invalid credentials." });
+      return res.status(401).json({
+        success: false,
+        message: "Invalid credentials.",
+      });
     }
 
-    // Generate JWT
+    // Generate JWT with role
     const token = jwt.sign(
       {
         id: user._id,
@@ -88,6 +109,7 @@ exports.login = async (req, res) => {
       user_agent: req.headers["user-agent"],
     });
 
+    // Return user data including role
     res.json({
       success: true,
       token,
@@ -95,7 +117,7 @@ exports.login = async (req, res) => {
         id: user._id,
         name: user.full_name || user.email,
         email: user.email,
-        role: role,
+        role: role, // ✅ role is auto-detected
         village_id: user.village_id || null,
         profile_picture: user.profile_picture || null,
         is_verified: user.is_verified !== undefined ? user.is_verified : true,
@@ -103,6 +125,9 @@ exports.login = async (req, res) => {
     });
   } catch (error) {
     console.error("Login error:", error);
-    res.status(500).json({ success: false, message: "Server error." });
+    res.status(500).json({
+      success: false,
+      message: "Server error. Please try again later.",
+    });
   }
 };
