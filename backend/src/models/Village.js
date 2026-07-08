@@ -36,4 +36,6 @@ const VillageSchema = new mongoose.Schema({
   },
 });
 
-module.exports = mongoose.model("Village", VillageSchema);
+// Corrected casing: Changed villageSchema to VillageSchema
+module.exports =
+  mongoose.models.Village || mongoose.model("Village", VillageSchema);

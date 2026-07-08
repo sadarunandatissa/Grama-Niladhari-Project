@@ -1,18 +1,14 @@
-const rateLimit = require("express-rate-limit");
+const express = require("express");
+const router = express.Router();
+const {
+  createGNOfficer,
+  getVillages,
+} = require("../controllers/adminController");
+const { protect, authorize } = require("../middleware/auth");
+const { handleUpload } = require("../middleware/upload");
 
-/**
- * Rate limiter for login and registration endpoints
- * Prevents brute force and abuse
- */
-const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // limit each IP to 100 requests per window
-  message: {
-    success: false,
-    message: "Too many requests, please try again later.",
-  },
-  standardHeaders: true,
-  legacyHeaders: false,
-});
+router.use(protect, authorize("admin"));
+router.get("/villages", getVillages);
+router.post("/gn-officer", handleUpload, createGNOfficer);
 
-module.exports = { limiter };
+module.exports = router; // ✅ must be present
