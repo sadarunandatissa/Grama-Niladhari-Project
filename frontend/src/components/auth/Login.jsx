@@ -22,13 +22,25 @@ const Login = () => {
     setLoading(true);
     setError("");
     try {
-      const response = await login(formData); // no role sent
-      // Redirect based on role returned from backend
+      const response = await login(formData);
+      console.log("✅ Login response:", response);
+
+      // ✅ Redirect based on role from backend
       const role = response.user.role;
-      if (role === "admin") navigate("/admin/dashboard");
-      else if (role === "gn_officer") navigate("/officer/dashboard");
-      else navigate("/citizen/dashboard");
+      console.log("👤 User role:", role);
+
+      if (role === "admin") {
+        navigate("/admin/dashboard");
+      } else if (role === "gn_officer") {
+        navigate("/officer/dashboard");
+      } else if (role === "citizen") {
+        navigate("/citizen/dashboard");
+      } else {
+        // Fallback
+        navigate("/");
+      }
     } catch (err) {
+      console.error("❌ Login error:", err);
       setError(err.response?.data?.message || "Login failed.");
     } finally {
       setLoading(false);

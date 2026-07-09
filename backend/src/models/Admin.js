@@ -1,9 +1,5 @@
 const mongoose = require("mongoose");
 
-/**
- * Admin Model - System administrator
- * Only one admin account exists (singleton)
- */
 const AdminSchema = new mongoose.Schema({
   email: {
     type: String,

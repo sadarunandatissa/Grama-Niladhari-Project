@@ -16,8 +16,8 @@ const createAdmin = async () => {
     console.log("✅ Connected to MongoDB");
 
     // 5. Define the admin credentials
-    const email = "admin@gnsystem.com";
-    const plainPassword = "Admin@123";
+    const email = "admin@system.com";
+    const plainPassword = "Admin@12345";
 
     // 6. Hash the password (10 salt rounds)
     //    bcrypt.hash() creates a secure irreversible hash

@@ -1,6 +1,16 @@
+// frontend/src/context/AuthContext.jsx
+
 import React, { createContext, useState, useContext, useEffect } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+
+// ✅ Helper to get API URL (Vite)
+const getApiUrl = () => {
+  if (import.meta.env && import.meta.env.VITE_API_URL) {
+    return import.meta.env.VITE_API_URL;
+  }
+  return "http://localhost:5000";
+};
 
 const AuthContext = createContext();
 
@@ -10,7 +20,8 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
-  // Set up axios interceptor for token
+  const API_URL = getApiUrl();
+
   useEffect(() => {
     if (token) {
       axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
@@ -19,11 +30,9 @@ export const AuthProvider = ({ children }) => {
     }
   }, [token]);
 
-  // Load user from localStorage
   useEffect(() => {
     const storedToken = localStorage.getItem("token");
     const storedUser = localStorage.getItem("user");
-
     if (storedToken && storedUser) {
       setToken(storedToken);
       setUser(JSON.parse(storedUser));
@@ -32,26 +41,33 @@ export const AuthProvider = ({ children }) => {
     setLoading(false);
   }, []);
 
-  // frontend/src/context/AuthContext.jsx
-
   const login = async (credentials) => {
-    // credentials = { email, password }  (no role)
+    console.log("🔐 AuthContext.login called with:", credentials);
+    const url = `${API_URL}/api/auth/login`;
+    console.log("🌐 API URL:", url);
     try {
-      const response = await axios.post(
-        `${process.env.REACT_APP_API_URL}/api/auth/login`,
-        credentials,
-      );
+      const response = await axios.post(url, credentials);
+      console.log("✅ Login response:", response.data);
       const { token, user } = response.data;
+
+      // ✅ Store in state
       setToken(token);
       setUser(user);
+
+      // ✅ Store in localStorage
       localStorage.setItem("token", token);
       localStorage.setItem("user", JSON.stringify(user));
+
+      // ✅ Set axios default header
       axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
-      return response.data; // so we can read role
+
+      return response.data;
     } catch (error) {
+      console.error("❌ Login error:", error);
       throw error;
     }
   };
+
   const logout = () => {
     setToken("");
     setUser(null);
@@ -61,21 +77,8 @@ export const AuthProvider = ({ children }) => {
     navigate("/login");
   };
 
-  const isAuthenticated = !!token && !!user;
-
   return (
-    <AuthContext.Provider
-      value={{
-        user,
-        token,
-        loading,
-        login,
-        logout,
-        isAuthenticated,
-        isGNOfficer: user?.role === "gn_officer",
-        isCitizen: user?.role === "citizen",
-      }}
-    >
+    <AuthContext.Provider value={{ user, token, loading, login, logout }}>
       {children}
     </AuthContext.Provider>
   );
