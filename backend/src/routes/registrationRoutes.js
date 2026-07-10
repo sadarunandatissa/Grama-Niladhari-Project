@@ -1,7 +1,12 @@
 // backend/src/routes/registrationRoutes.js
-
+const express = require("express");
+const { submitRegistration } = require("../controllers/registrationController");
+const { uploadCitizenPicture } = require("../middleware/upload");
+const { limiter } = require("../middleware/rateLimiter");
 const express = require("express");
 const router = express.Router();
+// Public: submit registration with image and rate limiting
+router.post("/submit", limiter, uploadCitizenPicture, submitRegistration);
 
 // Import controllers
 const {
