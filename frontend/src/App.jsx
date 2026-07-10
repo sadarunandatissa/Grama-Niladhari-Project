@@ -29,7 +29,7 @@ function App() {
               element={<RegistrationSuccess />}
             />
 
-            {/* GN Officer Protected Routes */}
+            {/* Protected Routes */}
             <Route
               path="/officer-dashboard"
               element={
@@ -38,16 +38,16 @@ function App() {
                 </PrivateRoute>
               }
             />
-
-            {/* Citizen Protected Routes (coming soon) */}
             <Route
-              path="/dashboard"
+              path="/officer/pending"
               element={
-                <PrivateRoute allowedRoles={["citizen"]}>
-                  <div>Citizen Dashboard (Coming Soon)</div>
+                <PrivateRoute allowedRoles={["gn_officer"]}>
+                  <PendingVerifications />
                 </PrivateRoute>
               }
             />
+
+            {/* Optional: citizen dashboard, etc. */}
           </Routes>
         </div>
       </AuthProvider>
