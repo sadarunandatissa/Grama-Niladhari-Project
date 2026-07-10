@@ -1,3 +1,5 @@
+// backend/src/controllers/registrationController.js
+
 const RegistrationRequest = require("../models/RegistrationRequest");
 const Citizen = require("../models/Citizen");
 const Family = require("../models/Family");
@@ -36,7 +38,7 @@ exports.submitRegistration = async (req, res) => {
       password,
     } = req.body;
 
-    // Validation (all checks)
+    // 1. Validate input
     if (!validateEmail(email)) {
       return res
         .status(400)
@@ -97,6 +99,7 @@ exports.submitRegistration = async (req, res) => {
           });
       }
     }
+    // Family head logic
     if (is_family_head === false && !family_reg_no) {
       return res
         .status(400)
@@ -105,7 +108,7 @@ exports.submitRegistration = async (req, res) => {
           message: "Family registration number required for non‑head members.",
         });
     }
-    // Profile picture required
+    // Profile picture
     if (!req.file) {
       return res
         .status(400)
@@ -113,7 +116,7 @@ exports.submitRegistration = async (req, res) => {
     }
     const profile_picture = `/uploads/citizens/${req.file.filename}`;
 
-    // Uniqueness checks
+    // 2. Uniqueness checks
     const existingEmail = await RegistrationRequest.findOne({ email });
     if (existingEmail) {
       return res
@@ -133,7 +136,7 @@ exports.submitRegistration = async (req, res) => {
         .json({ success: false, message: "Email or NIC already verified." });
     }
 
-    // Village exists?
+    // 3. Verify village exists
     const village = await Village.findOne({ village_id });
     if (!village) {
       return res
@@ -141,11 +144,11 @@ exports.submitRegistration = async (req, res) => {
         .json({ success: false, message: "Selected village does not exist." });
     }
 
-    // Hash password
+    // 4. Hash password
     const salt = await bcrypt.genSalt(10);
     const password_hash = await bcrypt.hash(password, salt);
 
-    // Create registration request
+    // 5. Create registration request
     const registration = new RegistrationRequest({
       email,
       nic,
@@ -168,7 +171,7 @@ exports.submitRegistration = async (req, res) => {
     });
     await registration.save();
 
-    // Optional audit log
+    // 6. Audit log (non‑blocking)
     try {
       await AuditLog.create({
         user_type: "citizen",
@@ -187,8 +190,10 @@ exports.submitRegistration = async (req, res) => {
       data: { registration_id: registration._id },
     });
   } catch (error) {
-    console.error("Submit registration error:", error);
-    res.status(500).json({ success: false, message: "Server error." });
+    console.error("❌ Submit registration error:", error);
+    res
+      .status(500)
+      .json({ success: false, message: "Server error during registration." });
   }
 };
 
@@ -210,7 +215,7 @@ exports.getPendingRegistrations = async (req, res) => {
 
     res.json({ success: true, count: pending.length, data: pending });
   } catch (error) {
-    console.error("Get pending error:", error);
+    console.error("❌ Get pending error:", error);
     res.status(500).json({ success: false, message: "Server error." });
   }
 };
@@ -222,6 +227,9 @@ exports.verifyRegistration = async (req, res) => {
     const { action, rejection_reason } = req.body;
     const officerId = req.user.id;
 
+    console.log(`🔍 Verification attempt for ID: ${id}, action: ${action}`);
+
+    // 1. Fetch registration
     const registration = await RegistrationRequest.findById(id);
     if (!registration) {
       return res
@@ -234,8 +242,14 @@ exports.verifyRegistration = async (req, res) => {
         .json({ success: false, message: `Already ${registration.status}.` });
     }
 
+    // 2. Verify officer
     const officer = await GNOfficer.findById(officerId);
-    if (!officer || officer.village_id !== registration.village_id) {
+    if (!officer) {
+      return res
+        .status(404)
+        .json({ success: false, message: "GN Officer not found." });
+    }
+    if (officer.village_id !== registration.village_id) {
       return res
         .status(403)
         .json({ success: false, message: "Not authorized for this village." });
@@ -249,22 +263,33 @@ exports.verifyRegistration = async (req, res) => {
       registration.verified_by = officerId;
       registration.verified_at = new Date();
       await registration.save();
-      await AuditLog.create({
-        user_type: "gn_officer",
-        user_id: officerId,
-        user_model: "GNOfficer",
-        action: "REJECT_REGISTRATION",
-        details: { registration_id: id, reason: rejection_reason },
-        ip_address: req.ip,
-        user_agent: req.headers["user-agent"],
-      });
+      // Audit log
+      try {
+        await AuditLog.create({
+          user_type: "gn_officer",
+          user_id: officerId,
+          user_model: "GNOfficer",
+          action: "REJECT_REGISTRATION",
+          details: { registration_id: id, reason: rejection_reason },
+          ip_address: req.ip,
+          user_agent: req.headers["user-agent"],
+        });
+      } catch (e) {}
       return res.json({ success: true, message: "Registration rejected." });
     }
 
     // ---- VERIFY ----
-    // Check family_reg_no if not head
+    // 3. Check family for non‑head
     let familyId;
     if (!registration.is_family_head) {
+      if (!registration.family_reg_no) {
+        return res
+          .status(400)
+          .json({
+            success: false,
+            message: "Family registration number missing.",
+          });
+      }
       const family = await Family.findOne({
         family_reg_no: registration.family_reg_no,
         village_id: officer.village_id,
@@ -274,40 +299,40 @@ exports.verifyRegistration = async (req, res) => {
           .status(400)
           .json({
             success: false,
-            message: "Family registration number not found.",
+            message: "Family registration number not found in this village.",
           });
       }
       familyId = family._id;
     }
 
-    // Create family for head
+    // 4. Create family for head
     if (registration.is_family_head) {
       const familyRegNo = await generateFamilyRegNo(officer.village_id);
       const newFamily = new Family({
         village_id: officer.village_id,
         family_reg_no: familyRegNo,
-        head_citizen_id: null, // will update later
+        head_citizen_id: null,
         members: [],
       });
       const savedFamily = await newFamily.save();
       familyId = savedFamily._id;
     }
 
-    // Create Citizen
-    const newCitizen = new Citizen({
+    // 5. Create Citizen
+    const citizenData = {
       email: registration.email,
       password_hash: registration.password_hash,
       nic: registration.nic,
       full_name: registration.full_name,
-      initials: registration.initials,
-      surname: registration.surname,
-      first_name: registration.first_name,
-      middle_name: registration.middle_name,
-      last_name: registration.last_name,
+      initials: registration.initials || "",
+      surname: registration.surname || "",
+      first_name: registration.first_name || "",
+      middle_name: registration.middle_name || "",
+      last_name: registration.last_name || "",
       date_of_birth: registration.date_of_birth,
       address: registration.address,
       phone_numbers: registration.phone_numbers,
-      occupation: registration.occupation,
+      occupation: registration.occupation || "",
       village_id: registration.village_id,
       profile_picture: registration.profile_picture,
       family_id: familyId,
@@ -316,23 +341,22 @@ exports.verifyRegistration = async (req, res) => {
       verified_at: new Date(),
       verified_by: officerId,
       is_active: true,
-    });
-    const citizen = await newCitizen.save();
+    };
+    const citizen = await new Citizen(citizenData).save();
 
-    // If family head, update family head_citizen_id and add to members
+    // 6. Update family head and members
     if (registration.is_family_head) {
       await Family.findByIdAndUpdate(familyId, {
         head_citizen_id: citizen._id,
         $push: { members: citizen._id },
       });
     } else {
-      // Add member to existing family
       await Family.findByIdAndUpdate(familyId, {
         $push: { members: citizen._id },
       });
     }
 
-    // Update registration
+    // 7. Update registration status
     registration.status = "verified";
     registration.verified_by = officerId;
     registration.verified_at = new Date();
@@ -340,15 +364,18 @@ exports.verifyRegistration = async (req, res) => {
     registration.family_id = familyId;
     await registration.save();
 
-    await AuditLog.create({
-      user_type: "gn_officer",
-      user_id: officerId,
-      user_model: "GNOfficer",
-      action: "VERIFY_REGISTRATION",
-      details: { registration_id: id, citizen_id: citizen._id },
-      ip_address: req.ip,
-      user_agent: req.headers["user-agent"],
-    });
+    // Audit log
+    try {
+      await AuditLog.create({
+        user_type: "gn_officer",
+        user_id: officerId,
+        user_model: "GNOfficer",
+        action: "VERIFY_REGISTRATION",
+        details: { registration_id: id, citizen_id: citizen._id },
+        ip_address: req.ip,
+        user_agent: req.headers["user-agent"],
+      });
+    } catch (e) {}
 
     res.json({
       success: true,
@@ -356,7 +383,11 @@ exports.verifyRegistration = async (req, res) => {
       data: { citizen_id: citizen._id, family_id: familyId },
     });
   } catch (error) {
-    console.error("Verification error:", error);
-    res.status(500).json({ success: false, message: "Server error." });
+    console.error("❌ Verification error details:", error);
+    res.status(500).json({
+      success: false,
+      message: "Server error during verification.",
+      error: error.message, // remove in production
+    });
   }
 };
