@@ -1,5 +1,8 @@
 const mongoose = require("mongoose");
 
+/**
+ * Village Model - Grama Niladhari Division
+ */
 const VillageSchema = new mongoose.Schema({
   village_id: {
     type: String,
@@ -33,4 +36,6 @@ const VillageSchema = new mongoose.Schema({
   },
 });
 
-module.exports = mongoose.model("Village", VillageSchema);
+// Corrected casing: Changed villageSchema to VillageSchema
+module.exports =
+  mongoose.models.Village || mongoose.model("Village", VillageSchema);

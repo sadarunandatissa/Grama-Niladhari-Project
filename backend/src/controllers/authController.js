@@ -1,124 +1,133 @@
-const Citizen = require("../models/Citizen");
+// backend/src/controllers/authController.js
+
+const Admin = require("../models/Admin");
 const GNOfficer = require("../models/GNOfficer");
+const Citizen = require("../models/Citizen");
+const AuditLog = require("../models/AuditLog");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
 /**
- * Login User
+ * Login - email + password only (auto-detect role)
  * POST /api/auth/login
  */
 exports.login = async (req, res) => {
   try {
-    const { username, password, role } = req.body;
+    const { email, password } = req.body;
 
-    if (!username || !password || !role) {
+    // Validate input
+    if (!email || !password) {
       return res.status(400).json({
         success: false,
-        message: "Username, password, and role are required",
+        message: "Email and password are required.",
       });
     }
 
-    let user;
-    if (role === "citizen") {
-      user = await Citizen.findOne({ username });
-    } else if (role === "gn_officer") {
-      user = await GNOfficer.findOne({ email: username });
-    } else {
-      return res.status(400).json({
-        success: false,
-        message: 'Invalid role. Must be "citizen" or "gn_officer"',
-      });
+    let user, role, userModel;
+
+    // 1️⃣ Check Admin collection
+    const admin = await Admin.findOne({ email });
+    if (admin) {
+      user = admin;
+      role = "admin";
+      userModel = "Admin";
     }
 
+    // 2️⃣ If not admin, check GN Officer
+    if (!user) {
+      const officer = await GNOfficer.findOne({ email });
+      if (officer) {
+        user = officer;
+        role = "gn_officer";
+        userModel = "GNOfficer";
+      }
+    }
+
+    // 3️⃣ If not officer, check Citizen
+    if (!user) {
+      const citizen = await Citizen.findOne({ email });
+      if (citizen) {
+        user = citizen;
+        role = "citizen";
+        userModel = "Citizen";
+      }
+    }
+
+    // If no user found in any collection
     if (!user) {
       return res.status(401).json({
         success: false,
-        message: "Invalid credentials",
+        message: "Invalid credentials.",
       });
     }
 
+    // Check if account is active
     if (user.is_active === false) {
       return res.status(401).json({
         success: false,
-        message: "Account is deactivated. Please contact your GN Officer.",
+        message: "Account deactivated. Please contact support.",
       });
     }
 
+    // For citizens, check if verified
     if (role === "citizen" && !user.is_verified) {
       return res.status(401).json({
         success: false,
-        message:
-          "Your account is not yet verified. Please wait for GN Officer verification.",
+        message: "Account not verified. Please wait for GN Officer approval.",
       });
     }
 
+    // Verify password
     const isMatch = await bcrypt.compare(password, user.password_hash);
     if (!isMatch) {
       return res.status(401).json({
         success: false,
-        message: "Invalid credentials",
+        message: "Invalid credentials.",
       });
     }
 
+    // Generate JWT with role
     const token = jwt.sign(
       {
         id: user._id,
         role: role,
-        village_id: user.village_id,
-        name: user.full_name,
+        village_id: user.village_id || null,
+        name: user.full_name || user.email,
       },
       process.env.JWT_SECRET,
       { expiresIn: "7d" },
     );
 
-    const userResponse = {
-      id: user._id,
-      name: user.full_name,
-      email: role === "gn_officer" ? user.email : user.username,
-      role: role,
-      village_id: user.village_id,
-      is_head: user.is_head || false,
-      is_verified: user.is_verified !== undefined ? user.is_verified : true,
-    };
+    // Audit log
+    await AuditLog.create({
+      user_type: role,
+      user_id: user._id,
+      user_model: userModel,
+      action: "LOGIN",
+      details: { ip: req.ip },
+      ip_address: req.ip,
+      user_agent: req.headers["user-agent"],
+    });
 
+    // Return user data including role
     res.json({
       success: true,
       token,
-      user: userResponse,
+      user: {
+        id: user._id,
+        name: user.full_name || user.email,
+        email: user.email,
+        role: role, // ✅ role is auto-detected
+        village_id: user.village_id || null,
+        profile_picture: user.profile_picture || null,
+        is_verified: user.is_verified !== undefined ? user.is_verified : true,
+      },
     });
   } catch (error) {
     console.error("Login error:", error);
     res.status(500).json({
       success: false,
       message: "Server error. Please try again later.",
-      error: error.message,
-    });
-  }
-};
-
-/**
- * Get Current User
- * GET /api/auth/me
- */
-exports.getCurrentUser = async (req, res) => {
-  try {
-    const user = await Citizen.findById(req.user.id).select("-password_hash");
-    if (!user) {
-      return res.status(404).json({
-        success: false,
-        message: "User not found",
-      });
-    }
-    res.json({
-      success: true,
-      user,
-    });
-  } catch (error) {
-    console.error("Get user error:", error);
-    res.status(500).json({
-      success: false,
-      message: "Server error",
-      error: error.message,
     });
   }
 };

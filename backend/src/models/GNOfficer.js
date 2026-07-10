@@ -1,28 +1,21 @@
+// backend/src/models/GNOfficer.js
 const mongoose = require("mongoose");
 
 const GNOfficerSchema = new mongoose.Schema({
-  village_id: {
+  email: {
     type: String,
-    ref: "Village",
-    unique: true,
     required: true,
-  },
-  employee_id: {
-    type: String,
     unique: true,
-    required: true,
+    lowercase: true,
     trim: true,
+  },
+  password_hash: {
+    type: String,
+    required: true,
   },
   full_name: {
     type: String,
     required: true,
-    trim: true,
-  },
-  email: {
-    type: String,
-    unique: true,
-    required: true,
-    lowercase: true,
     trim: true,
   },
   phone: {
@@ -30,8 +23,19 @@ const GNOfficerSchema = new mongoose.Schema({
     required: true,
     trim: true,
   },
-  password_hash: {
+  village_id: {
     type: String,
+    ref: "Village",
+    required: true,
+    index: true,
+  },
+  profile_picture: {
+    type: String,
+    default: null,
+  },
+  created_by: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Admin",
     required: true,
   },
   is_active: {
@@ -39,6 +43,10 @@ const GNOfficerSchema = new mongoose.Schema({
     default: true,
   },
   created_at: {
+    type: Date,
+    default: Date.now,
+  },
+  updated_at: {
     type: Date,
     default: Date.now,
   },

@@ -1,12 +1,8 @@
 const express = require("express");
 const router = express.Router();
-const { login, getCurrentUser } = require("../controllers/authController"); // ← make sure both are imported
-const { protect } = require("../middleware/auth");
+const { login } = require("../controllers/authController");
+const { limiter } = require("../middleware/rateLimiter");
 
-// Public: Login
-router.post("/login", login);
-
-// Protected: Get current user
-router.get("/me", protect, getCurrentUser);
+router.post("/login", limiter, login);
 
 module.exports = router;

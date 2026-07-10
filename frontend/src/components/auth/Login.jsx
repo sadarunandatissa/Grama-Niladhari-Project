@@ -1,26 +1,19 @@
+// frontend/src/components/auth/Login.jsx
+
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import "./Login.css";
 
 const Login = () => {
-  const navigate = useNavigate();
   const { login } = useAuth();
+  const navigate = useNavigate();
+  const [formData, setFormData] = useState({ email: "", password: "" });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  const [formData, setFormData] = useState({
-    username: "",
-    password: "",
-    role: "citizen",
-  });
-
   const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+    setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
     setError("");
   };
 
@@ -28,19 +21,27 @@ const Login = () => {
     e.preventDefault();
     setLoading(true);
     setError("");
-
     try {
-      await login(formData);
-      // Redirect based on role
-      if (formData.role === "gn_officer") {
-        navigate("/officer-dashboard");
+      const response = await login(formData);
+      console.log("✅ Login response:", response);
+
+      // ✅ Redirect based on role from backend
+      const role = response.user.role;
+      console.log("👤 User role:", role);
+
+      if (role === "admin") {
+        navigate("/admin/dashboard");
+      } else if (role === "gn_officer") {
+        navigate("/officer/dashboard");
+      } else if (role === "citizen") {
+        navigate("/citizen/dashboard");
       } else {
-        navigate("/dashboard");
+        // Fallback
+        navigate("/");
       }
     } catch (err) {
-      setError(
-        err.response?.data?.message || "Login failed. Please try again.",
-      );
+      console.error("❌ Login error:", err);
+      setError(err.response?.data?.message || "Login failed.");
     } finally {
       setLoading(false);
     }
@@ -49,43 +50,20 @@ const Login = () => {
   return (
     <div className="login-container">
       <div className="login-card">
-        <div className="login-header">
-          <h2>Welcome Back</h2>
-          <p>Login to access GN services</p>
-        </div>
-
-        {error && <div className="alert alert-error">{error}</div>}
-
+        <h2>Login</h2>
+        {error && <div className="alert error">{error}</div>}
         <form onSubmit={handleSubmit}>
           <div className="form-group">
-            <label>Login as</label>
-            <select
-              name="role"
-              value={formData.role}
-              onChange={handleChange}
-              required
-            >
-              <option value="citizen">Citizen</option>
-              <option value="gn_officer">GN Officer</option>
-            </select>
-          </div>
-
-          <div className="form-group">
-            <label>{formData.role === "citizen" ? "Username" : "Email"}</label>
+            <label>Email</label>
             <input
-              type="text"
-              name="username"
-              value={formData.username}
+              type="email"
+              name="email"
+              value={formData.email}
               onChange={handleChange}
-              placeholder={
-                formData.role === "citizen"
-                  ? "Enter your username"
-                  : "Enter your email"
-              }
               required
+              placeholder="Enter your email"
             />
           </div>
-
           <div className="form-group">
             <label>Password</label>
             <input
@@ -93,21 +71,17 @@ const Login = () => {
               name="password"
               value={formData.password}
               onChange={handleChange}
-              placeholder="Enter your password"
               required
+              placeholder="Enter your password"
             />
           </div>
-
-          <button type="submit" className="btn-login" disabled={loading}>
+          <button type="submit" disabled={loading}>
             {loading ? "Logging in..." : "Login"}
           </button>
         </form>
-
-        <div className="login-footer">
-          <p>
-            Don't have an account? <Link to="/register">Register here</Link>
-          </p>
-        </div>
+        <p>
+          Don't have an account? <Link to="/register">Register</Link>
+        </p>
       </div>
     </div>
   );
