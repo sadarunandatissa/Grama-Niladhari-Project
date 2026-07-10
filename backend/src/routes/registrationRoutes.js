@@ -1,14 +1,7 @@
-// backend/src/routes/registrationRoutes.js
-const express = require("express");
-const { submitRegistration } = require("../controllers/registrationController");
-const { uploadCitizenPicture } = require("../middleware/upload");
-const { limiter } = require("../middleware/rateLimiter");
 const express = require("express");
 const router = express.Router();
-// Public: submit registration with image and rate limiting
-router.post("/submit", limiter, uploadCitizenPicture, submitRegistration);
 
-// Import controllers
+// Import controllers (make sure these exist and are exported correctly)
 const {
   submitRegistration,
   getPendingRegistrations,
@@ -17,13 +10,13 @@ const {
 
 // Import middleware
 const { protect, authorize } = require("../middleware/auth");
-const { handleUpload } = require("../middleware/upload");
+const { uploadCitizenPicture } = require("../middleware/upload");
 const { limiter } = require("../middleware/rateLimiter");
 
-// Public route: submit registration (with rate limiting + file upload)
-router.post("/submit", limiter, handleUpload, submitRegistration);
+// Public: Submit registration (with rate limiting and file upload)
+router.post("/submit", limiter, uploadCitizenPicture, submitRegistration);
 
-// Protected routes (GN Officer only)
+// Protected: GN Officer routes
 router.get(
   "/pending",
   protect,

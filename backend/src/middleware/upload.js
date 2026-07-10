@@ -19,7 +19,6 @@ const storage = multer.diskStorage({
     cb(null, dest);
   },
   filename: (req, file, cb) => {
-    // Sanitize filename: timestamp + original name
     const ext = path.extname(file.originalname);
     const base = path.basename(file.originalname, ext).replace(/\s+/g, "_");
     const unique = `${Date.now()}-${base}${ext}`;
@@ -64,4 +63,7 @@ const handleUpload = (req, res, next) => {
   });
 };
 
-module.exports = { upload, handleUpload };
+// ✅ Export for citizen registration (same as uploadSingle)
+const uploadCitizenPicture = uploadSingle;
+
+module.exports = { upload, handleUpload, uploadCitizenPicture };

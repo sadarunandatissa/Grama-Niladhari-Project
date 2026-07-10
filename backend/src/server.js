@@ -38,7 +38,7 @@ app.use("/api/auth", require("./routes/authRoutes"));
 app.use("/api/registration", require("./routes/registrationRoutes"));
 app.use("/api/admin", require("./routes/adminRoutes"));
 app.use("/api/citizen", require("./routes/citizenRoutes"));
-
+app.use("/api/villages", require("./routes/villageRoutes"));
 // Health check
 app.get("/api/health", (req, res) => {
   res.json({ success: true, message: "Server running" });

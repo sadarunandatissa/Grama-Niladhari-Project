@@ -14,7 +14,7 @@ const {
 } = require("../utils/validators");
 const { generateFamilyRegNo } = require("../utils/helpers");
 
-// Submit registration with image upload (handled by multer middleware)
+// ─── SUBMIT REGISTRATION (Citizen) ──────────────────────────────────────────
 exports.submitRegistration = async (req, res) => {
   try {
     const {
@@ -36,7 +36,7 @@ exports.submitRegistration = async (req, res) => {
       password,
     } = req.body;
 
-    // ----- VALIDATION -----
+    // Validation (all checks)
     if (!validateEmail(email)) {
       return res
         .status(400)
@@ -79,7 +79,6 @@ exports.submitRegistration = async (req, res) => {
         .status(400)
         .json({ success: false, message: "Village selection is required." });
     }
-    // Phone numbers
     if (!phone_numbers || phone_numbers.length === 0) {
       return res
         .status(400)
@@ -98,7 +97,6 @@ exports.submitRegistration = async (req, res) => {
           });
       }
     }
-    // Family head logic
     if (is_family_head === false && !family_reg_no) {
       return res
         .status(400)
@@ -115,7 +113,7 @@ exports.submitRegistration = async (req, res) => {
     }
     const profile_picture = `/uploads/citizens/${req.file.filename}`;
 
-    // ----- UNIQUENESS CHECKS -----
+    // Uniqueness checks
     const existingEmail = await RegistrationRequest.findOne({ email });
     if (existingEmail) {
       return res
@@ -128,7 +126,6 @@ exports.submitRegistration = async (req, res) => {
         .status(400)
         .json({ success: false, message: "NIC already registered." });
     }
-    // Also check Citizen collection
     const citizenExists = await Citizen.findOne({ $or: [{ email }, { nic }] });
     if (citizenExists) {
       return res
@@ -136,16 +133,13 @@ exports.submitRegistration = async (req, res) => {
         .json({ success: false, message: "Email or NIC already verified." });
     }
 
-    // Verify village exists
+    // Village exists?
     const village = await Village.findOne({ village_id });
     if (!village) {
       return res
         .status(404)
         .json({ success: false, message: "Selected village does not exist." });
     }
-
-    // If family member, ensure family_reg_no exists (but we'll verify later during GN verification)
-    // For now we just store it.
 
     // Hash password
     const salt = await bcrypt.genSalt(10);
@@ -198,5 +192,171 @@ exports.submitRegistration = async (req, res) => {
   }
 };
 
-// (GN Officer verification logic – unchanged from previous, but ensure it creates family/head properly)
-// We'll reuse the existing verifyRegistration function.
+// ─── GET PENDING REGISTRATIONS (GN Officer) ─────────────────────────────────
+exports.getPendingRegistrations = async (req, res) => {
+  try {
+    const officerId = req.user.id;
+    const officer = await GNOfficer.findById(officerId);
+    if (!officer) {
+      return res
+        .status(404)
+        .json({ success: false, message: "GN Officer not found." });
+    }
+
+    const pending = await RegistrationRequest.find({
+      status: "pending",
+      village_id: officer.village_id,
+    }).sort({ created_at: -1 });
+
+    res.json({ success: true, count: pending.length, data: pending });
+  } catch (error) {
+    console.error("Get pending error:", error);
+    res.status(500).json({ success: false, message: "Server error." });
+  }
+};
+
+// ─── VERIFY REGISTRATION (GN Officer) ───────────────────────────────────────
+exports.verifyRegistration = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { action, rejection_reason } = req.body;
+    const officerId = req.user.id;
+
+    const registration = await RegistrationRequest.findById(id);
+    if (!registration) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Registration not found." });
+    }
+    if (registration.status !== "pending") {
+      return res
+        .status(400)
+        .json({ success: false, message: `Already ${registration.status}.` });
+    }
+
+    const officer = await GNOfficer.findById(officerId);
+    if (!officer || officer.village_id !== registration.village_id) {
+      return res
+        .status(403)
+        .json({ success: false, message: "Not authorized for this village." });
+    }
+
+    // ---- REJECT ----
+    if (action === "reject") {
+      registration.status = "rejected";
+      registration.rejection_reason =
+        rejection_reason || "Rejected by GN Officer";
+      registration.verified_by = officerId;
+      registration.verified_at = new Date();
+      await registration.save();
+      await AuditLog.create({
+        user_type: "gn_officer",
+        user_id: officerId,
+        user_model: "GNOfficer",
+        action: "REJECT_REGISTRATION",
+        details: { registration_id: id, reason: rejection_reason },
+        ip_address: req.ip,
+        user_agent: req.headers["user-agent"],
+      });
+      return res.json({ success: true, message: "Registration rejected." });
+    }
+
+    // ---- VERIFY ----
+    // Check family_reg_no if not head
+    let familyId;
+    if (!registration.is_family_head) {
+      const family = await Family.findOne({
+        family_reg_no: registration.family_reg_no,
+        village_id: officer.village_id,
+      });
+      if (!family) {
+        return res
+          .status(400)
+          .json({
+            success: false,
+            message: "Family registration number not found.",
+          });
+      }
+      familyId = family._id;
+    }
+
+    // Create family for head
+    if (registration.is_family_head) {
+      const familyRegNo = await generateFamilyRegNo(officer.village_id);
+      const newFamily = new Family({
+        village_id: officer.village_id,
+        family_reg_no: familyRegNo,
+        head_citizen_id: null, // will update later
+        members: [],
+      });
+      const savedFamily = await newFamily.save();
+      familyId = savedFamily._id;
+    }
+
+    // Create Citizen
+    const newCitizen = new Citizen({
+      email: registration.email,
+      password_hash: registration.password_hash,
+      nic: registration.nic,
+      full_name: registration.full_name,
+      initials: registration.initials,
+      surname: registration.surname,
+      first_name: registration.first_name,
+      middle_name: registration.middle_name,
+      last_name: registration.last_name,
+      date_of_birth: registration.date_of_birth,
+      address: registration.address,
+      phone_numbers: registration.phone_numbers,
+      occupation: registration.occupation,
+      village_id: registration.village_id,
+      profile_picture: registration.profile_picture,
+      family_id: familyId,
+      is_head: registration.is_family_head,
+      is_verified: true,
+      verified_at: new Date(),
+      verified_by: officerId,
+      is_active: true,
+    });
+    const citizen = await newCitizen.save();
+
+    // If family head, update family head_citizen_id and add to members
+    if (registration.is_family_head) {
+      await Family.findByIdAndUpdate(familyId, {
+        head_citizen_id: citizen._id,
+        $push: { members: citizen._id },
+      });
+    } else {
+      // Add member to existing family
+      await Family.findByIdAndUpdate(familyId, {
+        $push: { members: citizen._id },
+      });
+    }
+
+    // Update registration
+    registration.status = "verified";
+    registration.verified_by = officerId;
+    registration.verified_at = new Date();
+    registration.citizen_id = citizen._id;
+    registration.family_id = familyId;
+    await registration.save();
+
+    await AuditLog.create({
+      user_type: "gn_officer",
+      user_id: officerId,
+      user_model: "GNOfficer",
+      action: "VERIFY_REGISTRATION",
+      details: { registration_id: id, citizen_id: citizen._id },
+      ip_address: req.ip,
+      user_agent: req.headers["user-agent"],
+    });
+
+    res.json({
+      success: true,
+      message: "Registration verified successfully.",
+      data: { citizen_id: citizen._id, family_id: familyId },
+    });
+  } catch (error) {
+    console.error("Verification error:", error);
+    res.status(500).json({ success: false, message: "Server error." });
+  }
+};
