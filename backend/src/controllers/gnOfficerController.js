@@ -37,7 +37,6 @@ exports.updateProfile = async (req, res) => {
         .json({ success: false, message: "Officer not found." });
     }
 
-    // Validate fields
     if (email && !validateEmail(email)) {
       return res
         .status(400)
@@ -49,12 +48,10 @@ exports.updateProfile = async (req, res) => {
         .json({ success: false, message: "Phone must be 10 digits." });
     }
 
-    // Update basic info
     if (full_name) officer.full_name = full_name.trim();
     if (phone) officer.phone = phone.trim();
     if (email) officer.email = email.trim().toLowerCase();
 
-    // Update password if provided
     if (current_password && new_password) {
       const isMatch = await bcrypt.compare(
         current_password,

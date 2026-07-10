@@ -1,8 +1,5 @@
 const Family = require("../models/Family");
 
-/**
- * Generate family registration number: GN-{village_code}-FAM-{sequence}
- */
 const generateFamilyRegNo = async (villageId) => {
   const last = await Family.findOne({ village_id: villageId }).sort({
     createdAt: -1,

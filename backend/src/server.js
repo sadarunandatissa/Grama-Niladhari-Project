@@ -1,4 +1,3 @@
-// backend/src/server.js
 const express = require("express");
 const dotenv = require("dotenv");
 const cors = require("cors");
@@ -11,7 +10,7 @@ connectDB();
 
 const app = express();
 
-// ✅ CORS – Allow multiple origins
+// CORS configuration
 const allowedOrigins = ["http://localhost:3000", "http://localhost:5173"];
 app.use(
   cors({
@@ -26,12 +25,26 @@ app.use(
   }),
 );
 
-app.use(helmet());
+// Helmet – allow cross-origin for images
+app.use(
+  helmet({
+    crossOriginResourcePolicy: { policy: "cross-origin" },
+  }),
+);
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Serve static files (uploads)
-app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
+// Serve static files with CORS headers
+app.use(
+  "/uploads",
+  (req, res, next) => {
+    res.header("Access-Control-Allow-Origin", req.headers.origin || "*");
+    res.header("Access-Control-Allow-Credentials", "true");
+    next();
+  },
+  express.static(path.join(__dirname, "../uploads")),
+);
 
 // Routes
 app.use("/api/auth", require("./routes/authRoutes"));
@@ -39,6 +52,8 @@ app.use("/api/registration", require("./routes/registrationRoutes"));
 app.use("/api/admin", require("./routes/adminRoutes"));
 app.use("/api/citizen", require("./routes/citizenRoutes"));
 app.use("/api/villages", require("./routes/villageRoutes"));
+app.use("/api/gn-officer", require("./routes/gnOfficerRoutes")); // ✅ Added
+
 // Health check
 app.get("/api/health", (req, res) => {
   res.json({ success: true, message: "Server running" });
@@ -50,7 +65,6 @@ app.use((err, req, res, next) => {
   res.status(500).json({ success: false, message: "Internal server error." });
 });
 
-app.use("/api/gn-officer", require("./routes/gnOfficerRoutes"));
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
