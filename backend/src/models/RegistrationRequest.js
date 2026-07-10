@@ -1,10 +1,7 @@
 const mongoose = require("mongoose");
 
-/**
- * RegistrationRequest - Pending citizen registration awaiting GN Officer verification
- */
 const RegistrationRequestSchema = new mongoose.Schema({
-  // All citizen fields except password_hash (will be moved to Citizen on verification)
+  // Section 2 fields
   email: {
     type: String,
     required: true,
@@ -12,107 +9,37 @@ const RegistrationRequestSchema = new mongoose.Schema({
     lowercase: true,
     trim: true,
   },
-  password_hash: {
-    type: String,
-    required: true,
-  },
-  nic: {
-    type: String,
-    required: true,
-    unique: true,
-    trim: true,
-  },
-  full_name: {
-    type: String,
-    required: true,
-    trim: true,
-  },
-  initials: String,
-  surname: String,
-  first_name: String,
-  middle_name: String,
-  last_name: String,
-  date_of_birth: {
-    type: Date,
-    required: true,
-  },
-  gender: {
-    type: String,
-    enum: ["Male", "Female", "Other"],
-    required: true,
-  },
-  address: {
-    type: String,
-    required: true,
-  },
-  phone_numbers: {
-    type: [String],
-    required: true,
-  },
-  occupation: String,
+  nic: { type: String, required: true, unique: true, trim: true },
+  surname: { type: String, trim: true },
+  initials: { type: String, trim: true },
+  first_name: { type: String, trim: true },
+  middle_name: { type: String, trim: true },
+  last_name: { type: String, trim: true },
+  full_name: { type: String, required: true, trim: true },
+  date_of_birth: { type: Date, required: true },
+  address: { type: String, required: true },
+  village_id: { type: String, ref: "Village", required: true },
+  phone_numbers: { type: [String], required: true },
+  occupation: { type: String, trim: true },
+  profile_picture: { type: String, required: true }, // path to image
 
-  // Village (dropdown from existing villages)
-  village_id: {
-    type: String,
-    ref: "Village",
-    required: true,
-    index: true,
-  },
+  // Section 1
+  is_family_head: { type: Boolean, required: true },
+  family_reg_no: { type: String, trim: true }, // required if not head
 
-  // Profile picture (uploaded file path)
-  profile_picture: {
-    type: String,
-    required: true, // image is mandatory
-  },
+  // Section 3
+  password_hash: { type: String, required: true },
 
-  // Family information
-  is_family_head: {
-    type: Boolean,
-    required: true,
-    default: false,
-  },
-  family_reg_no: {
-    type: String,
-    trim: true,
-    validate: {
-      validator: function (value) {
-        if (!this.is_family_head && !value) return false;
-        return true;
-      },
-      message: "Family registration number required for non-head members",
-    },
-  },
-
-  // Status and verification
+  // Metadata
   status: {
     type: String,
     enum: ["pending", "verified", "rejected"],
     default: "pending",
   },
-  verified_by: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "GNOfficer",
-    default: null,
-  },
+  verified_by: { type: mongoose.Schema.Types.ObjectId, ref: "GNOfficer" },
   verified_at: Date,
   rejection_reason: String,
-
-  // References after verification
-  citizen_id: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "Citizen",
-    default: null,
-  },
-  family_id: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "Family",
-    default: null,
-  },
-
-  created_at: {
-    type: Date,
-    default: Date.now,
-  },
+  created_at: { type: Date, default: Date.now },
 });
 
 module.exports = mongoose.model(
