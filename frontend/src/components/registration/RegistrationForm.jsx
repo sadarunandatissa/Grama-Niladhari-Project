@@ -5,40 +5,45 @@ import "./RegistrationForm.css";
 
 const RegistrationForm = () => {
   const navigate = useNavigate();
+  const [step, setStep] = useState(1);
   const [villages, setVillages] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
+  // Form state
   const [formData, setFormData] = useState({
     is_family_head: false,
     family_reg_no: "",
+    email: "",
     nic: "",
-    full_name: "",
-    initials: "",
     surname: "",
+    initials: "",
     first_name: "",
     middle_name: "",
     last_name: "",
+    full_name: "",
     date_of_birth: "",
-    gender: "",
     address: "",
     village_id: "",
     phone_numbers: [""],
     occupation: "",
-    email: "",
     password: "",
     confirmPassword: "",
-    profile_picture: null, // file object
+    profile_picture: null,
   });
 
-  // Fetch villages on mount
+  const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+
+  // Fetch villages
   useEffect(() => {
     const fetchVillages = async () => {
       try {
-        const res = await axios.get(
-          `${process.env.REACT_APP_API_URL}/api/admin/villages`,
-        );
+        // This endpoint should be public or we can fetch from admin (but we need to expose)
+        // For simplicity, we'll use a public endpoint or we can fetch via admin with token.
+        // Better: create a public /api/villages route (no auth) that returns list.
+        // I'll assume we have a public route /api/villages.
+        const res = await axios.get(`${API_URL}/api/villages`);
         setVillages(res.data.data);
       } catch (err) {
         console.error("Failed to fetch villages", err);
@@ -52,13 +57,11 @@ const RegistrationForm = () => {
     const { name, value, type, checked, files } = e.target;
     if (type === "file") {
       setFormData((prev) => ({ ...prev, profile_picture: files[0] }));
+    } else if (type === "radio" || type === "checkbox") {
+      setFormData((prev) => ({ ...prev, [name]: checked }));
     } else {
-      setFormData((prev) => ({
-        ...prev,
-        [name]: type === "checkbox" ? checked : value,
-      }));
+      setFormData((prev) => ({ ...prev, [name]: value }));
     }
-    setError("");
   };
 
   const handlePhoneChange = (index, value) => {
@@ -83,50 +86,127 @@ const RegistrationForm = () => {
     }
   };
 
-  const validateForm = () => {
-    // Basic validations (full validation handled by backend)
-    if (formData.password !== formData.confirmPassword) {
-      setError("Passwords do not match.");
-      return false;
+  const validateStep = () => {
+    if (step === 1) {
+      // Family head/member selection – always valid
+      return true;
     }
-    if (!formData.profile_picture) {
-      setError("Profile picture is required.");
-      return false;
+    if (step === 2) {
+      // Basic validation: required fields, NIC, phone, email, village, file
+      if (!formData.full_name.trim()) {
+        setError("Full name required.");
+        return false;
+      }
+      if (
+        !formData.email ||
+        !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)
+      ) {
+        setError("Valid email required.");
+        return false;
+      }
+      // NIC validation
+      const nic = formData.nic.trim().toUpperCase();
+      if (!/^[0-9]{9}V$/.test(nic) && !/^[0-9]{12}$/.test(nic)) {
+        setError("Invalid NIC format.");
+        return false;
+      }
+      if (!formData.date_of_birth) {
+        setError("Date of birth required.");
+        return false;
+      }
+      if (!formData.address.trim()) {
+        setError("Address required.");
+        return false;
+      }
+      if (!formData.village_id) {
+        setError("Village selection required.");
+        return false;
+      }
+      // Phones
+      for (const p of formData.phone_numbers) {
+        if (p.trim() && !/^[0-9]{10}$/.test(p.trim())) {
+          setError("Phone numbers must be 10 digits.");
+          return false;
+        }
+      }
+      if (!formData.profile_picture) {
+        setError("Profile picture required.");
+        return false;
+      }
+      if (!formData.is_family_head && !formData.family_reg_no.trim()) {
+        setError("Family registration number required for non‑head members.");
+        return false;
+      }
+      setError("");
+      return true;
+    }
+    if (step === 3) {
+      if (formData.password.length < 8) {
+        setError("Password must be at least 8 characters.");
+        return false;
+      }
+      if (
+        !/[a-zA-Z]/.test(formData.password) ||
+        !/[0-9]/.test(formData.password)
+      ) {
+        setError("Password must contain at least one letter and one number.");
+        return false;
+      }
+      if (formData.password !== formData.confirmPassword) {
+        setError("Passwords do not match.");
+        return false;
+      }
+      setError("");
+      return true;
     }
     return true;
   };
 
+  const nextStep = () => {
+    if (validateStep()) {
+      setStep(step + 1);
+      setError("");
+    }
+  };
+
+  const prevStep = () => {
+    setStep(step - 1);
+    setError("");
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError("");
-    setSuccess("");
-    if (!validateForm()) return;
+    if (!validateStep()) return;
 
     setLoading(true);
+    setError("");
+    setSuccess("");
 
-    // Prepare FormData for multipart upload
+    // Prepare FormData
     const data = new FormData();
+    // Append all fields except confirmPassword and profile_picture (handled separately)
     for (let key in formData) {
       if (key === "profile_picture") {
-        if (formData.profile_picture) {
+        if (formData.profile_picture)
           data.append("profile_picture", formData.profile_picture);
-        }
       } else if (key === "phone_numbers") {
         formData.phone_numbers.forEach((p, i) => {
           if (p.trim()) data.append(`phone_numbers[${i}]`, p.trim());
         });
-      } else {
+      } else if (key !== "confirmPassword") {
         data.append(key, formData[key]);
       }
     }
 
     try {
-      const res = await axios.post(
-        `${process.env.REACT_APP_API_URL}/api/registration/submit`,
+      const response = await axios.post(
+        `${API_URL}/api/registration/submit`,
         data,
-        { headers: { "Content-Type": "multipart/form-data" } },
+        {
+          headers: { "Content-Type": "multipart/form-data" },
+        },
       );
-      setSuccess(res.data.message);
+      setSuccess(response.data.message);
       setTimeout(() => navigate("/registration-success"), 2000);
     } catch (err) {
       const msg =
@@ -139,262 +219,270 @@ const RegistrationForm = () => {
     }
   };
 
-  // ... rest of JSX (similar to earlier but with village dropdown and file input)
-  // I'll provide a compact version below:
   return (
     <div className="registration-container">
       <div className="registration-card">
         <h2>Citizen Registration</h2>
-        {error && <div className="alert alert-error">{error}</div>}
-        {success && <div className="alert alert-success">{success}</div>}
-        <form onSubmit={handleSubmit}>
-          {/* Role selection */}
-          <div className="form-section">
-            <h3>Family Information</h3>
-            <label>
-              <input
-                type="radio"
-                name="is_family_head"
-                value={false}
-                checked={!formData.is_family_head}
-                onChange={handleChange}
-              />
-              Family Member
-            </label>
-            <label>
-              <input
-                type="radio"
-                name="is_family_head"
-                value={true}
-                checked={formData.is_family_head}
-                onChange={handleChange}
-              />
-              Family Head
-            </label>
-            {!formData.is_family_head && (
-              <div className="form-group">
-                <label>Family Registration Number *</label>
-                <input
-                  type="text"
-                  name="family_reg_no"
-                  value={formData.family_reg_no}
-                  onChange={handleChange}
-                  required
-                />
-              </div>
-            )}
-          </div>
+        <div className="step-indicator">Step {step} of 3</div>
+        {error && <div className="alert error">{error}</div>}
+        {success && <div className="alert success">{success}</div>}
 
-          {/* Personal details */}
-          <div className="form-section">
-            <h3>Personal Details</h3>
-            <div className="form-group">
-              <label>Email *</label>
-              <input
-                type="email"
-                name="email"
-                value={formData.email}
-                onChange={handleChange}
-                required
-              />
-            </div>
-            <div className="form-group">
-              <label>NIC *</label>
-              <input
-                type="text"
-                name="nic"
-                value={formData.nic}
-                onChange={handleChange}
-                placeholder="9 digits + V or 12 digits"
-                required
-              />
-            </div>
-            <div className="form-group">
-              <label>Full Name *</label>
-              <input
-                type="text"
-                name="full_name"
-                value={formData.full_name}
-                onChange={handleChange}
-                required
-              />
-            </div>
-            <div className="form-row">
-              <div className="form-group">
-                <label>Initials</label>
-                <input
-                  type="text"
-                  name="initials"
-                  value={formData.initials}
-                  onChange={handleChange}
-                />
+        <form onSubmit={handleSubmit}>
+          {/* STEP 1: Family Head/Member */}
+          {step === 1 && (
+            <div className="form-section">
+              <h3>Family Information</h3>
+              <div className="radio-group">
+                <label>
+                  <input
+                    type="radio"
+                    name="is_family_head"
+                    value={true}
+                    checked={formData.is_family_head === true}
+                    onChange={handleChange}
+                  />
+                  I am the Family Head (I will create a family later)
+                </label>
+                <label>
+                  <input
+                    type="radio"
+                    name="is_family_head"
+                    value={false}
+                    checked={formData.is_family_head === false}
+                    onChange={handleChange}
+                  />
+                  I am a Family Member (I have a family registration number)
+                </label>
               </div>
-              <div className="form-group">
-                <label>Surname</label>
-                <input
-                  type="text"
-                  name="surname"
-                  value={formData.surname}
-                  onChange={handleChange}
-                />
-              </div>
+              {formData.is_family_head === false && (
+                <div className="form-group">
+                  <label>Family Registration Number *</label>
+                  <input
+                    type="text"
+                    name="family_reg_no"
+                    value={formData.family_reg_no}
+                    onChange={handleChange}
+                    placeholder="e.g., GN-123-FAM-001"
+                  />
+                </div>
+              )}
+              <button type="button" className="btn-next" onClick={nextStep}>
+                Next
+              </button>
             </div>
-            <div className="form-row">
+          )}
+
+          {/* STEP 2: Personal Details */}
+          {step === 2 && (
+            <div className="form-section">
+              <h3>Personal Details</h3>
               <div className="form-group">
-                <label>First Name</label>
+                <label>Email *</label>
                 <input
-                  type="text"
-                  name="first_name"
-                  value={formData.first_name}
-                  onChange={handleChange}
-                />
-              </div>
-              <div className="form-group">
-                <label>Middle Name</label>
-                <input
-                  type="text"
-                  name="middle_name"
-                  value={formData.middle_name}
-                  onChange={handleChange}
-                />
-              </div>
-              <div className="form-group">
-                <label>Last Name</label>
-                <input
-                  type="text"
-                  name="last_name"
-                  value={formData.last_name}
-                  onChange={handleChange}
-                />
-              </div>
-            </div>
-            <div className="form-row">
-              <div className="form-group">
-                <label>Date of Birth *</label>
-                <input
-                  type="date"
-                  name="date_of_birth"
-                  value={formData.date_of_birth}
+                  type="email"
+                  name="email"
+                  value={formData.email}
                   onChange={handleChange}
                   required
                 />
               </div>
               <div className="form-group">
-                <label>Gender *</label>
+                <label>NIC *</label>
+                <input
+                  type="text"
+                  name="nic"
+                  value={formData.nic}
+                  onChange={handleChange}
+                  placeholder="9 digits + V or 12 digits"
+                  required
+                />
+              </div>
+              <div className="form-group">
+                <label>Full Name *</label>
+                <input
+                  type="text"
+                  name="full_name"
+                  value={formData.full_name}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+              <div className="form-row">
+                <div className="form-group">
+                  <label>Surname</label>
+                  <input
+                    type="text"
+                    name="surname"
+                    value={formData.surname}
+                    onChange={handleChange}
+                  />
+                </div>
+                <div className="form-group">
+                  <label>Initials</label>
+                  <input
+                    type="text"
+                    name="initials"
+                    value={formData.initials}
+                    onChange={handleChange}
+                  />
+                </div>
+              </div>
+              <div className="form-row">
+                <div className="form-group">
+                  <label>First Name</label>
+                  <input
+                    type="text"
+                    name="first_name"
+                    value={formData.first_name}
+                    onChange={handleChange}
+                  />
+                </div>
+                <div className="form-group">
+                  <label>Middle Name</label>
+                  <input
+                    type="text"
+                    name="middle_name"
+                    value={formData.middle_name}
+                    onChange={handleChange}
+                  />
+                </div>
+                <div className="form-group">
+                  <label>Last Name</label>
+                  <input
+                    type="text"
+                    name="last_name"
+                    value={formData.last_name}
+                    onChange={handleChange}
+                  />
+                </div>
+              </div>
+              <div className="form-row">
+                <div className="form-group">
+                  <label>Date of Birth *</label>
+                  <input
+                    type="date"
+                    name="date_of_birth"
+                    value={formData.date_of_birth}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
+                <div className="form-group">
+                  <label>Occupation</label>
+                  <input
+                    type="text"
+                    name="occupation"
+                    value={formData.occupation}
+                    onChange={handleChange}
+                  />
+                </div>
+              </div>
+              <div className="form-group">
+                <label>Address *</label>
+                <textarea
+                  name="address"
+                  value={formData.address}
+                  onChange={handleChange}
+                  rows="3"
+                  required
+                />
+              </div>
+              <div className="form-group">
+                <label>Village *</label>
                 <select
-                  name="gender"
-                  value={formData.gender}
+                  name="village_id"
+                  value={formData.village_id}
                   onChange={handleChange}
                   required
                 >
-                  <option value="">Select</option>
-                  <option value="Male">Male</option>
-                  <option value="Female">Female</option>
-                  <option value="Other">Other</option>
+                  <option value="">Select village</option>
+                  {villages.map((v) => (
+                    <option key={v.village_id} value={v.village_id}>
+                      {v.name}
+                    </option>
+                  ))}
                 </select>
               </div>
-            </div>
-            <div className="form-group">
-              <label>Address *</label>
-              <textarea
-                name="address"
-                value={formData.address}
-                onChange={handleChange}
-                required
-                rows="3"
-              />
-            </div>
-            <div className="form-group">
-              <label>Village *</label>
-              <select
-                name="village_id"
-                value={formData.village_id}
-                onChange={handleChange}
-                required
-              >
-                <option value="">Select your village</option>
-                {villages.map((v) => (
-                  <option key={v.village_id} value={v.village_id}>
-                    {v.name}
-                  </option>
+              <div className="form-group">
+                <label>Phone Numbers *</label>
+                {formData.phone_numbers.map((p, i) => (
+                  <div key={i} className="phone-input-group">
+                    <input
+                      type="tel"
+                      value={p}
+                      onChange={(e) => handlePhoneChange(i, e.target.value)}
+                      placeholder="0712345678"
+                      required
+                    />
+                    {i > 0 && (
+                      <button type="button" onClick={() => removePhone(i)}>
+                        ×
+                      </button>
+                    )}
+                  </div>
                 ))}
-              </select>
+                <button type="button" onClick={addPhone}>
+                  + Add another phone
+                </button>
+              </div>
+              <div className="form-group">
+                <label>Profile Picture *</label>
+                <input
+                  type="file"
+                  name="profile_picture"
+                  accept="image/*"
+                  onChange={handleChange}
+                  required
+                />
+                <small>JPEG, PNG, GIF, WEBP (max 5MB)</small>
+              </div>
+              <div className="form-actions">
+                <button type="button" className="btn-prev" onClick={prevStep}>
+                  Previous
+                </button>
+                <button type="button" className="btn-next" onClick={nextStep}>
+                  Next
+                </button>
+              </div>
             </div>
-            {/* Phone numbers */}
-            <div className="form-group">
-              <label>Phone Numbers *</label>
-              {formData.phone_numbers.map((p, i) => (
-                <div key={i} className="phone-input-group">
-                  <input
-                    type="tel"
-                    value={p}
-                    onChange={(e) => handlePhoneChange(i, e.target.value)}
-                    placeholder="0712345678"
-                    required
-                  />
-                  {i > 0 && (
-                    <button type="button" onClick={() => removePhone(i)}>
-                      ×
-                    </button>
-                  )}
-                </div>
-              ))}
-              <button type="button" onClick={addPhone}>
-                + Add Phone
-              </button>
-            </div>
-            <div className="form-group">
-              <label>Occupation</label>
-              <input
-                type="text"
-                name="occupation"
-                value={formData.occupation}
-                onChange={handleChange}
-              />
-            </div>
-            {/* Profile Picture */}
-            <div className="form-group">
-              <label>Profile Picture *</label>
-              <input
-                type="file"
-                accept="image/*"
-                onChange={handleChange}
-                name="profile_picture"
-                required
-              />
-              <small>JPEG, PNG, GIF, WEBP (max 5MB)</small>
-            </div>
-          </div>
+          )}
 
-          {/* Password */}
-          <div className="form-section">
-            <h3>Login Credentials</h3>
-            <div className="form-group">
-              <label>Password *</label>
-              <input
-                type="password"
-                name="password"
-                value={formData.password}
-                onChange={handleChange}
-                required
-                minLength="8"
-              />
+          {/* STEP 3: Password */}
+          {step === 3 && (
+            <div className="form-section">
+              <h3>Create Password</h3>
+              <div className="form-group">
+                <label>Password *</label>
+                <input
+                  type="password"
+                  name="password"
+                  value={formData.password}
+                  onChange={handleChange}
+                  required
+                  minLength="8"
+                />
+                <small>At least 8 characters with a letter and a number</small>
+              </div>
+              <div className="form-group">
+                <label>Confirm Password *</label>
+                <input
+                  type="password"
+                  name="confirmPassword"
+                  value={formData.confirmPassword}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+              <div className="form-actions">
+                <button type="button" className="btn-prev" onClick={prevStep}>
+                  Previous
+                </button>
+                <button type="submit" className="btn-submit" disabled={loading}>
+                  {loading ? "Submitting..." : "Submit Registration"}
+                </button>
+              </div>
             </div>
-            <div className="form-group">
-              <label>Confirm Password *</label>
-              <input
-                type="password"
-                name="confirmPassword"
-                value={formData.confirmPassword}
-                onChange={handleChange}
-                required
-              />
-            </div>
-          </div>
-
-          <button type="submit" className="btn-submit" disabled={loading}>
-            {loading ? "Submitting..." : "Register"}
-          </button>
+          )}
         </form>
       </div>
     </div>
