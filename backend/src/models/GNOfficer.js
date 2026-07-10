@@ -1,47 +1,19 @@
 const mongoose = require("mongoose");
 
 const GNOfficerSchema = new mongoose.Schema({
-  village_id: {
-    type: String,
-    ref: "Village",
-    unique: true,
+  email: { type: String, required: true, unique: true, lowercase: true },
+  password_hash: { type: String, required: true },
+  full_name: { type: String, required: true },
+  phone: { type: String, required: true },
+  village_id: { type: String, ref: "Village", required: true, unique: true },
+  profile_picture: { type: String, default: null },
+  created_by: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Admin",
     required: true,
   },
-  employee_id: {
-    type: String,
-    unique: true,
-    required: true,
-    trim: true,
-  },
-  full_name: {
-    type: String,
-    required: true,
-    trim: true,
-  },
-  email: {
-    type: String,
-    unique: true,
-    required: true,
-    lowercase: true,
-    trim: true,
-  },
-  phone: {
-    type: String,
-    required: true,
-    trim: true,
-  },
-  password_hash: {
-    type: String,
-    required: true,
-  },
-  is_active: {
-    type: Boolean,
-    default: true,
-  },
-  created_at: {
-    type: Date,
-    default: Date.now,
-  },
+  is_active: { type: Boolean, default: true },
+  created_at: { type: Date, default: Date.now },
 });
 
 module.exports = mongoose.model("GNOfficer", GNOfficerSchema);

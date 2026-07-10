@@ -6,22 +6,16 @@ const {
   verifyRegistration,
 } = require("../controllers/registrationController");
 const { protect, authorize } = require("../middleware/auth");
+const { uploadCitizenPicture } = require("../middleware/upload");
+const { limiter } = require("../middleware/rateLimiter");
 
-// Public: Submit registration
-router.post("/submit", submitRegistration);
-
-// Protected: GN Officer routes
+router.post("/submit", limiter, uploadCitizenPicture, submitRegistration);
 router.get(
   "/pending",
   protect,
   authorize("gn_officer"),
   getPendingRegistrations,
 );
-router.put(
-  "/verify/:registration_id",
-  protect,
-  authorize("gn_officer"),
-  verifyRegistration,
-);
+router.put("/verify/:id", protect, authorize("gn_officer"), verifyRegistration);
 
 module.exports = router;
