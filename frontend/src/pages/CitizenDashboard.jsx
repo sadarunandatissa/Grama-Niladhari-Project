@@ -18,37 +18,71 @@ const CitizenDashboard = () => {
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [familyMsg, setFamilyMsg] = useState("");
+
+  const fetchData = async () => {
+    setLoading(true);
+    try {
+      const [profileRes, requestsRes] = await Promise.all([
+        axios.get(`${API_URL}/api/citizen/profile`, {
+          headers: { Authorization: `Bearer ${token}` },
+        }),
+        axios.get(`${API_URL}/api/citizen/requests`, {
+          headers: { Authorization: `Bearer ${token}` },
+        }),
+      ]);
+      setProfile(profileRes.data.data);
+      setRequests(requestsRes.data.data || []);
+    } catch (err) {
+      setError("Failed to load dashboard.");
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const [profileRes, requestsRes] = await Promise.all([
-          axios.get(`${API_URL}/api/citizen/profile`, {
-            headers: { Authorization: `Bearer ${token}` },
-          }),
-          axios.get(`${API_URL}/api/citizen/requests`, {
-            headers: { Authorization: `Bearer ${token}` },
-          }),
-        ]);
-        setProfile(profileRes.data.data);
-        setRequests(requestsRes.data.data || []);
-      } catch (err) {
-        setError("Failed to load dashboard.");
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchData();
   }, [token]);
 
+  const createFamily = async () => {
+    if (
+      !window.confirm(
+        "Are you sure you want to create a new family? You must be the family head.",
+      )
+    )
+      return;
+    try {
+      const res = await axios.post(
+        `${API_URL}/api/citizen/family`,
+        {},
+        { headers: { Authorization: `Bearer ${token}` } },
+      );
+      setFamilyMsg(
+        `✅ Family created! Registration number: ${res.data.data.family_reg_no}`,
+      );
+      // Refresh profile
+      await fetchData();
+    } catch (err) {
+      setFamilyMsg(
+        "❌ " + (err.response?.data?.message || "Failed to create family."),
+      );
+    }
+  };
+
   if (loading) return <div>Loading dashboard...</div>;
   if (error) return <div className="error">{error}</div>;
-  if (!profile) return <div>No profile data found.</div>;
+  if (!profile) return <div>No profile data.</div>;
+
+  // Debug info – remove after testing
+  console.log("Profile data:", profile);
+  console.log("is_head:", profile.is_head);
+  console.log("family_id:", profile.family_id);
 
   return (
     <div className="citizen-dashboard">
       <h1>Welcome, {profile.full_name}</h1>
+      {familyMsg && <div className="family-msg">{familyMsg}</div>}
       <div className="profile-section">
         {profile.profile_picture && (
           <img
@@ -70,13 +104,27 @@ const CitizenDashboard = () => {
           </p>
           <p>
             <strong>Family:</strong>{" "}
-            {profile.family_id ? "Member" : "No family yet"}
+            {profile.family_id ? "✅ Member" : "❌ No family yet"}
           </p>
-          {profile.is_head && (
-            <p>
-              <strong>Family Head</strong>
+          <p>
+            <strong>Head status:</strong>{" "}
+            {profile.is_head ? "👑 Family Head" : "👤 Family Member"}
+          </p>
+          {!profile.family_id && profile.is_head && (
+            <button onClick={createFamily} className="btn-create-family">
+              Create Family
+            </button>
+          )}
+          {/* If is_head is false but the user thinks they are head, show a hint */}
+          {!profile.family_id && !profile.is_head && (
+            <p className="hint">
+              You are not marked as a family head. Please contact your GN
+              officer.
             </p>
           )}
+          <button onClick={fetchData} className="btn-refresh">
+            Refresh Profile
+          </button>
         </div>
       </div>
 
