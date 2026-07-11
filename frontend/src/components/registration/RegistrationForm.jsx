@@ -1,7 +1,9 @@
+// src/components/registration/RegistrationForm.jsx
+
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-// import "./RegistrationForm.css";
+import "./RegistrationForm.css";
 
 const RegistrationForm = () => {
   const navigate = useNavigate();
@@ -12,10 +14,8 @@ const RegistrationForm = () => {
   const [success, setSuccess] = useState("");
 
   const [formData, setFormData] = useState({
-    // Step 1: Family info
     is_family_head: false,
     family_reg_no: "",
-    // Step 2: Personal details
     email: "",
     nic: "",
     surname: "",
@@ -23,13 +23,12 @@ const RegistrationForm = () => {
     first_name: "",
     middle_name: "",
     last_name: "",
-    full_name: "",
+    // full_name removed
     date_of_birth: "",
     address: "",
     village_id: "",
     phone_numbers: [""],
     occupation: "",
-    // Step 3: Password
     password: "",
     confirmPassword: "",
     profile_picture: null,
@@ -37,7 +36,6 @@ const RegistrationForm = () => {
 
   const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
-  // Fetch villages for dropdown
   useEffect(() => {
     const fetchVillages = async () => {
       try {
@@ -84,15 +82,13 @@ const RegistrationForm = () => {
     }
   };
 
-  // Validation per step
+  // ── Validation ────────────────────────────────────────────────
   const validateStep = () => {
-    if (step === 1) {
-      // family info – always valid (radio selected)
-      return true;
-    }
+    if (step === 1) return true;
     if (step === 2) {
-      if (!formData.full_name.trim()) {
-        setError("Full name required.");
+      // ✅ Full name removed – only check first name
+      if (!formData.first_name.trim()) {
+        setError("First name is required.");
         return false;
       }
       if (
@@ -130,7 +126,7 @@ const RegistrationForm = () => {
         return false;
       }
       if (!formData.is_family_head && !formData.family_reg_no.trim()) {
-        setError("Family registration number required for non‑head members.");
+        setError("Family registration number is required for family members.");
         return false;
       }
       setError("");
@@ -170,8 +166,30 @@ const RegistrationForm = () => {
     setError("");
   };
 
+  // ── Submit ────────────────────────────────────────────────────
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // ✅ Construct full_name from first + middle + last
+    const fullName = [
+      formData.first_name.trim(),
+      formData.middle_name.trim(),
+      formData.last_name.trim(),
+    ]
+      .filter(Boolean)
+      .join(" ");
+
+    // Final validation: require at least first name
+    if (!fullName) {
+      setError("First name is required.");
+      return;
+    }
+
+    if (!formData.is_family_head && !formData.family_reg_no.trim()) {
+      setError("Family registration number is required for family members.");
+      return;
+    }
+
     if (!validateStep()) return;
 
     setLoading(true);
@@ -179,6 +197,7 @@ const RegistrationForm = () => {
     setSuccess("");
 
     const data = new FormData();
+    // Append all fields except confirmPassword
     for (let key in formData) {
       if (key === "profile_picture") {
         if (formData.profile_picture)
@@ -187,10 +206,21 @@ const RegistrationForm = () => {
         formData.phone_numbers.forEach((p, i) => {
           if (p.trim()) data.append(`phone_numbers[${i}]`, p.trim());
         });
-      } else if (key !== "confirmPassword") {
+      } else if (key === "confirmPassword") {
+        // skip
+      } else if (
+        key === "first_name" ||
+        key === "middle_name" ||
+        key === "last_name"
+      ) {
+        // already handled via fullName construction
+      } else {
         data.append(key, formData[key]);
       }
     }
+
+    // ✅ Append the constructed full_name
+    data.append("full_name", fullName);
 
     try {
       const response = await axios.post(
@@ -213,6 +243,7 @@ const RegistrationForm = () => {
     }
   };
 
+  // ── Render ──────────────────────────────────────────────────
   return (
     <div className="registration-container">
       <div className="registration-card">
@@ -256,8 +287,10 @@ const RegistrationForm = () => {
                     name="family_reg_no"
                     value={formData.family_reg_no}
                     onChange={handleChange}
-                    placeholder="e.g., GN-123-FAM-001"
+                    placeholder="e.g., 56776-FAM-010"
+                    required
                   />
+                  <small>Ask your family head for this number</small>
                 </div>
               )}
               <button type="button" className="btn-next" onClick={nextStep}>
@@ -270,6 +303,21 @@ const RegistrationForm = () => {
           {step === 2 && (
             <div className="form-section">
               <h3>Personal Details</h3>
+              {!formData.is_family_head && (
+                <div
+                  className="alert info"
+                  style={{
+                    background: "#e3f2fd",
+                    padding: "10px",
+                    borderRadius: "8px",
+                    marginBottom: "16px",
+                  }}
+                >
+                  ⚠️ You are registering as a family member. Your family
+                  registration number must be entered above.
+                </div>
+              )}
+
               <div className="form-group">
                 <label>Email *</label>
                 <input
@@ -291,16 +339,40 @@ const RegistrationForm = () => {
                   required
                 />
               </div>
-              <div className="form-group">
-                <label>Full Name *</label>
-                <input
-                  type="text"
-                  name="full_name"
-                  value={formData.full_name}
-                  onChange={handleChange}
-                  required
-                />
+
+              {/* ✅ Full name field removed – replaced by first, middle, last */}
+              <div className="form-row">
+                <div className="form-group">
+                  <label>First Name *</label>
+                  <input
+                    type="text"
+                    name="first_name"
+                    value={formData.first_name}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
+                <div className="form-group">
+                  <label>Middle Name</label>
+                  <input
+                    type="text"
+                    name="middle_name"
+                    value={formData.middle_name}
+                    onChange={handleChange}
+                  />
+                </div>
+                <div className="form-group">
+                  <label>Last Name *</label>
+                  <input
+                    type="text"
+                    name="last_name"
+                    value={formData.last_name}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
               </div>
+
               <div className="form-row">
                 <div className="form-group">
                   <label>Surname</label>
@@ -321,35 +393,7 @@ const RegistrationForm = () => {
                   />
                 </div>
               </div>
-              <div className="form-row">
-                <div className="form-group">
-                  <label>First Name</label>
-                  <input
-                    type="text"
-                    name="first_name"
-                    value={formData.first_name}
-                    onChange={handleChange}
-                  />
-                </div>
-                <div className="form-group">
-                  <label>Middle Name</label>
-                  <input
-                    type="text"
-                    name="middle_name"
-                    value={formData.middle_name}
-                    onChange={handleChange}
-                  />
-                </div>
-                <div className="form-group">
-                  <label>Last Name</label>
-                  <input
-                    type="text"
-                    name="last_name"
-                    value={formData.last_name}
-                    onChange={handleChange}
-                  />
-                </div>
-              </div>
+
               <div className="form-row">
                 <div className="form-group">
                   <label>Date of Birth *</label>
@@ -371,6 +415,7 @@ const RegistrationForm = () => {
                   />
                 </div>
               </div>
+
               <div className="form-group">
                 <label>Address *</label>
                 <textarea
@@ -381,6 +426,7 @@ const RegistrationForm = () => {
                   required
                 />
               </div>
+
               <div className="form-group">
                 <label>Village *</label>
                 <select
@@ -397,6 +443,7 @@ const RegistrationForm = () => {
                   ))}
                 </select>
               </div>
+
               <div className="form-group">
                 <label>Phone Numbers *</label>
                 {formData.phone_numbers.map((p, i) => (
@@ -419,6 +466,7 @@ const RegistrationForm = () => {
                   + Add another phone
                 </button>
               </div>
+
               <div className="form-group">
                 <label>Profile Picture *</label>
                 <input
@@ -430,6 +478,7 @@ const RegistrationForm = () => {
                 />
                 <small>JPEG, PNG, GIF, WEBP (max 5MB)</small>
               </div>
+
               <div className="form-actions">
                 <button type="button" className="btn-prev" onClick={prevStep}>
                   Previous

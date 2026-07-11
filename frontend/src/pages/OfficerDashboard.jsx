@@ -1,5 +1,3 @@
-// src/pages/OfficerDashboard.jsx
-
 import React, { useState, useEffect } from "react";
 import { useAuth } from "../context/AuthContext";
 import axios from "axios";
@@ -13,7 +11,7 @@ const getApiUrl = () => {
 };
 
 const OfficerDashboard = () => {
-  const { user, token } = useAuth();
+  const { user, token, logout } = useAuth(); // ← get logout
   const API_URL = getApiUrl();
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -102,8 +100,13 @@ const OfficerDashboard = () => {
   return (
     <div className="officer-dashboard">
       <div className="dashboard-header">
-        <h1>GN Officer Dashboard</h1>
-        <p>Welcome, {profile?.full_name}</p>
+        <div>
+          <h1>GN Officer Dashboard</h1>
+          <p>Welcome, {profile?.full_name}</p>
+        </div>
+        <button onClick={logout} className="btn-logout">
+          Logout
+        </button>
       </div>
 
       {/* Profile Section */}
@@ -203,7 +206,7 @@ const OfficerDashboard = () => {
               </p>
               {profile?.profile_picture && (
                 <img
-                  src={`${API_URL}${profile.profile_picture}`}
+                  src={profile.profile_picture}
                   alt="Profile"
                   className="profile-pic"
                 />

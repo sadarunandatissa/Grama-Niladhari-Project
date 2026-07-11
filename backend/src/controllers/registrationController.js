@@ -16,6 +16,9 @@ const { generateFamilyRegNo } = require("../utils/helpers");
 
 exports.submitRegistration = async (req, res) => {
   try {
+    console.log("📥 Received body:", req.body);
+    console.log("📥 family_reg_no raw:", req.body.family_reg_no);
+
     const {
       email,
       nic,
@@ -31,9 +34,17 @@ exports.submitRegistration = async (req, res) => {
       phone_numbers,
       occupation,
       is_family_head,
-      family_reg_no,
       password,
     } = req.body;
+
+    // ✅ Convert is_family_head to boolean
+    const isHead = is_family_head === "true" || is_family_head === true;
+
+    // ✅ Explicitly capture family_reg_no from the request body
+    const familyRegNo = req.body.family_reg_no || null;
+
+    console.log("✅ isHead:", isHead);
+    console.log("✅ familyRegNo captured:", familyRegNo);
 
     // ---- Validation ----
     if (!validateEmail(email))
@@ -84,13 +95,15 @@ exports.submitRegistration = async (req, res) => {
             message: `Invalid phone: ${p} (must be 10 digits)`,
           });
     }
-    if (!is_family_head && !family_reg_no)
-      return res
-        .status(400)
-        .json({
-          success: false,
-          message: "Family registration number required for non‑head",
-        });
+
+    // ✅ Critical: family member must have a number (using isHead)
+    if (!isHead && !familyRegNo) {
+      return res.status(400).json({
+        success: false,
+        message: "Family registration number required for non‑head",
+      });
+    }
+
     if (!req.file)
       return res
         .status(400)
@@ -120,6 +133,7 @@ exports.submitRegistration = async (req, res) => {
     const password_hash = await bcrypt.hash(password, salt);
     const profile_picture = `/uploads/citizens/${req.file.filename}`;
 
+    // ✅ Create registration with the captured familyRegNo and isHead
     const registration = new RegistrationRequest({
       email,
       nic,
@@ -135,11 +149,13 @@ exports.submitRegistration = async (req, res) => {
       phone_numbers,
       occupation,
       profile_picture,
-      is_family_head,
-      family_reg_no: is_family_head ? null : family_reg_no,
+      is_family_head: isHead, // ✅ store as boolean
+      family_reg_no: isHead ? null : familyRegNo, // ✅ use isHead
       password_hash,
       status: "pending",
     });
+
+    console.log("📤 Registration object being saved:", registration);
     await registration.save();
 
     try {
@@ -154,13 +170,11 @@ exports.submitRegistration = async (req, res) => {
       });
     } catch (e) {}
 
-    res
-      .status(201)
-      .json({
-        success: true,
-        message: "Registration submitted. Awaiting GN officer verification.",
-        data: { registration_id: registration._id },
-      });
+    res.status(201).json({
+      success: true,
+      message: "Registration submitted. Awaiting GN officer verification.",
+      data: { registration_id: registration._id },
+    });
   } catch (error) {
     console.error("Submit error:", error);
     res.status(500).json({ success: false, message: "Server error" });
@@ -191,29 +205,34 @@ exports.verifyRegistration = async (req, res) => {
     const { action, rejection_reason } = req.body;
     const officerId = req.user.id;
 
+    console.log("📥 Verification start for:", id);
+
     const registration = await RegistrationRequest.findById(id);
-    if (!registration)
+    if (!registration) {
       return res
         .status(404)
         .json({ success: false, message: "Registration not found" });
-    if (registration.status !== "pending")
+    }
+    if (registration.status !== "pending") {
       return res
         .status(400)
         .json({ success: false, message: `Already ${registration.status}` });
+    }
 
     const officer = await GNOfficer.findById(officerId);
-    if (!officer)
+    if (!officer) {
       return res
         .status(404)
         .json({ success: false, message: "Officer not found" });
-    // Normalize village_id (in case it's an array)
+    }
     const regVillage = Array.isArray(registration.village_id)
       ? registration.village_id[0]
       : registration.village_id;
-    if (officer.village_id !== regVillage)
+    if (officer.village_id !== regVillage) {
       return res
         .status(403)
         .json({ success: false, message: "Not authorized for this village" });
+    }
 
     // ---- REJECT ----
     if (action === "reject") {
@@ -223,36 +242,53 @@ exports.verifyRegistration = async (req, res) => {
       registration.verified_by = officerId;
       registration.verified_at = new Date();
       await registration.save();
-      await AuditLog.create({
-        user_type: "gn_officer",
-        user_id: officerId,
-        action: "REJECT_REGISTRATION",
-        details: { registration_id: id },
-      });
+      // Audit – wrap in try‑catch
+      try {
+        await AuditLog.create({
+          user_type: "gn_officer",
+          user_id: officerId,
+          user_model: "GNOfficer", // ← added user_model
+          action: "REJECT_REGISTRATION",
+          details: { registration_id: id },
+          ip_address: req.ip,
+          user_agent: req.headers["user-agent"],
+        });
+      } catch (auditErr) {
+        console.error("Audit log failed (reject):", auditErr.message);
+      }
       return res.json({ success: true, message: "Registration rejected" });
     }
 
     // ---- VERIFY ----
     let familyId;
     if (!registration.is_family_head) {
-      if (!registration.family_reg_no)
+      if (!registration.family_reg_no) {
         return res
           .status(400)
           .json({ success: false, message: "Family reg number missing" });
+      }
+      console.log(
+        "🔍 Searching family for reg_no:",
+        registration.family_reg_no,
+      );
       const family = await Family.findOne({
         family_reg_no: registration.family_reg_no,
         village_id: officer.village_id,
       });
-      if (!family)
-        return res
-          .status(400)
-          .json({
-            success: false,
-            message: "Family not found in this village",
-          });
+      if (!family) {
+        return res.status(400).json({
+          success: false,
+          message: "Family not found in this village",
+        });
+      }
       familyId = family._id;
     } else {
+      console.log(
+        "🏷️ Generating new family number for village:",
+        officer.village_id,
+      );
       const familyRegNo = await generateFamilyRegNo(officer.village_id);
+      console.log("✅ Generated family reg no:", familyRegNo);
       const newFamily = new Family({
         village_id: officer.village_id,
         family_reg_no: familyRegNo,
@@ -261,8 +297,10 @@ exports.verifyRegistration = async (req, res) => {
       });
       const saved = await newFamily.save();
       familyId = saved._id;
+      console.log("✅ Family saved with ID:", familyId);
     }
 
+    console.log("👤 Creating citizen...");
     const citizen = new Citizen({
       email: registration.email,
       password_hash: registration.password_hash,
@@ -287,7 +325,9 @@ exports.verifyRegistration = async (req, res) => {
       is_active: true,
     });
     await citizen.save();
+    console.log("✅ Citizen saved with ID:", citizen._id);
 
+    console.log("🔄 Updating family with head/member...");
     if (registration.is_family_head) {
       await Family.findByIdAndUpdate(familyId, {
         head_citizen_id: citizen._id,
@@ -306,12 +346,20 @@ exports.verifyRegistration = async (req, res) => {
     registration.family_id = familyId;
     await registration.save();
 
-    await AuditLog.create({
-      user_type: "gn_officer",
-      user_id: officerId,
-      action: "VERIFY_REGISTRATION",
-      details: { registration_id: id, citizen_id: citizen._id },
-    });
+    // Audit – wrap in try‑catch
+    try {
+      await AuditLog.create({
+        user_type: "gn_officer",
+        user_id: officerId,
+        user_model: "GNOfficer", // ← added user_model
+        action: "VERIFY_REGISTRATION",
+        details: { registration_id: id, citizen_id: citizen._id },
+        ip_address: req.ip,
+        user_agent: req.headers["user-agent"],
+      });
+    } catch (auditErr) {
+      console.error("Audit log failed (verify):", auditErr.message);
+    }
 
     res.json({
       success: true,
@@ -319,9 +367,11 @@ exports.verifyRegistration = async (req, res) => {
       data: { citizen_id: citizen._id, family_id: familyId },
     });
   } catch (error) {
-    console.error("Verification error:", error);
-    res
-      .status(500)
-      .json({ success: false, message: "Server error", error: error.message });
+    console.error("❌ Verification error details:", error.stack);
+    res.status(500).json({
+      success: false,
+      message: "Server error",
+      error: error.message,
+    });
   }
 };
