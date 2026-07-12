@@ -330,9 +330,9 @@ const AdminDashboard = () => {
               <tr>
                 <th>ID</th>
                 <th>Name</th>
-                <th>DS Division</th>
-                <th>District</th>
-                <th>Province</th>
+                <th>DS Division</th> {/* ✅ Add this column */}
+                <th>District</th> {/* ✅ Add this column */}
+                <th>Province</th> {/* ✅ Add this column */}
                 <th>Actions</th>
               </tr>
             </thead>
@@ -341,9 +341,9 @@ const AdminDashboard = () => {
                 <tr key={v._id}>
                   <td>{v.village_id}</td>
                   <td>{v.name}</td>
-                  <td>{v.ds_division}</td>
-                  <td>{v.district}</td>
-                  <td>{v.province}</td>
+                  <td>{v.ds_division || "—"}</td> {/* ✅ Display DS Division */}
+                  <td>{v.district || "—"}</td> {/* ✅ Display District */}
+                  <td>{v.province || "—"}</td> {/* ✅ Display Province */}
                   <td>
                     <button
                       className="btn-danger"

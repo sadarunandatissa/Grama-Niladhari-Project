@@ -287,7 +287,7 @@ const RegistrationForm = () => {
                     name="family_reg_no"
                     value={formData.family_reg_no}
                     onChange={handleChange}
-                    placeholder="e.g., 56776-FAM-010"
+                    placeholder="e.g., 56776-FAM-001"
                     required
                   />
                   <small>Ask your family head for this number</small>
@@ -313,7 +313,7 @@ const RegistrationForm = () => {
                     marginBottom: "16px",
                   }}
                 >
-                  ⚠️ You are registering as a family member. Your family
+                  You are registering as a family member. Your family
                   registration number must be entered above.
                 </div>
               )}
@@ -340,7 +340,7 @@ const RegistrationForm = () => {
                 />
               </div>
 
-              {/* ✅ Full name field removed – replaced by first, middle, last */}
+              {/*  Full name field removed – replaced by first, middle, last */}
               <div className="form-row">
                 <div className="form-group">
                   <label>First Name *</label>

@@ -28,15 +28,18 @@ exports.getStats = async (req, res) => {
       },
     });
   } catch (error) {
+    console.error("Stats error:", error);
     res.status(500).json({ success: false, message: "Server error" });
   }
 };
 
 exports.getVillages = async (req, res) => {
   try {
-    const villages = await Village.find().select("village_id name").lean();
+    // ✅ Remove .select() – return all fields
+    const villages = await Village.find().lean();
     res.json({ success: true, data: villages });
   } catch (error) {
+    console.error("Get villages error:", error);
     res.status(500).json({ success: false, message: "Server error" });
   }
 };
@@ -64,12 +67,10 @@ exports.createGNOfficer = async (req, res) => {
     if (!validateEmail(email))
       return res.status(400).json({ success: false, message: "Invalid email" });
     if (!validatePassword(password))
-      return res
-        .status(400)
-        .json({
-          success: false,
-          message: "Password must be 8+ chars with letter and number",
-        });
+      return res.status(400).json({
+        success: false,
+        message: "Password must be 8+ chars with letter and number",
+      });
     if (!full_name || full_name.length < 2)
       return res
         .status(400)
@@ -103,12 +104,10 @@ exports.createGNOfficer = async (req, res) => {
       is_active: true,
     });
     if (existingOfficer) {
-      return res
-        .status(400)
-        .json({
-          success: false,
-          message: `This village already has an officer: ${existingOfficer.full_name}`,
-        });
+      return res.status(400).json({
+        success: false,
+        message: `This village already has an officer: ${existingOfficer.full_name}`,
+      });
     }
 
     const salt = await bcrypt.genSalt(10);
@@ -202,12 +201,10 @@ exports.deleteVillage = async (req, res) => {
         .json({ success: false, message: "Village not found" });
     const officer = await GNOfficer.findOne({ village_id: village.village_id });
     if (officer)
-      return res
-        .status(400)
-        .json({
-          success: false,
-          message: "Cannot delete village with assigned officer",
-        });
+      return res.status(400).json({
+        success: false,
+        message: "Cannot delete village with assigned officer",
+      });
     await village.deleteOne();
     res.json({ success: true, message: "Deleted" });
   } catch (error) {
