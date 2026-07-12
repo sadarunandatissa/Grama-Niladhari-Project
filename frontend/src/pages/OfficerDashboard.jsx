@@ -205,9 +205,10 @@ const OfficerDashboard = () => {
                 <strong>Village:</strong>{" "}
                 {profile?.village_id?.name || profile?.village_id}
               </p>
+
               {profile?.profile_picture && (
                 <img
-                  src={profile.profile_picture}
+                  src={`${API_URL}${profile.profile_picture}`}
                   alt="Profile"
                   className="profile-pic"
                 />
