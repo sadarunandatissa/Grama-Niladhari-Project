@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useAuth } from "../context/AuthContext";
 import axios from "axios";
 import PendingVerifications from "../components/gn-officer/PendingVerifications";
-import "./OfficerDashboard.css"; // Create this file or remove the import
+// import "./OfficerDashboard.css"; // Create this file or remove the import
 
 const getApiUrl = () => {
   if (import.meta.env && import.meta.env.VITE_API_URL) {

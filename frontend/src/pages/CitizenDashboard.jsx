@@ -84,7 +84,12 @@ const CitizenDashboard = () => {
         }}
       >
         <h1>Welcome, {profile.full_name}</h1>
-        <button onClick={logout} className="btn-logout">
+        <button
+          className="btn-logout
+        "
+          onClick={logout}
+          className="btn-logout"
+        >
           Logout
         </button>
       </div>

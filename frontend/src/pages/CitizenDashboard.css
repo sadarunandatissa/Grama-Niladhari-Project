@@ -130,6 +130,35 @@
   font-weight: 600;
 }
 
+.btn-logout {
+  background: rgba(231, 76, 60, 0.1);
+  color: #e74c3c;
+  border: none;
+  padding: 10px 24px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  width: 20%;
+  align-self: flex-end;
+  text-align: center;
+}
+
+.btn-logout:hover {
+  background: #e74c3c;
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(231, 76, 60, 0.3);
+}
+
+.btn-logout:active {
+  transform: scale(0.95);
+}
+
 @media (max-width: 768px) {
   .profile-section {
     flex-direction: column;
