@@ -60,7 +60,7 @@ const CitizenDashboard = () => {
         { headers: { Authorization: `Bearer ${token}` } },
       );
       setFamilyMsg(
-        `✅ Family created! Registration number: ${res.data.data.family_reg_no}`,
+        ` Family created! Registration number: ${res.data.data.family_reg_no}`,
       );
       await fetchData();
     } catch (err) {
@@ -122,7 +122,7 @@ const CitizenDashboard = () => {
           </p>
           <p>
             <strong>Head status:</strong>{" "}
-            {profile.is_head ? "👑 Family Head" : "👤 Family Member"}
+            {profile.is_head ? " Family Head" : "👤 Family Member"}
           </p>
           {!profile.family_id && profile.is_head && (
             <button onClick={createFamily} className="btn-create-family">
