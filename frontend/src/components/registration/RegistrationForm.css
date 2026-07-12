@@ -1,116 +1,45 @@
+/* =============================================
+   REGISTRATION FORM (Carousel)
+   ============================================= */
 .registration-container {
-  min-height: 100vh;
-  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-  padding: 40px 20px;
   display: flex;
   justify-content: center;
-  align-items: flex-start;
+  padding: 40px 20px;
+  background: #f0f2f5;
+  min-height: 100vh;
 }
 
 .registration-card {
-  background: white;
-  max-width: 900px;
+  max-width: 700px;
   width: 100%;
+  background: white;
+  padding: 30px 35px;
   border-radius: 16px;
-  padding: 40px;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
 }
 
 .registration-card h2 {
-  color: #2c3e50;
+  text-align: center;
   font-size: 28px;
-  margin-bottom: 8px;
-  text-align: center;
+  color: #2c3e50;
+  margin-bottom: 4px;
 }
 
-.subtitle {
+.step-indicator {
+  text-align: center;
+  font-weight: 600;
   color: #7f8c8d;
-  text-align: center;
-  margin-bottom: 30px;
-  font-size: 14px;
-}
-
-/* Alerts */
-.alert {
-  padding: 12px 16px;
-  border-radius: 8px;
   margin-bottom: 20px;
-  font-size: 14px;
 }
 
-.alert-error {
-  background: #fee;
-  color: #c0392b;
-  border: 1px solid #f5c6cb;
-}
-
-.alert-success {
-  background: #d4edda;
-  color: #155724;
-  border: 1px solid #c3e6cb;
-}
-
-/* Form Sections */
 .form-section {
-  margin-bottom: 30px;
-  padding-bottom: 20px;
-  border-bottom: 1px solid #eee;
-}
-
-.form-section:last-child {
-  border-bottom: none;
+  padding: 10px 0;
 }
 
 .form-section h3 {
-  color: #34495e;
-  font-size: 18px;
-  margin-bottom: 16px;
-}
-
-/* Role Selector */
-.role-selector {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  margin-bottom: 16px;
-}
-
-.radio-option {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 12px 16px;
-  border: 2px solid #e0e0e0;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.radio-option:hover {
-  border-color: #3498db;
-  background: #f8f9fa;
-}
-
-.radio-option input[type="radio"] {
-  width: 18px;
-  height: 18px;
-  accent-color: #3498db;
-}
-
-.radio-option span {
-  font-size: 15px;
+  font-size: 20px;
   color: #2c3e50;
-}
-
-/* Form Groups */
-.form-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 16px;
-}
-
-.form-row.three-col {
-  grid-template-columns: 1fr 1fr 1fr;
+  margin-bottom: 16px;
 }
 
 .form-group {
@@ -122,7 +51,7 @@
   font-weight: 600;
   font-size: 14px;
   color: #2c3e50;
-  margin-bottom: 6px;
+  margin-bottom: 4px;
 }
 
 .form-group input,
@@ -134,6 +63,7 @@
   border-radius: 8px;
   font-size: 14px;
   transition: border-color 0.3s;
+  background: #fff;
   font-family: inherit;
 }
 
@@ -157,18 +87,23 @@
   font-size: 12px;
 }
 
-/* Phone Input Group */
-.phone-input-group {
+.form-row {
   display: flex;
-  gap: 8px;
-  margin-bottom: 8px;
+  gap: 12px;
 }
-
-.phone-input-group input {
+.form-row .form-group {
   flex: 1;
 }
 
-.btn-remove {
+.phone-input-group {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+.phone-input-group input {
+  flex: 1;
+}
+.phone-input-group button {
   background: #e74c3c;
   color: white;
   border: none;
@@ -176,91 +111,83 @@
   padding: 0 14px;
   font-size: 20px;
   cursor: pointer;
-  transition: background 0.3s;
 }
-
-.btn-remove:hover {
+.phone-input-group button:hover {
   background: #c0392b;
 }
 
-.btn-add {
-  background: transparent;
-  color: #3498db;
-  border: 1px dashed #3498db;
-  padding: 8px 16px;
+.radio-group {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 16px 0;
+}
+.radio-group label {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border: 2px solid #e0e0e0;
   border-radius: 8px;
   cursor: pointer;
-  font-size: 14px;
-  transition: all 0.3s;
-  margin-top: 4px;
+  transition: all 0.2s;
 }
-
-.btn-add:hover {
+.radio-group label:hover {
+  border-color: #3498db;
   background: #f8f9fa;
-  border-style: solid;
+}
+.radio-group input[type="radio"] {
+  width: 18px;
+  height: 18px;
+  accent-color: #3498db;
 }
 
-/* Submit Button */
 .form-actions {
-  margin-top: 30px;
+  display: flex;
+  justify-content: space-between;
+  margin-top: 24px;
+  gap: 12px;
 }
-
-.btn-submit {
-  width: 100%;
-  padding: 14px;
-  background: linear-gradient(135deg, #3498db, #2980b9);
-  color: white;
+.form-actions button {
+  padding: 10px 24px;
   border: none;
   border-radius: 8px;
-  font-size: 16px;
   font-weight: 600;
-  cursor: pointer;
-  transition:
-    transform 0.2s,
-    box-shadow 0.2s;
+  transition: background 0.2s;
 }
-
-.btn-submit:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(52, 152, 219, 0.3);
+.btn-next {
+  background: #3498db;
+  color: white;
 }
-
+.btn-next:hover {
+  background: #2980b9;
+}
+.btn-prev {
+  background: #95a5a6;
+  color: white;
+}
+.btn-prev:hover {
+  background: #7f8c8d;
+}
+.btn-submit {
+  background: #27ae60;
+  color: white;
+  width: 100%;
+  padding: 12px;
+}
 .btn-submit:disabled {
   opacity: 0.7;
   cursor: not-allowed;
 }
 
-/* Info Text */
-.info-text {
-  margin-top: 20px;
-  padding: 16px;
-  background: #f8f9fa;
-  border-radius: 8px;
-  border-left: 4px solid #3498db;
-}
-
-.info-text p {
-  margin: 0;
-  font-size: 14px;
-  color: #555;
-  line-height: 1.6;
-}
-
-/* Responsive */
-@media (max-width: 768px) {
+@media (max-width: 600px) {
   .registration-card {
     padding: 20px;
   }
-
   .form-row {
-    grid-template-columns: 1fr;
+    flex-direction: column;
   }
-
-  .form-row.three-col {
-    grid-template-columns: 1fr;
-  }
-
-  .registration-card h2 {
-    font-size: 22px;
+  .form-actions {
+    flex-direction: column;
   }
 }

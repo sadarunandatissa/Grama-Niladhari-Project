@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { useAuth } from "../context/AuthContext";
 import axios from "axios";
+import "./AdminDashboard.css";
 // import "../components/admin/AdminDashboard.css"; // Create this file or remove the import
 
 // Helper to get API URL (Vite compatible)

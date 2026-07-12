@@ -1,0 +1,80 @@
+/* =============================================
+   HOME PAGE
+   ============================================= */
+.home-page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  padding: 40px 20px;
+  text-align: center;
+}
+
+.home-page h1 {
+  font-size: 48px;
+  color: #2c3e50;
+  margin-bottom: 16px;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+}
+
+.home-page p {
+  font-size: 18px;
+  color: #555;
+  max-width: 600px;
+  margin-bottom: 40px;
+  line-height: 1.7;
+}
+
+.home-page .cta-buttons {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.home-page .btn {
+  padding: 14px 36px;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  text-decoration: none;
+  transition:
+    transform 0.2s,
+    box-shadow 0.2s;
+}
+
+.home-page .btn-primary {
+  background: #3498db;
+  color: white;
+}
+.home-page .btn-primary:hover {
+  background: #2980b9;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(52, 152, 219, 0.3);
+}
+
+.home-page .btn-secondary {
+  background: #2c3e50;
+  color: white;
+}
+.home-page .btn-secondary:hover {
+  background: #1a252f;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(44, 62, 80, 0.3);
+}
+
+@media (max-width: 480px) {
+  .home-page h1 {
+    font-size: 32px;
+  }
+  .home-page p {
+    font-size: 16px;
+  }
+  .home-page .btn {
+    padding: 12px 24px;
+    font-size: 14px;
+  }
+}

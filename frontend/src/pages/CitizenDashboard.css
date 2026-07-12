@@ -1,0 +1,147 @@
+/* =============================================
+   CITIZEN DASHBOARD
+   ============================================= */
+.citizen-dashboard {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 24px;
+}
+
+.citizen-dashboard .dashboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: white;
+  padding: 16px 24px;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  margin-bottom: 24px;
+}
+.citizen-dashboard .dashboard-header h1 {
+  font-size: 24px;
+  color: #2c3e50;
+  margin: 0;
+}
+.citizen-dashboard .dashboard-header p {
+  color: #7f8c8d;
+  margin: 0;
+}
+
+.profile-section {
+  background: white;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  display: flex;
+  align-items: flex-start;
+  gap: 24px;
+  margin-bottom: 32px;
+  flex-wrap: wrap;
+}
+.profile-pic {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid #ecf0f1;
+}
+.profile-info {
+  flex: 1;
+}
+.profile-info p {
+  margin: 6px 0;
+  font-size: 16px;
+}
+.profile-info strong {
+  color: #2c3e50;
+}
+
+.btn-create-family {
+  background: #27ae60;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  margin-top: 10px;
+}
+.btn-create-family:hover {
+  background: #219a52;
+}
+
+.btn-refresh {
+  background: #3498db;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  margin-left: 10px;
+}
+.btn-refresh:hover {
+  background: #2980b9;
+}
+
+.family-msg {
+  padding: 12px 16px;
+  border-radius: 8px;
+  background: #e8f5e9;
+  border: 1px solid #c8e6c9;
+  margin-bottom: 16px;
+  font-weight: 500;
+}
+
+.requests-list {
+  background: white;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+.requests-list h2 {
+  margin-top: 0;
+  font-size: 20px;
+}
+.requests-list ul {
+  list-style: none;
+  padding: 0;
+}
+.requests-list li {
+  padding: 10px 0;
+  border-bottom: 1px solid #ecf0f1;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.requests-list li:last-child {
+  border-bottom: none;
+}
+.status-pending {
+  color: #f39c12;
+  font-weight: 600;
+}
+.status-approved {
+  color: #27ae60;
+  font-weight: 600;
+}
+.status-rejected {
+  color: #e74c3c;
+  font-weight: 600;
+}
+
+@media (max-width: 768px) {
+  .profile-section {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+  .profile-info {
+    text-align: center;
+  }
+  .citizen-dashboard .dashboard-header {
+    flex-direction: column;
+    gap: 12px;
+    align-items: flex-start;
+  }
+}

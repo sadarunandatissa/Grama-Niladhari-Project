@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { useAuth } from "../context/AuthContext";
 import axios from "axios";
+import "./CitizenDashboard.css"; // Create this file or remove the import
 
 const getApiUrl = () => {
   if (import.meta.env && import.meta.env.VITE_API_URL) {
