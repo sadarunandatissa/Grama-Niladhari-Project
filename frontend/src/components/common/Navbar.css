@@ -1,0 +1,78 @@
+.navbar {
+    width: 100%;
+}
+.navbar .container {
+    max-width: 1440px;
+    margin: 0 auto;
+    padding: 1.25rem clamp(20px, 8vw, 120px);
+
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.navbar .logo {
+    font-size: 24px;
+    font-weight: bold;
+    color: #fff;
+}
+
+.nav-links {
+    display: flex;
+    align-items: center;
+    gap: 5.75rem;
+}
+
+.nav-links a {
+    text-decoration: none;
+    font-size: 1rem;
+    font-weight: 400;
+    color: #fff;
+    transition: color 0.3s ease;
+}
+
+.nav-links a:hover {
+    color: var(--secondary-blue);
+}
+
+.nav-actions {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+}
+
+.nav-actions .btn-login {
+    text-decoration: none;
+    color: #fff;
+    font-weight: 400;
+    border-radius: 0.5rem;
+    padding: 0.5rem 1.5rem;
+    background-color: var(--secondary-blue);
+    transition: all 0.2s ease;
+}
+
+.nav-actions .btn-login:hover {
+    background-color: #0d4c9a;
+    transform: translateY(-2px);
+}
+
+.nav-actions .btn-register {
+    text-decoration: none;
+    color: #fff;
+    font-weight: 400;
+    border: #fff solid 1px;
+    border-radius: 0.5rem;
+    padding: 0.5rem 1.5rem;
+    transition: background-color 0.2s, border-color 0.2s;
+}
+
+.nav-actions a {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.nav-actions .btn-register:hover {
+    background-color: var(--secondary-blue);
+    border-color: var(--secondary-blue);
+}

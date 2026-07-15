@@ -7,10 +7,21 @@
   box-sizing: border-box;
 }
 
+:root {
+  --primary-blue: #002147;
+  --secondary-blue: #115CB9;
+  --bg-dark: #000A1E;
+  --bg-light: #E5EEFF;
+  --text-dark: #000A1E;
+  --text-muted: #44474E;
+  --card-border: #C4C6CF;
+  --card-icon: #115CB9;
+}
+
 body {
-  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-  background: #f0f2f5;
-  color: #2c3e50;
+  font-family: 'arial', sans-serif;
+  /* background: #f0f2f5;
+  color: #2c3e50; */
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
 }
@@ -19,9 +30,9 @@ a {
   text-decoration: none;
   color: #3498db;
 }
-a:hover {
+/* a:hover {
   text-decoration: underline;
-}
+} */
 
 button {
   cursor: pointer;
@@ -64,33 +75,6 @@ button {
   background: #e3f2fd;
   color: #0c5460;
   border: 1px solid #bee5eb;
-}
-
-/* Buttons */
-.btn-primary {
-  background: #3498db;
-  color: white;
-  border: none;
-  padding: 10px 20px;
-  border-radius: 8px;
-  font-weight: 600;
-  transition: background 0.2s;
-}
-.btn-primary:hover {
-  background: #2980b9;
-}
-
-.btn-secondary {
-  background: #2c3e50;
-  color: white;
-  border: none;
-  padding: 10px 20px;
-  border-radius: 8px;
-  font-weight: 600;
-  transition: background 0.2s;
-}
-.btn-secondary:hover {
-  background: #1a252f;
 }
 
 .btn-danger {
