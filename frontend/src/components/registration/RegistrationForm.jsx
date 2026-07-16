@@ -268,21 +268,71 @@ const RegistrationForm = () => {
         {/* Split Body Layout */}
         <div className="registration-body">
           {/* Left Information Pane */}
+          {/* Left Information Pane */}
           <div className="info-pane">
             <div className="illustration-wrapper">
-              {/* Replace this placeholder source with your local asset or SVG */}
-              <img
-                src="./src/assets/20943565.jpg"
-                alt="Step 1: Household Verification"
-                className="step-illustration"
-              />
+              {step === 1 && (
+                <img
+                  src="./src/assets/20943565.jpg"
+                  alt="Household Verification"
+                  className="step-illustration"
+                />
+              )}
+
+              {step === 2 && (
+                <img
+                  src="./src/assets/20943446.jpg"
+                  alt="Personal Details"
+                  className="step-illustration"
+                />
+              )}
+
+              {step === 3 && (
+                <img
+                  src="./src/assets/Sandy_BId-02_Single-06.jpg"
+                  alt="Account Security"
+                  className="step-illustration"
+                />
+              )}
             </div>
+
             <div className="info-content">
-              <h3>Step {step}: Household Verification</h3>
-              <p>
-                We need to identify your role within your household to provide
-                personalized government services and assistance programs.
-              </p>
+              {step === 1 && (
+                <>
+                  <h3>Step 1: Household Verification</h3>
+
+                  <p>
+                    We need to identify your role within your household to
+                    provide personalized government services and assistance
+                    programs.
+                  </p>
+                </>
+              )}
+
+              {step === 2 && (
+                <>
+                  <h3>Step 2: Personal Details</h3>
+
+                  <p>
+                    Please provide your personal information exactly as it
+                    appears on your official documents. This information will be
+                    used to create your citizen profile and verify your
+                    identity.
+                  </p>
+                </>
+              )}
+
+              {step === 3 && (
+                <>
+                  <h3>Step 3: Secure Your Account</h3>
+
+                  <p>
+                    Create a strong password to protect your account. Use at
+                    least eight characters including letters and numbers to keep
+                    your personal information safe.
+                  </p>
+                </>
+              )}
             </div>
           </div>
 
