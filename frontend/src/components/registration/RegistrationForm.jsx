@@ -634,7 +634,7 @@ const RegistrationForm = () => {
                     </button>
                     <button
                       type="button"
-                      className="btn-next"
+                      className="btn-next-step2"
                       onClick={nextStep}
                     >
                       Next Step <span className="arrow-icon">→</span>
