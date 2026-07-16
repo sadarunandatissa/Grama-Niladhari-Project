@@ -329,8 +329,8 @@ const RegistrationForm = () => {
                           Yes, I am the Family Head
                         </span>
                         <span className="radio-desc">
-                          Select this if you are registered as the primary
-                          contact for this household.
+                          Select this if you are regist for this householdtered
+                          as the primary contac.
                         </span>
                       </div>
                     </label>
