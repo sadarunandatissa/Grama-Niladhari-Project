@@ -83,7 +83,12 @@ const RegistrationForm = () => {
   };
 
   // ── Validation ────────────────────────────────────────────────
+  const DEV_MODE = true;
   const validateStep = () => {
+    if (DEV_MODE) {
+      setError("");
+      return true;
+    }
     if (step === 1) return true;
     if (step === 2) {
       // ✅ Full name removed – only check first name
@@ -247,286 +252,450 @@ const RegistrationForm = () => {
   return (
     <div className="registration-container">
       <div className="registration-card">
-        <h2>Citizen Registration</h2>
-        <div className="step-indicator">Step {step} of 3</div>
-        {error && <div className="alert error">{error}</div>}
-        {success && <div className="alert success">{success}</div>}
+        {/* Top Header & Progress Bar */}
+        <div className="registration-header">
+          <div className="header-meta">
+            <span className="step-text">
+              Step {step} of 3: Citizen Registration
+            </span>
+            <span className="percent-text">
+              {Math.round((step / 3) * 100)}% Complete
+            </span>
+          </div>
+          <div className="progress-bar-container">
+            <div
+              className="progress-bar-fill"
+              style={{ width: `${(step / 3) * 100}%` }}
+            ></div>
+          </div>
+        </div>
 
-        <form onSubmit={handleSubmit}>
-          {/* Step 1: Family Info */}
-          {step === 1 && (
-            <div className="form-section">
-              <h3>Family Information</h3>
-              <div className="radio-group">
-                <label>
-                  <input
-                    type="radio"
-                    name="is_family_head"
-                    value={true}
-                    checked={formData.is_family_head === true}
-                    onChange={handleChange}
-                  />
-                  I am the Family Head (I will create a family later)
-                </label>
-                <label>
-                  <input
-                    type="radio"
-                    name="is_family_head"
-                    value={false}
-                    checked={formData.is_family_head === false}
-                    onChange={handleChange}
-                  />
-                  I am a Family Member (I have a family registration number)
-                </label>
-              </div>
-              {formData.is_family_head === false && (
-                <div className="form-group">
-                  <label>Family Registration Number *</label>
-                  <input
-                    type="text"
-                    name="family_reg_no"
-                    value={formData.family_reg_no}
-                    onChange={handleChange}
-                    placeholder="e.g., 56776-FAM-001"
-                    required
-                  />
-                  <small>Ask your family head for this number</small>
-                </div>
+        {/* Split Body Layout */}
+        <div className="registration-body">
+          {/* Left Information Pane */}
+          {/* Left Information Pane */}
+          <div className="info-pane">
+            <div className="illustration-wrapper">
+              {step === 1 && (
+                <img
+                  src="./src/assets/20943565.jpg"
+                  alt="Household Verification"
+                  className="step-illustration"
+                />
               )}
-              <button type="button" className="btn-next" onClick={nextStep}>
-                Next
-              </button>
+
+              {step === 2 && (
+                <img
+                  src="./src/assets/20943446.jpg"
+                  alt="Personal Details"
+                  className="step-illustration"
+                />
+              )}
+
+              {step === 3 && (
+                <img
+                  src="./src/assets/Sandy_Bld-02_Single-06.jpg"
+                  alt="Account Security"
+                  className="step-illustration"
+                />
+              )}
             </div>
-          )}
 
-          {/* Step 2: Personal Details */}
-          {step === 2 && (
-            <div className="form-section">
-              <h3>Personal Details</h3>
-              {!formData.is_family_head && (
-                <div
-                  className="alert info"
-                  style={{
-                    background: "#e3f2fd",
-                    padding: "10px",
-                    borderRadius: "8px",
-                    marginBottom: "16px",
-                  }}
-                >
-                  You are registering as a family member. Your family
-                  registration number must be entered above.
+            <div className="info-content">
+              {step === 1 && (
+                <>
+                  <h3>Step 1: Household Verification</h3>
+
+                  <p>
+                    We need to identify your role within your household to
+                    provide personalized government services and assistance
+                    programs.
+                  </p>
+                </>
+              )}
+
+              {step === 2 && (
+                <>
+                  <h3>Step 2: Personal Details</h3>
+
+                  <p>
+                    Please provide your personal information exactly as it
+                    appears on your official documents. This information will be
+                    used to create your citizen profile and verify your
+                    identity.
+                  </p>
+                </>
+              )}
+
+              {step === 3 && (
+                <>
+                  <h3>Step 3: Secure Your Account</h3>
+
+                  <p>
+                    Create a strong password to protect your account. Use at
+                    least eight characters including letters and numbers to keep
+                    your personal information safe.
+                  </p>
+                </>
+              )}
+            </div>
+          </div>
+
+          {/* Right Form Pane */}
+          <div className="form-pane">
+            {error && <div className="alert error">{error}</div>}
+            {success && <div className="alert success">{success}</div>}
+
+            <form onSubmit={handleSubmit} className="step-form">
+              {/* Step 1: Family Info */}
+              {step === 1 && (
+                <div className="form-section">
+                  <h2>
+                    Household Verification
+                    <br />
+                  </h2>
+
+                  <p className="section-description">
+                    Please confirm your status in the family household registry.
+                  </p>
+
+                  <h4 className="field-question">
+                    Are you the Head of the Family?
+                  </h4>
+
+                  <div className="radio-group-cards">
+                    <label
+                      className={`radio-card ${formData.is_family_head === true ? "selected" : ""}`}
+                    >
+                      <input
+                        type="radio"
+                        name="is_family_head"
+                        value="true"
+                        checked={formData.is_family_head === true}
+                        onChange={() =>
+                          handleChange({
+                            target: { name: "is_family_head", value: true },
+                          })
+                        }
+                      />
+                      <span className="custom-radio"></span>
+                      <div className="radio-text">
+                        <span className="radio-title">
+                          Yes, I am the Family Head
+                        </span>
+                        <span className="radio-desc">
+                          Select this if you are regist for this householdtered
+                          as the primary contac.
+                        </span>
+                      </div>
+                    </label>
+
+                    <label
+                      className={`radio-card ${formData.is_family_head === false ? "selected" : ""}`}
+                    >
+                      <input
+                        type="radio"
+                        name="is_family_head"
+                        value="false"
+                        checked={formData.is_family_head === false}
+                        onChange={() =>
+                          handleChange({
+                            target: { name: "is_family_head", value: false },
+                          })
+                        }
+                      />
+                      <span className="custom-radio"></span>
+                      <div className="radio-text">
+                        <span className="radio-title">
+                          No, I am a Family Member
+                        </span>
+                        <span className="radio-desc">
+                          Select this if you are a dependent or a relative
+                          living in the household.
+                        </span>
+                      </div>
+                    </label>
+                  </div>
+
+                  {formData.is_family_head === false && (
+                    <div className="form-group fade-in">
+                      <label>Family Registration Number *</label>
+                      <input
+                        type="text"
+                        name="family_reg_no"
+                        value={formData.family_reg_no}
+                        onChange={handleChange}
+                        placeholder="e.g., 56776-FAM-001"
+                        required
+                      />
+                      <small className="form-help">
+                        Ask your family head for this number
+                      </small>
+                    </div>
+                  )}
+
+                  <div className="form-actions">
+                    <button
+                      type="button"
+                      className="btn-next"
+                      onClick={nextStep}
+                    >
+                      Next Step <span className="arrow-icon">→</span>
+                    </button>
+                  </div>
                 </div>
               )}
 
-              <div className="form-group">
-                <label>Email *</label>
-                <input
-                  type="email"
-                  name="email"
-                  value={formData.email}
-                  onChange={handleChange}
-                  required
-                />
-              </div>
-              <div className="form-group">
-                <label>NIC *</label>
-                <input
-                  type="text"
-                  name="nic"
-                  value={formData.nic}
-                  onChange={handleChange}
-                  placeholder="9 digits + V or 12 digits"
-                  required
-                />
-              </div>
+              {/* Step 2: Personal Details */}
+              {step === 2 && (
+                <div className="form-section">
+                  <h2>Personal Details</h2>
 
-              {/*  Full name field removed – replaced by first, middle, last */}
-              <div className="form-row">
-                <div className="form-group">
-                  <label>First Name *</label>
-                  <input
-                    type="text"
-                    name="first_name"
-                    value={formData.first_name}
-                    onChange={handleChange}
-                    required
-                  />
-                </div>
-                <div className="form-group">
-                  <label>Middle Name</label>
-                  <input
-                    type="text"
-                    name="middle_name"
-                    value={formData.middle_name}
-                    onChange={handleChange}
-                  />
-                </div>
-                <div className="form-group">
-                  <label>Last Name *</label>
-                  <input
-                    type="text"
-                    name="last_name"
-                    value={formData.last_name}
-                    onChange={handleChange}
-                    required
-                  />
-                </div>
-              </div>
+                  {!formData.is_family_head && (
+                    <div className="alert info">
+                      You are registering as a family member. Your family
+                      registration number must be entered above.
+                    </div>
+                  )}
 
-              <div className="form-row">
-                <div className="form-group">
-                  <label>Surname</label>
-                  <input
-                    type="text"
-                    name="surname"
-                    value={formData.surname}
-                    onChange={handleChange}
-                  />
-                </div>
-                <div className="form-group">
-                  <label>Initials</label>
-                  <input
-                    type="text"
-                    name="initials"
-                    value={formData.initials}
-                    onChange={handleChange}
-                  />
-                </div>
-              </div>
-
-              <div className="form-row">
-                <div className="form-group">
-                  <label>Date of Birth *</label>
-                  <input
-                    type="date"
-                    name="date_of_birth"
-                    value={formData.date_of_birth}
-                    onChange={handleChange}
-                    required
-                  />
-                </div>
-                <div className="form-group">
-                  <label>Occupation</label>
-                  <input
-                    type="text"
-                    name="occupation"
-                    value={formData.occupation}
-                    onChange={handleChange}
-                  />
-                </div>
-              </div>
-
-              <div className="form-group">
-                <label>Address *</label>
-                <textarea
-                  name="address"
-                  value={formData.address}
-                  onChange={handleChange}
-                  rows="3"
-                  required
-                />
-              </div>
-
-              <div className="form-group">
-                <label>Village *</label>
-                <select
-                  name="village_id"
-                  value={formData.village_id}
-                  onChange={handleChange}
-                  required
-                >
-                  <option value="">Select your village</option>
-                  {villages.map((v) => (
-                    <option key={v.village_id} value={v.village_id}>
-                      {v.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="form-group">
-                <label>Phone Numbers *</label>
-                {formData.phone_numbers.map((p, i) => (
-                  <div key={i} className="phone-input-group">
+                  <div className="form-group">
+                    <label>Email *</label>
                     <input
-                      type="tel"
-                      value={p}
-                      onChange={(e) => handlePhoneChange(i, e.target.value)}
-                      placeholder="0712345678"
+                      type="email"
+                      name="email"
+                      value={formData.email}
+                      onChange={handleChange}
                       required
                     />
-                    {i > 0 && (
-                      <button type="button" onClick={() => removePhone(i)}>
-                        ×
-                      </button>
-                    )}
                   </div>
-                ))}
-                <button type="button" onClick={addPhone}>
-                  + Add another phone
-                </button>
-              </div>
 
-              <div className="form-group">
-                <label>Profile Picture *</label>
-                <input
-                  type="file"
-                  name="profile_picture"
-                  accept="image/*"
-                  onChange={handleChange}
-                  required
-                />
-                <small>JPEG, PNG, GIF, WEBP (max 5MB)</small>
-              </div>
+                  <div className="form-group">
+                    <label>NIC *</label>
+                    <input
+                      type="text"
+                      name="nic"
+                      value={formData.nic}
+                      onChange={handleChange}
+                      placeholder="9 digits + V or 12 digits"
+                      required
+                    />
+                  </div>
 
-              <div className="form-actions">
-                <button type="button" className="btn-prev" onClick={prevStep}>
-                  Previous
-                </button>
-                <button type="button" className="btn-next" onClick={nextStep}>
-                  Next
-                </button>
-              </div>
-            </div>
-          )}
+                  <div className="form-row">
+                    <div className="form-group">
+                      <label>First Name *</label>
+                      <input
+                        type="text"
+                        name="first_name"
+                        value={formData.first_name}
+                        onChange={handleChange}
+                        required
+                      />
+                    </div>
+                    <div className="form-group">
+                      <label>Middle Name</label>
+                      <input
+                        type="text"
+                        name="middle_name"
+                        value={formData.middle_name}
+                        onChange={handleChange}
+                      />
+                    </div>
+                    <div className="form-group">
+                      <label>Last Name *</label>
+                      <input
+                        type="text"
+                        name="last_name"
+                        value={formData.last_name}
+                        onChange={handleChange}
+                        required
+                      />
+                    </div>
+                  </div>
 
-          {/* Step 3: Password */}
-          {step === 3 && (
-            <div className="form-section">
-              <h3>Create Password</h3>
-              <div className="form-group">
-                <label>Password *</label>
-                <input
-                  type="password"
-                  name="password"
-                  value={formData.password}
-                  onChange={handleChange}
-                  required
-                  minLength="8"
-                />
-                <small>At least 8 characters with a letter and a number</small>
-              </div>
-              <div className="form-group">
-                <label>Confirm Password *</label>
-                <input
-                  type="password"
-                  name="confirmPassword"
-                  value={formData.confirmPassword}
-                  onChange={handleChange}
-                  required
-                />
-              </div>
-              <div className="form-actions">
-                <button type="button" className="btn-prev" onClick={prevStep}>
-                  Previous
-                </button>
-                <button type="submit" className="btn-submit" disabled={loading}>
-                  {loading ? "Submitting..." : "Submit Registration"}
-                </button>
-              </div>
-            </div>
-          )}
-        </form>
+                  <div className="form-row">
+                    <div className="form-group">
+                      <label>Surname</label>
+                      <input
+                        type="text"
+                        name="surname"
+                        value={formData.surname}
+                        onChange={handleChange}
+                      />
+                    </div>
+                    <div className="form-group">
+                      <label>Initials</label>
+                      <input
+                        type="text"
+                        name="initials"
+                        value={formData.initials}
+                        onChange={handleChange}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="form-row">
+                    <div className="form-group">
+                      <label>Date of Birth *</label>
+                      <input
+                        type="date"
+                        name="date_of_birth"
+                        value={formData.date_of_birth}
+                        onChange={handleChange}
+                        required
+                      />
+                    </div>
+                    <div className="form-group">
+                      <label>Occupation</label>
+                      <input
+                        type="text"
+                        name="occupation"
+                        value={formData.occupation}
+                        onChange={handleChange}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="form-group">
+                    <label>Address *</label>
+                    <textarea
+                      name="address"
+                      value={formData.address}
+                      onChange={handleChange}
+                      rows="3"
+                      required
+                    />
+                  </div>
+
+                  <div className="form-group">
+                    <label>Village *</label>
+                    <select
+                      name="village_id"
+                      value={formData.village_id}
+                      onChange={handleChange}
+                      required
+                    >
+                      <option value="">Select your village</option>
+                      {villages.map((v) => (
+                        <option key={v.village_id} value={v.village_id}>
+                          {v.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="form-group">
+                    <label>Phone Numbers *</label>
+                    {formData.phone_numbers.map((p, i) => (
+                      <div key={i} className="phone-input-group">
+                        <input
+                          type="tel"
+                          value={p}
+                          onChange={(e) => handlePhoneChange(i, e.target.value)}
+                          placeholder="0712345678"
+                          required
+                        />
+                        {i > 0 && (
+                          <button
+                            type="button"
+                            className="btn-remove-phone"
+                            onClick={() => removePhone(i)}
+                          >
+                            ×
+                          </button>
+                        )}
+                      </div>
+                    ))}
+                    <button
+                      type="button"
+                      className="btn-add-phone"
+                      onClick={addPhone}
+                    >
+                      + Add another phone
+                    </button>
+                  </div>
+
+                  <div className="form-group">
+                    <label>Profile Picture *</label>
+                    <input
+                      type="file"
+                      name="profile_picture"
+                      accept="image/*"
+                      onChange={handleChange}
+                      required
+                    />
+                    <small className="form-help">
+                      JPEG, PNG, GIF, WEBP (max 5MB)
+                    </small>
+                  </div>
+
+                  <div className="form-actions split">
+                    <button
+                      type="button"
+                      className="btn-prev"
+                      onClick={prevStep}
+                    >
+                      Previous
+                    </button>
+                    <button
+                      type="button"
+                      className="btn-next-step2"
+                      onClick={nextStep}
+                    >
+                      Next Step <span className="arrow-icon">→</span>
+                    </button>
+                  </div>
+                </div>
+              )}
+              {/* Step 3: Password */}
+              {step === 3 && (
+                <div className="form-section">
+                  <h2>Create Password</h2>
+                  <div className="form-group">
+                    <label>Password *</label>
+                    <input
+                      type="password"
+                      name="password"
+                      value={formData.password}
+                      onChange={handleChange}
+                      required
+                      minLength="8"
+                    />
+                    <small className="form-help">
+                      At least 8 characters with a letter and a number
+                    </small>
+                  </div>
+                  <div className="form-group">
+                    <label>Confirm Password *</label>
+                    <input
+                      type="password"
+                      name="confirmPassword"
+                      value={formData.confirmPassword}
+                      onChange={handleChange}
+                      required
+                    />
+                  </div>
+                  <div className="form-actions split">
+                    <button
+                      type="button"
+                      className="btn-prev"
+                      onClick={prevStep}
+                    >
+                      Previous
+                    </button>
+                    <button
+                      type="submit"
+                      className="btn-submit"
+                      disabled={loading}
+                    >
+                      {loading ? "Submitting..." : "Submit Registration"}
+                    </button>
+                  </div>
+                </div>
+              )}
+            </form>
+          </div>
+        </div>
       </div>
     </div>
   );

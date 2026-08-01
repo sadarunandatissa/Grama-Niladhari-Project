@@ -9,11 +9,10 @@ const RegistrationSuccess = () => {
   return (
     <div className="success-container">
       <div className="success-card">
-        <h2>✅ Registration Submitted</h2>
+        <h2> Registration Submitted</h2>
         <p>{message}</p>
         <p>
-          You will receive a notification once your GN officer verifies your
-          account.
+          You will receive a SMS once your GN officer verifies your account.
         </p>
         <Link to="/" className="btn btn-primary">
           Go Home
