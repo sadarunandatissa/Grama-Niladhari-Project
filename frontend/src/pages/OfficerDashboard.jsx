@@ -1,230 +1,179 @@
-import React, { useState, useEffect } from "react";
-import { useAuth } from "../context/AuthContext";
-import axios from "axios";
-import PendingVerifications from "../components/gn-officer/PendingVerifications";
-// import "./OfficerDashboard.css"; // Create this file or remove the import
+import React from 'react';
+import "./OfficerDashboard.css";
+import gnAvatar from "../assets/Officer-Avatar.png";
+import { Cross, UsersRound, Megaphone, MessageSquare, Smartphone, Settings, LogOut, LayoutDashboard, CircleUserRound, FileCheckCorner, FileStack, House, Circle, Calendar,ChevronDown, UserRound, Download } from 'lucide-react';
 
-const getApiUrl = () => {
-  if (import.meta.env && import.meta.env.VITE_API_URL) {
-    return import.meta.env.VITE_API_URL;
-  }
-  return "http://localhost:5000";
-};
-
-const OfficerDashboard = () => {
-  const { user, token, logout } = useAuth(); // ← get logout
-  const API_URL = getApiUrl();
-  const [profile, setProfile] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
-  const [editMode, setEditMode] = useState(false);
-  const [formData, setFormData] = useState({
-    full_name: "",
-    phone: "",
-    email: "",
-    current_password: "",
-    new_password: "",
-    confirm_password: "",
-  });
-
-  // Fetch profile
-  useEffect(() => {
-    const fetchProfile = async () => {
-      try {
-        const res = await axios.get(`${API_URL}/api/gn-officer/profile`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        setProfile(res.data.data);
-        setFormData({
-          full_name: res.data.data.full_name || "",
-          phone: res.data.data.phone || "",
-          email: res.data.data.email || "",
-          current_password: "",
-          new_password: "",
-          confirm_password: "",
-        });
-      } catch (err) {
-        setError("Failed to load profile.");
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchProfile();
-  }, [token]);
-
-  const handleChange = (e) => {
-    setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError("");
-    setSuccess("");
-
-    if (
-      formData.new_password &&
-      formData.new_password !== formData.confirm_password
-    ) {
-      setError("New passwords do not match.");
-      return;
-    }
-
-    try {
-      const payload = {
-        full_name: formData.full_name,
-        phone: formData.phone,
-        email: formData.email,
-      };
-      if (formData.current_password && formData.new_password) {
-        payload.current_password = formData.current_password;
-        payload.new_password = formData.new_password;
-      }
-      const res = await axios.put(
-        `${API_URL}/api/gn-officer/profile`,
-        payload,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        },
-      );
-      setSuccess("Profile updated successfully!");
-      setProfile(res.data.data);
-      setEditMode(false);
-    } catch (err) {
-      setError(err.response?.data?.message || "Update failed.");
-    }
-  };
-
-  if (loading) return <div>Loading profile...</div>;
-
+const Officerdashboard = () => {
   return (
-    <div className="officer-dashboard">
-      <div className="dashboard-header">
-        <div>
-          <h1>GN Officer Dashboard</h1>
-          <p>Welcome, {profile?.full_name}</p>
+    <div className="dashboard-wrapper">
+
+      <aside className="sidebar">
+        <div className="sidebar-brand">
+          <h2>GRAMA NILADHARI<br /><span>MANAGEMENT SYSTEM</span></h2>
         </div>
-        <button onClick={logout} className="btn-logout">
-          Logout
-        </button>
-      </div>
 
-      {/* Profile Section */}
-      <section className="profile-section">
-        <div className="profile-card">
-          <div className="profile-header">
-            <h2>Profile</h2>
-            {!editMode && (
-              <button className="btn-edit" onClick={() => setEditMode(true)}>
-                Edit
-              </button>
-            )}
-          </div>
-          {error && <div className="alert error">{error}</div>}
-          {success && <div className="alert success">{success}</div>}
+        <nav className="sidebar-menu">
+          <a href="#" className="menu-item active"><LayoutDashboard /> Dashboard</a>
 
-          {editMode ? (
-            <form onSubmit={handleSubmit} className="profile-form">
-              <div className="form-group">
-                <label>Full Name</label>
-                <input
-                  type="text"
-                  name="full_name"
-                  value={formData.full_name}
-                  onChange={handleChange}
-                  required
-                />
-              </div>
-              <div className="form-group">
-                <label>Phone</label>
-                <input
-                  type="tel"
-                  name="phone"
-                  value={formData.phone}
-                  onChange={handleChange}
-                  required
-                />
-              </div>
-              <div className="form-group">
-                <label>Email</label>
-                <input
-                  type="email"
-                  name="email"
-                  value={formData.email}
-                  onChange={handleChange}
-                  required
-                />
-              </div>
-              <div className="form-group">
-                <label>Current Password (if changing)</label>
-                <input
-                  type="password"
-                  name="current_password"
-                  value={formData.current_password}
-                  onChange={handleChange}
-                />
-              </div>
-              <div className="form-group">
-                <label>New Password</label>
-                <input
-                  type="password"
-                  name="new_password"
-                  value={formData.new_password}
-                  onChange={handleChange}
-                />
-              </div>
-              <div className="form-group">
-                <label>Confirm New Password</label>
-                <input
-                  type="password"
-                  name="confirm_password"
-                  value={formData.confirm_password}
-                  onChange={handleChange}
-                />
-              </div>
-              <div className="form-actions">
-                <button type="submit">Save</button>
-                <button type="button" onClick={() => setEditMode(false)}>
-                  Cancel
-                </button>
-              </div>
-            </form>
-          ) : (
-            <div className="profile-details">
-              <p>
-                <strong>Name:</strong> {profile?.full_name}
-              </p>
-              <p>
-                <strong>Email:</strong> {profile?.email}
-              </p>
-              <p>
-                <strong>Phone:</strong> {profile?.phone}
-              </p>
-              <p>
-                <strong>Village:</strong>{" "}
-                {profile?.village_id?.name || profile?.village_id}
-              </p>
+          <span className="menu-category">MAIN</span>
+          <a href="#" className="menu-item"><Cross /> Requests</a>
+          <a href="#" className="menu-item"><UsersRound /> Citizens</a>
+          <a href="#" className="menu-item"><Megaphone /> Announcements</a>
+          <a href="#" className="menu-item"><MessageSquare /> Messages</a>
+          <a href="#" className="menu-item"><Smartphone /> Alerts</a>
+          <a href="#" className="menu-item"><Settings /> Settings</a>
+        </nav>
 
-              {profile?.profile_picture && (
-                <img
-                  src={`${API_URL}${profile.profile_picture}`}
-                  alt="Profile"
-                  className="profile-pic"
-                />
-              )}
+        <div className="sidebar-footer">
+          <a href="#" className="menu-item logout"><LogOut /> Log out</a>
+        </div>
+      </aside>
+
+      <main className="main-content">
+
+        <header className="topbar">
+          <div className="page-title"><LayoutDashboard /> Dashboard</div>
+          <div className="user-profile">
+            <div className="profile-avatar"><CircleUserRound /></div>
+            <div className="profile-info">
+              <span className="user-name">GN OFFICER</span>
+              <span className="user-role">GRAMA NILADHARI</span>
             </div>
-          )}
+          </div>
+        </header>
+
+        <div className="dashboard-grid">
+
+          <div className="upper-grid">
+            <div className="welcome-card">
+              <div className="welcome-graphic">
+                <img src={gnAvatar} alt="GN OFFICER" />
+              </div>
+              <div className="welcome-text">
+                <h3>GOOD MORNING !</h3>
+                <p className="title-sub">GRAMA NILADHARI OFFICER</p>
+                <div className="division-badge">GN DIVISION <span className="badge-num">123A</span></div>
+                <p className="date-stamp">Today is 10 July 2026</p>
+              </div>
+            </div>
+            <div className="quick-actions-grid">
+              <button className="action-btn"><Cross /> Requests</button>
+              <button className="action-btn"><UsersRound /> Citizens</button>
+              <button className="action-btn"><Megaphone /> Announcements</button>
+              <button className="action-btn"><MessageSquare /> Messages</button>
+            </div>
+          </div>
+
+          <div className="notice-strip">
+            IMPORTANT NOTICES
+          </div>
+
+          <div className="status-summary-row">
+
+            {/* Certificate Requests */}
+            <div className="status-card border-blue">
+              <div className="card-head">
+                <div className="card-head-icon">
+                  <FileCheckCorner />
+                </div>
+                <h4>Cerificate Requests</h4>
+              </div>
+              <div className="counter-badge-row">
+                <div className="badge-box bg-blue"><span>Pending</span><strong>12</strong></div>
+                <div className="badge-box bg-blue"><span>Approved</span><strong>123</strong></div>
+                <div className="badge-box bg-blue"><span>Rejected</span><strong>03</strong></div>
+              </div>
+              <div className="mini-list">
+                <div className="list-item">Request 1</div>
+                <div className="list-item">Request 2</div>
+              </div>
+            </div>
+
+            {/* Permit Requests */}
+            <div className="status-card border-green">
+              <div className="card-head">
+                <div className="card-head-icon">
+                  <FileStack />
+                </div>
+                <h4>Permit Requests</h4>
+              </div>
+              <div className="counter-badge-row">
+                <div className="badge-box bg-green"><span>Pending</span><strong>03</strong></div>
+                <div className="badge-box bg-green"><span>Approved</span><strong>100</strong></div>
+                <div className="badge-box bg-green"><span>Rejected</span><strong>12</strong></div>
+              </div>
+              <div className="mini-list">
+                <div className="list-item">Request 1</div>
+                <div className="list-item">Request 2</div>
+              </div>
+            </div>
+
+            {/* Citizen Details Count Box */}
+            <div className="status-card border-orange">
+              <div className="card-head">
+                <div className="card-head-icon">
+                  <House />
+                </div>
+                <h4>Citizen details</h4>
+              </div>
+              <div className="stat-rows-group">
+                <div className="stat-row"><span>Total Citizens:</span><strong className="val-box">240</strong></div>
+                <div className="stat-row"><span>Total Families:</span><strong className="val-box">63</strong></div>
+                <div className="stat-row"><span>Total Houses:</span><strong className="val-box">58</strong></div>
+              </div>
+            </div>
+          </div>
+
+          {/* Charts and visualizations */}
+          <div className="visuals-row">
+
+            {/* Bar Chart */}
+            <div className="chart-card flex-double">
+              <div className="chart-header">
+                <h5>Monthly Requests Overview</h5>
+                <div className="chart-legend">
+                  <span className="blue"><Circle /> Certificate Requests</span>
+                  <span className="green"><Circle /> Permit Requests</span>
+                </div>
+              </div>
+
+              {/* graphic structure mapping the visual graph layout */}
+              <div className="graph-bars"></div>
+              <div className="graph-summary-tiles">
+                <div className="tile"><span>Total Certificate Requests</span><strong>268</strong></div>
+                <div className="tile"><span>Total Permit Requests</span><strong>193</strong></div>
+                <div className="tile"><span>Highest Month (Certificates)</span><strong>30 <small>July</small></strong></div>
+                <div className="tile"><span>Highest Month (Permits)</span><strong>22 <small>July</small></strong></div>
+              </div>
+            </div>
+
+            {/* Pie Chart */}
+            <div className="chart-card">
+              <div className="chart-header">
+                <div>
+                  <h5>Citizen Details</h5>
+                  <span className="sub-caption">Overview of Citizens, Families and Houses</span>
+                </div>
+                <div className="dropdown-mock"><Calendar /> This Year <ChevronDown /></div>
+              </div>
+              <div className="mock-pie-layout">
+                <div className="pie-donut-graphic"></div>
+                <div className="pie-breakdown-list">
+                  <div className="breakdown-item"><span className="lbl"><UserRound /> Total Citizens</span><strong>240</strong></div>
+                  <div className="breakdown-item"><span className="lbl"><UserRound /> Total Families</span><strong>63</strong></div>
+                  <div className="breakdown-item"><span className="lbl"><UserRound /> Total Houses</span><strong>58</strong></div>
+                </div>
+              </div>
+              <div className="chart-card-footer">
+                <p>This chart represents the distribution of citizens, families, and houses</p>
+                <button className="btn-download-report"><Download /> Download Report</button>
+              </div>
+            </div>
+          </div>
         </div>
-      </section>
-
-      {/* Pending Verifications Section */}
-      <section className="verifications-section">
-        <h2>Pending Verifications</h2>
-        <PendingVerifications />
-      </section>
+      </main>
     </div>
-  );
-};
+  )
+}
 
-export default OfficerDashboard;
+export default Officerdashboard;
