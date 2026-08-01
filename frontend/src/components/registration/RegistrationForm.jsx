@@ -294,7 +294,7 @@ const RegistrationForm = () => {
 
               {step === 3 && (
                 <img
-                  src="./src/assets/Sandy_BId-02_Single-06.jpg"
+                  src="./src/assets/Sandy_Bld-02_Single-06.jpg"
                   alt="Account Security"
                   className="step-illustration"
                 />

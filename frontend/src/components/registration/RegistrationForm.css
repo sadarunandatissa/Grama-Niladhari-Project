@@ -251,12 +251,28 @@ select:focus {
   color: #fff;
   border: none;
   height: 50px;
+  padding: 0 30px;
+  border-radius: 8px;
+  cursor: pointer;
+  margin-left: 80px;
+  font-weight: 600;
+}
+
+.btn-submit {
+  background: #082f7b;
+  color: #fff;
+  border: none;
+  height: 50px;
   padding: 0 34px;
   border-radius: 8px;
   cursor: pointer;
   margin-left: 80px;
+  width: 200px;
+  font-weight: 600;
 }
-
+.btn-submit:hover {
+  background: #0d45b3;
+}
 /*File Selector*/
 input[type="file"] {
   width: 100%;
