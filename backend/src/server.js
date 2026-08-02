@@ -24,7 +24,7 @@ app.use(
   }),
 );
 
-// ✅ Allow cross-origin resource loading for images
+//  Allow cross-origin resource loading for images
 app.use(
   helmet({
     crossOriginResourcePolicy: { policy: "cross-origin" },
