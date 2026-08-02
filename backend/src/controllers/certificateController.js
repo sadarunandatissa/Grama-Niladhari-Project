@@ -113,3 +113,30 @@ exports.getMyRequests = async (req, res) => {
     res.status(500).json({ success: false, message: "Server error" });
   }
 };
+
+// Get Pending Request GN Officer
+exports.getPendingRequests = async (req, res) => {
+  try {
+    const officerId = req.user.id;
+    const officer = await GNOfficer.findById(officerId);
+    if (!officer) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Officer not found" });
+    }
+    const requests = await CertificateRequest.find({
+      village_Id: officer.village_id,
+      status: { $in: ["pending", "processing"] },
+    })
+      .populate("citizenId", "full_name nic profile_picture")
+      .sort({ requestData: 1 });
+
+    res.json({
+      success: true,
+      data: requests,
+    });
+  } catch (error) {
+    console.error("Get pending requests error: ", error);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+};
