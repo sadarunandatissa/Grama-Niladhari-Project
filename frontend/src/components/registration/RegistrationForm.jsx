@@ -317,6 +317,7 @@ const RegistrationForm = () => {
                   <h4 className="field-question">
                     Are you the Head of the Family?
                   </h4>
+                  <br />
 
                   <div className="radio-group-cards">
                     <label
