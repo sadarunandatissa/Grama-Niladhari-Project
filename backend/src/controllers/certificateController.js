@@ -172,3 +172,33 @@ exports.getAllRequests = async (req, res) => {
     res.status(500).json({ success: false, message: " Server error" });
   }
 };
+
+
+// Update Request Status - GN Officer
+exports.updateStatus = async (req, res) =>{
+    try {
+        const { id } = req.params;
+        const {status, officerNotes, generateCertificate} = req.body;
+        const officerId = req.user.id;
+
+        //Validate status
+        const validStatuses = ['processing', 'completed', 'rejected'];
+        if (!validStatuses.includes(status)) {
+            return res.status(400).json({
+                success: false, message: 'Invalid status. Allowd: processing, completed, rejected'
+            });
+        }
+        // Find Request
+        const request = await CertificateRequest.findById(id).poppulate('citizenId', 'full_name email village_id');
+        if (!request) {
+            return res.status(404).json({success: false, message: 'Request not found'});
+        }
+        //Verify officer belongs to same village
+        const officer = await GNOfficer.findById(officerId);
+        if (!officer || officer.village_id !== request.village_Id) {
+            return res.status(403).json({
+                success: false, message: 'Not authorized for this village'
+            });
+        }
+    }
+}
