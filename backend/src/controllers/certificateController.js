@@ -140,3 +140,35 @@ exports.getPendingRequests = async (req, res) => {
     res.status(500).json({ success: false, message: "Server error" });
   }
 };
+
+// Get all request - GN Officer
+exports.getAllRequests = async (req, res) => {
+  try {
+    const officerId = req.user.id;
+    const officer = await GNOfficer.findById(officerId);
+    if (!officer) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Officer not found" });
+    }
+    const { status, search } = req.query;
+    const filter = { village_Id: officer.village_id };
+    if (status && status !== "all") {
+      filter.status = status;
+    }
+    if (search) {
+      filter.$or = [{ trackingId: { $regex: search, $options: "i" } }];
+    }
+    const requests = await CertificateRequest.find(filter)
+      .populate("citizenId", "full_name nic profile_picture")
+      .sort({ requestData: -1 });
+
+    res.json({
+      success: true,
+      data: requests,
+    });
+  } catch (error) {
+    console.error("Get all request error: ", error);
+    res.status(500).json({ success: false, message: " Server error" });
+  }
+};
