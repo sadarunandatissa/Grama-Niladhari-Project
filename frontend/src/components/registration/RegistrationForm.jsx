@@ -287,7 +287,7 @@ const RegistrationForm = () => {
           <div className="info-pane">
             <div className="illustration-wrapper">
               <img
-                src="./src/assets/20943565.jpg"
+                src="./src/assets/20945597.jpg"
                 alt={`Step ${step} Illustration`}
                 className="step-illustration"
               />
