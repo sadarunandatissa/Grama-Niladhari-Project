@@ -95,3 +95,21 @@ exports.submitRequest = async (req, res) => {
     res.status(500).json({ success: false, message: "Server error" });
   }
 };
+
+// Get Certificate Requests from  Citizen
+exports.getMyRequests = async (req, res) => {
+  try {
+    const citizenId = req.user.id;
+    const requests = await CertificateRequest.find({ citizenId }).sort({
+      createdAt: -1,
+    });
+
+    res.json({
+      success: true,
+      data: requests,
+    });
+  } catch (error) {
+    console.error("Get my request error: ", error);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+};
