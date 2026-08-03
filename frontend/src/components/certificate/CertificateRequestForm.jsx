@@ -87,4 +87,64 @@ const CertificateRequestForm = ({ onSuccess }) => {
       setLoading(false);
     }
   };
+  const fields = certificateFields[selectedType] || [];
+
+  return (
+    <div className="certificate-list">
+      <h4>My Certificate Requests</h4>
+      {requests.length === 0 ? (
+        <p>You haven't requested any certificates yet.</p>
+      ) : (
+        <table className="data-table">
+          <thead>
+            <tr>
+              <th>Tracking ID</th>
+              <th>Type</th>
+              <th>Status</th>
+              <th>Request Date</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {requests.map((req) => (
+              <tr key={req._id}>
+                <td>
+                  <strong>{req.trackingId}</strong>
+                </td>
+                <td>{req.certificateType.replace("_", " ").toUpperCase()}</td>
+                <td>
+                  <span
+                    style={{
+                      background: statusColors[req.status],
+                      color: "white",
+                      padding: "2px 10px",
+                      borderRadius: "12px",
+                      fontSize: "12px",
+                      fontWeight: "bold",
+                    }}
+                  >
+                    {req.status}
+                  </span>
+                </td>
+                <td>{new Date(req.requestDate).toLocaleDateString()}</td>
+                <td>
+                  <button className="btn-view">View</button>
+                  {req.certificateFile && (
+                    <a
+                      href={`${API_URL}${req.certificateFile}`}
+                      target="_blank"
+                      className="btn-download"
+                    >
+                      Download
+                    </a>
+                  )}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
+    </div>
+  );
 };
+export default CertificateRequestForm;
