@@ -120,4 +120,33 @@ export const certificateFields = {
       required: true,
     },
   ],
+  school_admission: [
+    {
+      name: "parentNic",
+      label: "Parent/Guardian NIC",
+      type: "text",
+      required: true,
+      placeholder: "123456789V",
+    },
+    {
+      name: "childName",
+      label: "Child's Full Name",
+      type: "text",
+      required: true,
+      placeholder: "e.g., Nimal Perera",
+    },
+    {
+      name: "homeAddress",
+      label: "Home Address",
+      type: "textarea",
+      required: true,
+    },
+    {
+      name: "schoolName",
+      label: "School Name",
+      type: "text",
+      required: true,
+      placeholder: "e.g., Vidyalaya Maha Vidyalaya",
+    },
+  ],
 };
