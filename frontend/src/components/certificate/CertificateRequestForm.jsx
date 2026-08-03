@@ -27,6 +27,12 @@ const CertificateRequestForm = ({ onSuccess }) => {
     setError("");
     setSuccess("");
   };
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFoemData((prev) => ({ ...prev, [name]: value }));
+  };
+
   const handleFileChange = (e) => {
     setDocuments([...e.target.files]);
   };
