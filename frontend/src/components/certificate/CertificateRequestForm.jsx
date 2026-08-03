@@ -27,4 +27,7 @@ const CertificateRequestForm = ({ onSuccess }) => {
     setError("");
     setSuccess("");
   };
+  const handleFileChange = (e) => {
+    setDocuments([...e.target.files]);
+  };
 };
