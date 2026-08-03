@@ -14,4 +14,17 @@ const CertificateRequestForm = ({ onSuccess }) => {
   const [success, setSuccess] = useState();
 
   const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+
+  const handleTypeChange = (e) => {
+    const type = e.target.value;
+    setSelectedType(type);
+    //Rest form data when type changes
+    const initialData = {};
+    (certificateFields[type] || []).forEach((field) => {
+      initialData[field.name] = "";
+    });
+    setFormData(initialData);
+    setError("");
+    setSuccess("");
+  };
 };
