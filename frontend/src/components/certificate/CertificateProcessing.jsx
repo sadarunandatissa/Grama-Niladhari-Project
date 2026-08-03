@@ -54,4 +54,70 @@ export const certificateFields = {
       placeholder: "Enter your complete address",
     },
   ],
+
+  character: [
+    {
+      name: "nic",
+      label: "NIC",
+      type: "text",
+      required: true,
+      placeholder: "123456789V",
+    },
+    {
+      name: "fullName",
+      label: "Full Name",
+      type: "text",
+      required: true,
+      placeholder: "e.g., Saman Kumara Perera",
+    },
+    {
+      name: "address",
+      label: "Current Address",
+      type: "textarea",
+      required: true,
+    },
+    {
+      name: "occupation",
+      label: "Occupation",
+      type: "text",
+      required: true,
+      placeholder: "e.g., Teacher, Farmer",
+    },
+    {
+      name: "reason",
+      label: "Reason for Request",
+      type: "textarea",
+      required: true,
+      placeholder: "e.g., Employment, Scholarship",
+    },
+  ],
+  income: [
+    {
+      name: "nic",
+      label: "NIC",
+      type: "text",
+      required: true,
+      placeholder: "123456789V",
+    },
+    {
+      name: "householdIncome",
+      label: "Monthly Household Income (LKR)",
+      type: "number",
+      required: true,
+      placeholder: "e.g., 50000",
+    },
+    {
+      name: "employmentDetails",
+      label: "Employment Details",
+      type: "textarea",
+      required: true,
+      placeholder: "e.g., Government Teacher - Gampaha",
+    },
+    {
+      name: "address",
+      label: "Residential Address",
+      type: "textarea",
+      required: true,
+    },
+  ],
 };
