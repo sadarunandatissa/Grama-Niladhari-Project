@@ -4,6 +4,8 @@ import React, { useState, useEffect } from "react";
 import { useAuth } from "../context/AuthContext";
 import axios from "axios";
 import "./CitizenDashboard.css"; // Create this file or remove the import
+import CertificateRequestForm from "../components/certificate/CertificateRequestForm";
+import CertificateList from "../components/certificate/CertificateList";
 
 const getApiUrl = () => {
   if (import.meta.env && import.meta.env.VITE_API_URL) {
@@ -20,6 +22,7 @@ const CitizenDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [familyMsg, setFamilyMsg] = useState("");
+  const [activeTab, setActiveTab] = useState("profile");
 
   const fetchData = async () => {
     setLoading(true);
@@ -152,6 +155,34 @@ const CitizenDashboard = () => {
             </li>
           ))}
         </ul>
+      )}
+
+      {/*Tab Navigation */}
+      <div className="citizen-tabs">
+        <button
+          className={activeTab === "profile" ? "active" : ""}
+          onClick={() => setActiveTab("profile")}
+        >
+          {" "}
+          Profile{" "}
+        </button>
+
+        <button
+          className={activeTab === "certificates" ? "active" : ""}
+          onclick={() => setActiveTab("certificates")}
+        ></button>
+
+        <button
+          className={activeTab === "notifications" ? "active" : ""}
+          onclick={() => setActiveTab("notifications")}
+        ></button>
+      </div>
+      {/* Certificate Section */}
+      {activeTab === "certificates" && (
+        <div className="certificate-section">
+          <hr />
+          <CertificateList />
+        </div>
       )}
     </div>
   );
