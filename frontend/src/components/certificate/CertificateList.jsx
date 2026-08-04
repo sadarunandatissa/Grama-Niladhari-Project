@@ -9,4 +9,22 @@ const CertificateList = () => {
   const [error, setError] = useState("");
 
   const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+
+  useEffect(() => {
+    const fetchRequests = async () => {
+      try {
+        const res = await axios.get(
+          `${API_URL}/api/certificate/citizen/my-requests`,
+          { header: { Authorization: `Bearer ${token}` } },
+        );
+        setRequests(res.data.data);
+      } catch (err) {
+        setError("Failed to load your requests.");
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchRequests();
+  }, []);
 };
