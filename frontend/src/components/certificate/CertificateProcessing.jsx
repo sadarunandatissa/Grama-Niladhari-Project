@@ -31,4 +31,31 @@ const CertificateProcessing = () => {
       setLoading(false);
     }
   };
+
+  const handleStatusUpdate = async (requestId) => {
+    if (!newStatus) {
+      setMessage("Please select a status.");
+      return;
+    }
+    try {
+      await axios.put(
+        `${API_URL}/api/certificate/officer/update/${requestId}`,
+        {
+          status: newStatus,
+          officerNotes: officerNotes.trim(),
+          generateCertificate: newStatus === "completed",
+        },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        },
+      );
+      setMessage(`Request ${newStatus} successfully.`);
+      setSelectedRequest(null);
+      setOfficerNotes("");
+      setNewStatus("");
+      fetchRequests();
+    } catch (err) {
+      setMessage(" " + (err.response?.data?.message || "Update failed"));
+    }
+  };
 };
