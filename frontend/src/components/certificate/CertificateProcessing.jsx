@@ -58,4 +58,7 @@ const CertificateProcessing = () => {
       setMessage(" " + (err.response?.data?.message || "Update failed"));
     }
   };
+  const formatDate = (date) => new Date(date).toLocaleDateString();
+
+  if (loading) return <div>Loading certificate requests...</div>;
 };
