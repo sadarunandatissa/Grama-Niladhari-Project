@@ -33,4 +33,7 @@ const CertificateList = () => {
     completed: "#27ae60",
     rejected: "#e74c3c",
   };
+
+  if (loading) return <div>Loading your Certificate requests..</div>;
+  if (error) return <div className="alert error">{error}</div>;
 };
