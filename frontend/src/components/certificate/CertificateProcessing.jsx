@@ -16,4 +16,19 @@ const CertificateProcessing = () => {
   useEffect(() => {
     fetchRequests();
   }, []);
+
+  const fetchRequests = async () => {
+    setLoading(true);
+    try {
+      const res = await axios.get(
+        `${API_URL}/api/certificate/officer/pending`,
+        { headers: { Authorization: `Bearer ${token}` } },
+      );
+      setRequests(res.data.data);
+    } catch (err) {
+      console.error("Failed to fetch requests: ", err);
+    } finally {
+      setLoading(false);
+    }
+  };
 };
