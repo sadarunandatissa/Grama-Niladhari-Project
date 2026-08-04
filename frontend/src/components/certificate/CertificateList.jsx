@@ -27,4 +27,10 @@ const CertificateList = () => {
     };
     fetchRequests();
   }, []);
+  const statusColors = {
+    pending: "#f39c12",
+    processing: "#3498db",
+    completed: "#27ae60",
+    rejected: "#e74c3c",
+  };
 };
