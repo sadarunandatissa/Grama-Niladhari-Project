@@ -4,6 +4,7 @@ const cors = require("cors");
 const helmet = require("helmet");
 const path = require("path");
 const connectDB = require("../src/config/db");
+const landRoutes = require("./routes/landRoutes");
 
 dotenv.config();
 connectDB();

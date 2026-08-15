@@ -8,14 +8,12 @@ const Village = require("../models/Village");
 
 // Generate sequential land ID
 const generateLandId = async (villageId) => {
-  // Get or create counter for this village
   let counter = await LandCounter.findOne({ village_id: villageId });
   if (!counter) {
     counter = new LandCounter({ village_id: villageId, sequence: 0 });
   }
   counter.sequence += 1;
   await counter.save();
-
   const padded = String(counter.sequence).padStart(4, "0");
   return `${villageId}-LAND-${padded}`;
 };
@@ -70,12 +68,10 @@ exports.createLand = async (req, res) => {
         .json({ success: false, message: "Valid land size is required." });
     }
     if (!["acres", "perches"].includes(size_unit)) {
-      return res
-        .status(400)
-        .json({
-          success: false,
-          message: "Invalid size unit. Use acres or perches.",
-        });
+      return res.status(400).json({
+        success: false,
+        message: "Invalid size unit. Use acres or perches.",
+      });
     }
 
     // 5. Validate type
@@ -287,12 +283,10 @@ exports.updateLand = async (req, res) => {
     // Validate and update fields
     if (size_value !== undefined) {
       if (size_value <= 0) {
-        return res
-          .status(400)
-          .json({
-            success: false,
-            message: "Land size must be greater than 0.",
-          });
+        return res.status(400).json({
+          success: false,
+          message: "Land size must be greater than 0.",
+        });
       }
       land.size.value = size_value;
     }
