@@ -8,6 +8,7 @@ import RegistrationSuccess from "./components/registration/RegistrationSuccess";
 import AdminDashboard from "./pages/AdminDashboard";
 import OfficerDashboard from "./pages/OfficerDashboard";
 import CitizenDashboard from "./pages/CitizenDashboard";
+import LandManagement from "./pages/LandManagement";
 
 function App() {
   return (
@@ -42,6 +43,14 @@ function App() {
             element={
               <PrivateRoute allowedRoles={["citizen"]}>
                 <CitizenDashboard />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/officer/land-management"
+            element={
+              <PrivateRoute allowedRoles={["gn_officer"]}>
+                <LandManagement />
               </PrivateRoute>
             }
           />
