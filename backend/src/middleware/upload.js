@@ -54,11 +54,11 @@ const handleUpload = (req, res, next) => {
 };
 
 const uploadCitizenPicture = uploadSingle;
-const uploadCertificateDocuments = upload.array("documents", 5);
+const uploadCertificateDocs = upload.array("documents", 5);
 
 module.exports = {
   upload,
   handleUpload,
   uploadCitizenPicture,
-  uploadCertificateDocuments,
+  uploadCertificateDocs,
 };

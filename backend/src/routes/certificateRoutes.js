@@ -6,31 +6,52 @@ const {
   getPendingCertificates,
   updateCertificateStatus,
   getCertificateDetails,
+  getCitizenNotifications,
+  markNotificationRead,
 } = require("../controllers/certificateController");
 const { protect, authorize } = require("../middleware/auth");
+const { uploadCertificateDocs } = require("../middleware/upload");
 
-// ─── Citizen routes ──────────────────────────────────────
-router.post("/request", protect, authorize("citizen"), requestCertificate);
+// Citizen routes
+router.post(
+  "/request",
+  protect,
+  authorize("citizen"),
+  uploadCertificateDocs.array("attachments", 5),
+  requestCertificate,
+);
 router.get("/my-requests", protect, authorize("citizen"), getMyCertificates);
+router.get(
+  "/notifications",
+  protect,
+  authorize("citizen"),
+  getCitizenNotifications,
+);
+router.put(
+  "/notification/:id",
+  protect,
+  authorize("citizen"),
+  markNotificationRead,
+);
 
-// ─── GN Officer routes ──────────────────────────────────
+// GN Officer routes
 router.get(
   "/officer/pending",
   protect,
   authorize("gn_officer"),
   getPendingCertificates,
 );
-router.put(
-  "/officer/update/:id",
-  protect,
-  authorize("gn_officer"),
-  updateCertificateStatus,
-);
 router.get(
   "/officer/:id",
   protect,
   authorize("gn_officer"),
   getCertificateDetails,
+);
+router.put(
+  "/officer/update/:id",
+  protect,
+  authorize("gn_officer"),
+  updateCertificateStatus,
 );
 
 module.exports = router;
