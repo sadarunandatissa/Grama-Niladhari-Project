@@ -58,8 +58,8 @@ app.use("/api/registration", require("../src/routes/registrationRoutes"));
 app.use("/api/citizen", require("../src/routes/citizenRoutes"));
 app.use("/api/gn-officer", require("../src/routes/gnOfficerRoutes"));
 app.use("/api/villages", require("../src/routes/villageRoutes"));
-
 app.use("/api/land", require("./routes/landRoutes"));
+app.use("/api/certificate", require("./routes/certificateRoutes"));
 app.get("/api/health", (req, res) => {
   res.json({ success: true, message: "Server running" });
 });
