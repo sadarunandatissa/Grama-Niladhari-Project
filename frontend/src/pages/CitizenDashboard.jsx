@@ -6,6 +6,8 @@ import axios from "axios";
 import "./CitizenDashboard.css"; // Create this file or remove the import
 import CertificateRequestForm from "../components/certificate/CertificateRequestForm";
 import CertificateList from "../components/certificate/CertificateList";
+import CertificateRequestModal from "../components/certificate/CertificateRequestModal";
+import CitizenCertificateList from "../components/certificate/CitizenCertificateList";
 
 const getApiUrl = () => {
   if (import.meta.env && import.meta.env.VITE_API_URL) {
@@ -13,6 +15,8 @@ const getApiUrl = () => {
   }
   return "http://localhost:5000";
 };
+
+const [showModal, setShowModal] = useState(false);
 
 const CitizenDashboard = () => {
   const { user, token, logout } = useAuth();
@@ -177,12 +181,18 @@ const CitizenDashboard = () => {
           onclick={() => setActiveTab("notifications")}
         ></button>
       </div>
-      {/* Certificate Section */}
-      {activeTab === "certificates" && (
-        <div className="certificate-section">
-          <hr />
-          <CertificateList />
-        </div>
+      <button className="btn-primary" onClick={() => setShowModal(true)}>
+        Request Certificate
+      </button>
+      <CitizenCertificateList />
+
+      {showModal && (
+        <CertificateRequestModal
+          onClose={() => setShowModal(false)}
+          onSuccess={() => {
+            /* refresh list */
+          }}
+        />
       )}
     </div>
   );

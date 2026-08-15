@@ -47,6 +47,9 @@ const Officerdashboard = () => {
           <Link to="/officer/land-management" className="nav-link">
             🌾 Land Management
           </Link>
+          <Link to="/officer/certificates" className="nav-link">
+            📜 Certificates
+          </Link>
           <a href="#" className="menu-item">
             <UsersRound /> Citizens
           </a>
