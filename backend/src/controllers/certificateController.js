@@ -5,28 +5,18 @@ const Notification = require("../models/Notification");
 
 // ─── Helpers ──────────────────────────────────────────────
 
-// Auto-fill citizen details
-const getCitizenDetails = async (citizenId) => {
-  const citizen = await Citizen.findById(citizenId).select(
-    "nic first_name middle_name last_name surname address phone_numbers village_id",
-  );
-  return citizen;
-};
-
-// Send SMS placeholder (integrate with SMS gateway)
 const sendSMS = async (phone, message) => {
   console.log(`📱 SMS to ${phone}: ${message}`);
-  // TODO: Integrate with Twilio or local SMS gateway
+  // TODO: integrate Twilio
 };
 
-// ─── Citizen: Request Certificate ─────────────────────────
+// ─── Citizen: Request Certificate (with file upload) ──────
 
 exports.requestCertificate = async (req, res) => {
   try {
     const { certificateType, formData } = req.body;
     const citizenId = req.user.id;
 
-    // 1. Get citizen details for auto-fill
     const citizen = await Citizen.findById(citizenId);
     if (!citizen) {
       return res
@@ -34,7 +24,7 @@ exports.requestCertificate = async (req, res) => {
         .json({ success: false, message: "Citizen not found" });
     }
 
-    // 2. Validate certificate type
+    // Validate type
     const validTypes = ["residential", "income", "character"];
     if (!validTypes.includes(certificateType)) {
       return res
@@ -42,7 +32,7 @@ exports.requestCertificate = async (req, res) => {
         .json({ success: false, message: "Invalid certificate type" });
     }
 
-    // 3. Validate form data based on type
+    // Validate required fields
     const requiredFields = {
       residential: ["reason", "survey_number"],
       income: ["anual_income", "reason"],
@@ -59,28 +49,44 @@ exports.requestCertificate = async (req, res) => {
       });
     }
 
-    // 4. Create certificate request
+    // Auto-fill from citizen but allow user to override address/phone
+    const autoData = {
+      nic: citizen.nic,
+      first_name: citizen.first_name,
+      middle_name: citizen.middle_name,
+      last_name: citizen.last_name,
+      surname: citizen.surname,
+    };
+    // Merge: user can override address/telephone
+    const finalFormData = {
+      ...autoData,
+      address: formData.address || citizen.address,
+      telephone: formData.telephone || citizen.phone_numbers?.[0] || "",
+      reason: formData.reason,
+      survey_number: formData.survey_number || "",
+      anual_income: formData.anual_income || "",
+    };
+
+    // Save uploaded files
+    let attachments = [];
+    if (req.files && req.files.length > 0) {
+      attachments = req.files.map(
+        (file) => `/uploads/certificates/${file.filename}`,
+      );
+    }
+
     const certificate = new Certificate({
       citizenId: citizen._id,
       village_id: citizen.village_id,
       certificateType,
-      formData: {
-        ...formData,
-        // Auto-fill fields from citizen
-        nic: citizen.nic,
-        first_name: citizen.first_name,
-        middle_name: citizen.middle_name,
-        last_name: citizen.last_name,
-        surname: citizen.surname,
-        address: citizen.address,
-        telephone: citizen.phone_numbers?.[0] || "",
-      },
+      formData: finalFormData,
+      attachments,
       status: "not_seen",
       requestedAt: new Date(),
     });
     await certificate.save();
 
-    // 5. Notify GN Officer (in-app notification)
+    // Notify GN Officer (in-app)
     const officer = await GNOfficer.findOne({ village_id: citizen.village_id });
     if (officer) {
       await Notification.create({
@@ -96,10 +102,7 @@ exports.requestCertificate = async (req, res) => {
     res.status(201).json({
       success: true,
       message: "Certificate request submitted successfully",
-      data: {
-        certificateId: certificate._id,
-        status: certificate.status,
-      },
+      data: { certificateId: certificate._id, status: certificate.status },
     });
   } catch (error) {
     console.error("Request certificate error:", error);
@@ -115,19 +118,54 @@ exports.getMyCertificates = async (req, res) => {
     const certificates = await Certificate.find({ citizenId }).sort({
       requestedAt: -1,
     });
-
-    // Enrich with officer details if needed
-    res.json({
-      success: true,
-      data: certificates,
-    });
+    res.json({ success: true, data: certificates });
   } catch (error) {
     console.error("Get my certificates error:", error);
     res.status(500).json({ success: false, message: "Server error" });
   }
 };
 
-// ─── GN Officer: Get Pending Requests ────────────────────
+// ─── Citizen: Get Notifications ──────────────────────────
+
+exports.getCitizenNotifications = async (req, res) => {
+  try {
+    const citizenId = req.user.id;
+    const notifications = await Notification.find({
+      recipientId: citizenId,
+      recipientModel: "Citizen",
+    }).sort({ createdAt: -1 });
+    res.json({ success: true, data: notifications });
+  } catch (error) {
+    console.error("Get notifications error:", error);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+};
+
+// ─── Citizen: Mark Notification as Read ──────────────────
+
+exports.markNotificationRead = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const notification = await Notification.findOne({
+      _id: id,
+      recipientId: req.user.id,
+      recipientModel: "Citizen",
+    });
+    if (!notification) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Notification not found" });
+    }
+    notification.isRead = true;
+    await notification.save();
+    res.json({ success: true, message: "Marked as read" });
+  } catch (error) {
+    console.error("Mark notification read error:", error);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+};
+
+// ─── GN Officer: Get Pending Certificates ─────────────────
 
 exports.getPendingCertificates = async (req, res) => {
   try {
@@ -142,10 +180,12 @@ exports.getPendingCertificates = async (req, res) => {
     const certificates = await Certificate.find({
       village_id: officer.village_id,
     })
-      .populate("citizenId", "full_name email nic phone_numbers")
-      .sort({ requestedAt: 1 }); // Ascending order (oldest first)
+      .populate(
+        "citizenId",
+        "full_name email nic phone_numbers profile_picture",
+      )
+      .sort({ requestedAt: 1 });
 
-    // Add warning flags
     const now = new Date();
     const twoDaysAgo = new Date(now);
     twoDaysAgo.setDate(twoDaysAgo.getDate() - 2);
@@ -167,17 +207,45 @@ exports.getPendingCertificates = async (req, res) => {
       };
     });
 
-    res.json({
-      success: true,
-      data: enhanced,
-    });
+    res.json({ success: true, data: enhanced });
   } catch (error) {
     console.error("Get pending certificates error:", error);
     res.status(500).json({ success: false, message: "Server error" });
   }
 };
 
-// ─── GN Officer: Update Status ───────────────────────────
+// ─── GN Officer: Get Certificate Details ──────────────────
+
+exports.getCertificateDetails = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const certificate = await Certificate.findById(id).populate(
+      "citizenId",
+      "full_name email nic phone_numbers profile_picture address village_id",
+    );
+    if (!certificate) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Certificate not found" });
+    }
+
+    // Verify officer belongs to same village
+    const officerId = req.user.id;
+    const officer = await GNOfficer.findById(officerId);
+    if (!officer || officer.village_id !== certificate.village_id) {
+      return res
+        .status(403)
+        .json({ success: false, message: "Not authorized" });
+    }
+
+    res.json({ success: true, data: certificate });
+  } catch (error) {
+    console.error("Get certificate details error:", error);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+};
+
+// ─── GN Officer: Update Status ────────────────────────────
 
 exports.updateCertificateStatus = async (req, res) => {
   try {
@@ -185,7 +253,6 @@ exports.updateCertificateStatus = async (req, res) => {
     const { status, officerNotes } = req.body;
     const officerId = req.user.id;
 
-    // Validate status
     if (!["not_seen", "in_progress", "completed"].includes(status)) {
       return res
         .status(400)
@@ -202,7 +269,6 @@ exports.updateCertificateStatus = async (req, res) => {
         .json({ success: false, message: "Certificate not found" });
     }
 
-    // Verify officer belongs to same village
     const officer = await GNOfficer.findById(officerId);
     if (!officer || officer.village_id !== certificate.village_id) {
       return res
@@ -210,7 +276,6 @@ exports.updateCertificateStatus = async (req, res) => {
         .json({ success: false, message: "Not authorized" });
     }
 
-    // Update status
     certificate.status = status;
     certificate.lastStatusChangeAt = new Date();
     if (officerNotes) {
@@ -218,10 +283,9 @@ exports.updateCertificateStatus = async (req, res) => {
     }
     await certificate.save();
 
-    // ─── Send Notification & SMS to Citizen on Completion ───
+    // Send notification to citizen on completion
     if (status === "completed") {
       const message = `Your ${certificate.certificateType} certificate is ready and you can collect it on office days at the Grama Niladhari Office.`;
-      // In-app notification
       await Notification.create({
         recipientId: certificate.citizenId._id,
         recipientModel: "Citizen",
@@ -230,15 +294,11 @@ exports.updateCertificateStatus = async (req, res) => {
         message: message,
         link: `/citizen/certificates/${certificate._id}`,
       });
-      // SMS
       const phone = certificate.citizenId.phone_numbers?.[0];
-      if (phone) {
-        await sendSMS(phone, message);
-      }
+      if (phone) await sendSMS(phone, message);
     }
 
-    // ─── Handle Warnings ─────────────────────────────────────
-    // If warning condition met, send notification to officer
+    // Warning notifications
     const now = new Date();
     const twoDaysAgo = new Date(now);
     twoDaysAgo.setDate(twoDaysAgo.getDate() - 2);
@@ -259,7 +319,6 @@ exports.updateCertificateStatus = async (req, res) => {
     ) {
       warningMessage = `Certificate request (${certificate._id}) has been 'In Progress' for more than 7 days.`;
     }
-
     if (warningMessage) {
       await Notification.create({
         recipientId: officerId,
@@ -280,27 +339,6 @@ exports.updateCertificateStatus = async (req, res) => {
     });
   } catch (error) {
     console.error("Update certificate status error:", error);
-    res.status(500).json({ success: false, message: "Server error" });
-  }
-};
-
-// ─── GN Officer: Get Single Certificate ──────────────────
-
-exports.getCertificateDetails = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const certificate = await Certificate.findById(id).populate(
-      "citizenId",
-      "full_name email nic phone_numbers",
-    );
-    if (!certificate) {
-      return res
-        .status(404)
-        .json({ success: false, message: "Certificate not found" });
-    }
-    res.json({ success: true, data: certificate });
-  } catch (error) {
-    console.error("Get certificate details error:", error);
     res.status(500).json({ success: false, message: "Server error" });
   }
 };
