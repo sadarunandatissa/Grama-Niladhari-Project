@@ -3,9 +3,11 @@
 import React, { useState, useEffect } from "react";
 import { useAuth } from "../context/AuthContext";
 import axios from "axios";
-import "./CitizenDashboard.css"; // Create this file or remove the import
-import CertificateRequestForm from "../components/certificate/CertificateRequestForm";
-import CertificateList from "../components/certificate/CertificateList";
+const [notifications, setNotifications] = useState([]);
+import "./CitizenDashboard.css";
+// Remove unused imports or keep them if needed later
+// import CertificateRequestForm from "../components/certificate/CertificateRequestForm";
+// import CertificateList from "../components/certificate/CertificateList";
 import CertificateRequestModal from "../components/certificate/CertificateRequestModal";
 import CitizenCertificateList from "../components/certificate/CitizenCertificateList";
 
@@ -15,8 +17,15 @@ const getApiUrl = () => {
   }
   return "http://localhost:5000";
 };
-
-const [showModal, setShowModal] = useState(false);
+const fetchNotifications = async () => {
+  const res = await axios.get(
+    `${API_URL}/api/certificate/citizen/notifications`,
+    {
+      headers: { Authorization: `Bearer ${token}` },
+    },
+  );
+  setNotifications(res.data.data);
+};
 
 const CitizenDashboard = () => {
   const { user, token, logout } = useAuth();
@@ -27,6 +36,8 @@ const CitizenDashboard = () => {
   const [error, setError] = useState("");
   const [familyMsg, setFamilyMsg] = useState("");
   const [activeTab, setActiveTab] = useState("profile");
+  // ✅ Moved inside component
+  const [showModal, setShowModal] = useState(false);
 
   const fetchData = async () => {
     setLoading(true);
@@ -67,7 +78,7 @@ const CitizenDashboard = () => {
         { headers: { Authorization: `Bearer ${token}` } },
       );
       setFamilyMsg(
-        ` Family created! Registration number: ${res.data.data.family_reg_no}`,
+        `✅ Family created! Registration number: ${res.data.data.family_reg_no}`,
       );
       await fetchData();
     } catch (err) {
@@ -91,12 +102,7 @@ const CitizenDashboard = () => {
         }}
       >
         <h1>Welcome, {profile.full_name}</h1>
-        <button
-          className="btn-logout
-        "
-          onClick={logout}
-          className="btn-logout"
-        >
+        <button className="btn-logout" onClick={logout}>
           Logout
         </button>
       </div>
@@ -134,7 +140,7 @@ const CitizenDashboard = () => {
           </p>
           <p>
             <strong>Head status:</strong>{" "}
-            {profile.is_head ? " Family Head" : "👤 Family Member"}
+            {profile.is_head ? "👑 Family Head" : "👤 Family Member"}
           </p>
           {!profile.family_id && profile.is_head && (
             <button onClick={createFamily} className="btn-create-family">
@@ -161,26 +167,28 @@ const CitizenDashboard = () => {
         </ul>
       )}
 
-      {/*Tab Navigation */}
+      {/* Tab Navigation */}
       <div className="citizen-tabs">
         <button
           className={activeTab === "profile" ? "active" : ""}
           onClick={() => setActiveTab("profile")}
         >
-          {" "}
-          Profile{" "}
+          Profile
         </button>
-
         <button
           className={activeTab === "certificates" ? "active" : ""}
-          onclick={() => setActiveTab("certificates")}
-        ></button>
-
+          onClick={() => setActiveTab("certificates")}
+        >
+          Certificates
+        </button>
         <button
           className={activeTab === "notifications" ? "active" : ""}
-          onclick={() => setActiveTab("notifications")}
-        ></button>
+          onClick={() => setActiveTab("notifications")}
+        >
+          Notifications
+        </button>
       </div>
+
       <button className="btn-primary" onClick={() => setShowModal(true)}>
         Request Certificate
       </button>
@@ -190,7 +198,8 @@ const CitizenDashboard = () => {
         <CertificateRequestModal
           onClose={() => setShowModal(false)}
           onSuccess={() => {
-            /* refresh list */
+            // Optionally refresh the certificate list
+            fetchData();
           }}
         />
       )}

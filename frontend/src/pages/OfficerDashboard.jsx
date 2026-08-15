@@ -1,6 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import "./OfficerDashboard.css";
+const [notifications, setNotifications] = useState([]);
 import gnAvatar from "../assets/Officer-Avatar.png";
 import {
   Cross,
@@ -21,6 +22,16 @@ import {
   UserRound,
   Download,
 } from "lucide-react";
+
+const fetchNotifications = async () => {
+  const res = await axios.get(
+    `${API_URL}/api/certificate/officer/notifications`,
+    {
+      headers: { Authorization: `Bearer ${token}` },
+    },
+  );
+  setNotifications(res.data.data);
+};
 
 const Officerdashboard = () => {
   return (
