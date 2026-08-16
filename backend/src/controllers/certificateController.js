@@ -2,12 +2,72 @@ const Certificate = require("../models/Certificate");
 const Citizen = require("../models/Citizen");
 const GNOfficer = require("../models/GNOfficer");
 const Notification = require("../models/Notification");
+const Land = require("../models/Land");
 
 // ─── Helpers ──────────────────────────────────────────────
 
 const sendSMS = async (phone, message) => {
   console.log(`📱 SMS to ${phone}: ${message}`);
   // TODO: integrate Twilio
+};
+
+exports.getCertificateDetails = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const certificate = await Certificate.findById(id).populate(
+      "citizenId",
+      "full_name email nic phone_numbers profile_picture address village_id",
+    );
+
+    if (!certificate) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Certificate not found" });
+    }
+
+    const officerId = req.user.id;
+    const officer = await GNOfficer.findById(officerId);
+    if (!officer || officer.village_id !== certificate.village_id) {
+      return res
+        .status(403)
+        .json({ success: false, message: "Not authorized" });
+    }
+
+    // Prepare response object
+    const response = {
+      ...certificate.toObject(),
+      citizen: certificate.citizenId,
+    };
+
+    // For residential certificate, fetch land by survey number
+    if (certificate.certificateType === "residential") {
+      const surveyNumber = certificate.formData.survey_number;
+      if (surveyNumber) {
+        const land = await Land.findOne({
+          survey_number: surveyNumber,
+          village_id: officer.village_id,
+          is_active: true,
+        });
+        response.landDetails = land || null;
+      }
+    }
+
+    // For income certificate, fetch all lands of the citizen
+    if (certificate.certificateType === "income") {
+      const citizenNIC = certificate.citizenId.nic;
+      const lands = await Land.find({
+        owner_nic: citizenNIC,
+        village_id: officer.village_id,
+        is_active: true,
+      });
+      response.lands = lands;
+    }
+
+    res.json({ success: true, data: response });
+  } catch (error) {
+    console.error("Get certificate details error:", error);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
 };
 
 // ─── Citizen: Request Certificate (with file upload) ──────
