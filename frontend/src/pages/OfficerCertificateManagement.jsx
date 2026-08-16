@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { Link } from "react-router-dom"; // ← ADD THIS IMPORT
 import axios from "axios";
 import { useAuth } from "../context/AuthContext";
 
@@ -107,9 +108,18 @@ const OfficerCertificateManagement = () => {
                   <td>{new Date(cert.requestedAt).toLocaleDateString()}</td>
                   <td>{cert.warning ? "⚠️" : "✅"}</td>
                   <td>
+                    {/* ✅ ADD THE LINK TO DETAILS */}
+                    <Link
+                      to={`/officer/certificate/${cert._id}`}
+                      className="btn-view"
+                    >
+                      View Details
+                    </Link>
+                    {/* Keep the status update button if you want, or use a separate modal */}
                     <button
                       className="btn-edit"
                       onClick={() => setSelectedCert(cert)}
+                      style={{ marginLeft: "8px" }}
                     >
                       Update Status
                     </button>
@@ -121,6 +131,7 @@ const OfficerCertificateManagement = () => {
         </table>
       )}
 
+      {/* Status update modal (unchanged) */}
       {selectedCert && (
         <div className="modal-overlay" onClick={() => setSelectedCert(null)}>
           <div className="modal" onClick={(e) => e.stopPropagation()}>
