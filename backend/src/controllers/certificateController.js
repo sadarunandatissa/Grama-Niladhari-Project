@@ -154,6 +154,7 @@ exports.getOfficerNotifications = async (req, res) => {
     console.error("Get officer notifications error:", error);
     res.status(500).json({ success: false, message: "Server error" });
   }
+  console.log("🔍 getOfficerNotifications called for user:", req.user.id);
 };
 
 // ─── Citizen: Mark Notification as Read ──────────────────
