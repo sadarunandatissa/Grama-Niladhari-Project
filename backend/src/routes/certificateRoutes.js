@@ -6,6 +6,7 @@ const {
   getPendingCertificates,
   updateCertificateStatus,
   getCertificateDetails,
+  getOfficerNotifications,
   getCitizenNotifications,
   markNotificationRead,
 } = require("../controllers/certificateController");
@@ -47,6 +48,13 @@ router.get(
   protect,
   authorize("gn_officer"),
   getCertificateDetails,
+);
+// GN Officer routes
+router.get(
+  "/officer/notifications",
+  protect,
+  authorize("gn_officer"),
+  getOfficerNotifications,
 );
 router.put(
   "/officer/update/:id",
