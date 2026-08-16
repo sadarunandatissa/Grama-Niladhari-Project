@@ -141,6 +141,21 @@ exports.getCitizenNotifications = async (req, res) => {
   }
 };
 
+// ─── Get Notifications for GN Officer ──────────────────────
+exports.getOfficerNotifications = async (req, res) => {
+  try {
+    const officerId = req.user.id;
+    const notifications = await Notification.find({
+      recipientId: officerId,
+      recipientModel: "GNOfficer", // ← must match the model's enum
+    }).sort({ createdAt: -1 });
+    res.json({ success: true, data: notifications });
+  } catch (error) {
+    console.error("Get officer notifications error:", error);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+};
+
 // ─── Citizen: Mark Notification as Read ──────────────────
 
 exports.markNotificationRead = async (req, res) => {
