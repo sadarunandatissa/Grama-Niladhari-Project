@@ -10,6 +10,7 @@ import OfficerDashboard from "./pages/OfficerDashboard";
 import CitizenDashboard from "./pages/CitizenDashboard";
 import LandManagement from "./pages/LandManagement";
 import OfficerCertificateManagement from "./pages/OfficerCertificateManagement";
+import OfficerCertificateDetails from "./pages/OfficerCertificateDetails";
 
 function App() {
   return (
@@ -60,6 +61,14 @@ function App() {
             element={
               <PrivateRoute allowedRoles={["gn_officer"]}>
                 <OfficerCertificateManagement />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/officer/certificate/:id"
+            element={
+              <PrivateRoute allowedRoles={["gn_officer"]}>
+                <OfficerCertificateDetails />
               </PrivateRoute>
             }
           />

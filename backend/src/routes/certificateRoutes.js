@@ -12,14 +12,15 @@ const {
 const { protect, authorize } = require("../middleware/auth");
 const { uploadCertificateDocs } = require("../middleware/upload");
 
-// Citizen routes
+// ─── Citizen routes ──────────────────────────────────
 router.post(
   "/request",
   protect,
   authorize("citizen"),
-  uploadCertificateDocs.array("attachments", 5),
+  uploadCertificateDocs, // ✅ Directly use the middleware
   requestCertificate,
 );
+
 router.get("/my-requests", protect, authorize("citizen"), getMyCertificates);
 router.get(
   "/notifications",
@@ -34,7 +35,7 @@ router.put(
   markNotificationRead,
 );
 
-// GN Officer routes
+// ─── GN Officer routes ───────────────────────────────
 router.get(
   "/officer/pending",
   protect,

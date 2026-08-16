@@ -1,7 +1,9 @@
-import React from "react";
-import { Link } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
+import axios from "axios";
 import "./OfficerDashboard.css";
-const [notifications, setNotifications] = useState([]);
+
 import gnAvatar from "../assets/Officer-Avatar.png";
 import {
   Cross,
@@ -23,19 +25,64 @@ import {
   Download,
 } from "lucide-react";
 
-const fetchNotifications = async () => {
-  const res = await axios.get(
-    `${API_URL}/api/certificate/officer/notifications`,
-    {
-      headers: { Authorization: `Bearer ${token}` },
-    },
-  );
-  setNotifications(res.data.data);
-};
+const OfficerDashboard = () => {
+  const { user, token, logout } = useAuth();
+  const navigate = useNavigate();
+  const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
-const Officerdashboard = () => {
+  const [notifications, setNotifications] = useState([]);
+  const [pendingCertificates, setPendingCertificates] = useState(0);
+  const [loading, setLoading] = useState(true);
+
+  // Fetch dashboard data
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        // Get pending certificate count (or any stats)
+        const res = await axios.get(
+          `${API_URL}/api/certificate/officer/pending`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          },
+        );
+        setPendingCertificates(res.data.data?.length || 0);
+      } catch (error) {
+        console.error("Error fetching dashboard data:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, [token]);
+
+  // Fetch notifications (if you have this endpoint)
+  useEffect(() => {
+    const fetchNotifications = async () => {
+      try {
+        const res = await axios.get(
+          `${API_URL}/api/certificate/officer/notifications`,
+          { headers: { Authorization: `Bearer ${token}` } },
+        );
+        setNotifications(res.data.data || []);
+      } catch (error) {
+        console.error("Error fetching notifications:", error);
+      }
+    };
+    fetchNotifications();
+  }, [token]);
+
+  const handleLogout = () => {
+    logout();
+    navigate("/login");
+  };
+
+  if (loading) {
+    return <div className="loading-spinner">Loading dashboard...</div>;
+  }
+
   return (
     <div className="dashboard-wrapper">
+      {/* Sidebar */}
       <aside className="sidebar">
         <div className="sidebar-brand">
           <h2>
@@ -46,45 +93,46 @@ const Officerdashboard = () => {
         </div>
 
         <nav className="sidebar-menu">
-          <a href="#" className="menu-item active">
+          <Link to="/officer/dashboard" className="menu-item active">
             <LayoutDashboard /> Dashboard
-          </a>
+          </Link>
 
           <span className="menu-category">MAIN</span>
-          <a href="#" className="menu-item">
+          <Link to="#" className="menu-item">
             <Cross /> Requests
-          </a>
+          </Link>
 
-          <Link to="/officer/land-management" className="nav-link">
-            🌾 Land Management
+          <Link to="/officer/land-management" className="menu-item">
+            <House /> Land Management
           </Link>
-          <Link to="/officer/certificates" className="nav-link">
-            📜 Certificates
+          <Link to="/officer/certificates" className="menu-item">
+            <FileCheckCorner /> Certificates
           </Link>
-          <a href="#" className="menu-item">
+          <Link to="#" className="menu-item">
             <UsersRound /> Citizens
-          </a>
-          <a href="#" className="menu-item">
+          </Link>
+          <Link to="#" className="menu-item">
             <Megaphone /> Announcements
-          </a>
-          <a href="#" className="menu-item">
+          </Link>
+          <Link to="#" className="menu-item">
             <MessageSquare /> Messages
-          </a>
-          <a href="#" className="menu-item">
+          </Link>
+          <Link to="#" className="menu-item">
             <Smartphone /> Alerts
-          </a>
-          <a href="#" className="menu-item">
+          </Link>
+          <Link to="#" className="menu-item">
             <Settings /> Settings
-          </a>
+          </Link>
         </nav>
 
         <div className="sidebar-footer">
-          <a href="#" className="menu-item logout">
+          <button className="menu-item logout" onClick={handleLogout}>
             <LogOut /> Log out
-          </a>
+          </button>
         </div>
       </aside>
 
+      {/* Main content */}
       <main className="main-content">
         <header className="topbar">
           <div className="page-title">
@@ -95,13 +143,14 @@ const Officerdashboard = () => {
               <CircleUserRound />
             </div>
             <div className="profile-info">
-              <span className="user-name">GN OFFICER</span>
+              <span className="user-name">{user?.name || "GN OFFICER"}</span>
               <span className="user-role">GRAMA NILADHARI</span>
             </div>
           </div>
         </header>
 
         <div className="dashboard-grid">
+          {/* Welcome card + Quick actions */}
           <div className="upper-grid">
             <div className="welcome-card">
               <div className="welcome-graphic">
@@ -111,9 +160,12 @@ const Officerdashboard = () => {
                 <h3>GOOD MORNING !</h3>
                 <p className="title-sub">GRAMA NILADHARI OFFICER</p>
                 <div className="division-badge">
-                  GN DIVISION <span className="badge-num">123A</span>
+                  GN DIVISION{" "}
+                  <span className="badge-num">{user?.village_id || "N/A"}</span>
                 </div>
-                <p className="date-stamp">Today is 10 July 2026</p>
+                <p className="date-stamp">
+                  Today is {new Date().toLocaleDateString()}
+                </p>
               </div>
             </div>
             <div className="quick-actions-grid">
@@ -134,6 +186,7 @@ const Officerdashboard = () => {
 
           <div className="notice-strip">IMPORTANT NOTICES</div>
 
+          {/* Status summary row */}
           <div className="status-summary-row">
             {/* Certificate Requests */}
             <div className="status-card border-blue">
@@ -141,20 +194,20 @@ const Officerdashboard = () => {
                 <div className="card-head-icon">
                   <FileCheckCorner />
                 </div>
-                <h4>Cerificate Requests</h4>
+                <h4>Certificate Requests</h4>
               </div>
               <div className="counter-badge-row">
                 <div className="badge-box bg-blue">
                   <span>Pending</span>
-                  <strong>12</strong>
+                  <strong>{pendingCertificates}</strong>
                 </div>
                 <div className="badge-box bg-blue">
                   <span>Approved</span>
-                  <strong>123</strong>
+                  <strong>--</strong>
                 </div>
                 <div className="badge-box bg-blue">
                   <span>Rejected</span>
-                  <strong>03</strong>
+                  <strong>--</strong>
                 </div>
               </div>
               <div className="mini-list">
@@ -174,15 +227,15 @@ const Officerdashboard = () => {
               <div className="counter-badge-row">
                 <div className="badge-box bg-green">
                   <span>Pending</span>
-                  <strong>03</strong>
+                  <strong>--</strong>
                 </div>
                 <div className="badge-box bg-green">
                   <span>Approved</span>
-                  <strong>100</strong>
+                  <strong>--</strong>
                 </div>
                 <div className="badge-box bg-green">
                   <span>Rejected</span>
-                  <strong>12</strong>
+                  <strong>--</strong>
                 </div>
               </div>
               <div className="mini-list">
@@ -191,7 +244,7 @@ const Officerdashboard = () => {
               </div>
             </div>
 
-            {/* Citizen Details Count Box */}
+            {/* Citizen details */}
             <div className="status-card border-orange">
               <div className="card-head">
                 <div className="card-head-icon">
@@ -202,23 +255,22 @@ const Officerdashboard = () => {
               <div className="stat-rows-group">
                 <div className="stat-row">
                   <span>Total Citizens:</span>
-                  <strong className="val-box">240</strong>
+                  <strong className="val-box">--</strong>
                 </div>
                 <div className="stat-row">
                   <span>Total Families:</span>
-                  <strong className="val-box">63</strong>
+                  <strong className="val-box">--</strong>
                 </div>
                 <div className="stat-row">
                   <span>Total Houses:</span>
-                  <strong className="val-box">58</strong>
+                  <strong className="val-box">--</strong>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Charts and visualizations */}
+          {/* Charts row */}
           <div className="visuals-row">
-            {/* Bar Chart */}
             <div className="chart-card flex-double">
               <div className="chart-header">
                 <h5>Monthly Requests Overview</h5>
@@ -231,34 +283,27 @@ const Officerdashboard = () => {
                   </span>
                 </div>
               </div>
-
-              {/* graphic structure mapping the visual graph layout */}
               <div className="graph-bars"></div>
               <div className="graph-summary-tiles">
                 <div className="tile">
                   <span>Total Certificate Requests</span>
-                  <strong>268</strong>
+                  <strong>--</strong>
                 </div>
                 <div className="tile">
                   <span>Total Permit Requests</span>
-                  <strong>193</strong>
+                  <strong>--</strong>
                 </div>
                 <div className="tile">
                   <span>Highest Month (Certificates)</span>
-                  <strong>
-                    30 <small>July</small>
-                  </strong>
+                  <strong>--</strong>
                 </div>
                 <div className="tile">
                   <span>Highest Month (Permits)</span>
-                  <strong>
-                    22 <small>July</small>
-                  </strong>
+                  <strong>--</strong>
                 </div>
               </div>
             </div>
 
-            {/* Pie Chart */}
             <div className="chart-card">
               <div className="chart-header">
                 <div>
@@ -278,19 +323,19 @@ const Officerdashboard = () => {
                     <span className="lbl">
                       <UserRound /> Total Citizens
                     </span>
-                    <strong>240</strong>
+                    <strong>--</strong>
                   </div>
                   <div className="breakdown-item">
                     <span className="lbl">
                       <UserRound /> Total Families
                     </span>
-                    <strong>63</strong>
+                    <strong>--</strong>
                   </div>
                   <div className="breakdown-item">
                     <span className="lbl">
                       <UserRound /> Total Houses
                     </span>
-                    <strong>58</strong>
+                    <strong>--</strong>
                   </div>
                 </div>
               </div>
@@ -311,4 +356,4 @@ const Officerdashboard = () => {
   );
 };
 
-export default Officerdashboard;
+export default OfficerDashboard;

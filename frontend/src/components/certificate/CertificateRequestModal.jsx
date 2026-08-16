@@ -171,11 +171,11 @@ const CertificateRequestModal = ({ onClose, onSuccess }) => {
             </div>
             <div className="form-group">
               <label>Address</label>
-              <textarea value={formData.address} disabled rows="2" />
+              <textarea value={formData.address} rows="2" />
             </div>
             <div className="form-group">
               <label>Telephone</label>
-              <input type="text" value={formData.telephone} disabled />
+              <input type="text" value={formData.telephone} />
             </div>
 
             {certificateType === "residential" && (
