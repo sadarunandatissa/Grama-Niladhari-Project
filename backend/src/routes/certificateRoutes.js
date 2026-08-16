@@ -6,25 +6,24 @@ const {
   getPendingCertificates,
   updateCertificateStatus,
   getCertificateDetails,
-  getOfficerNotifications,
   getCitizenNotifications,
+  getOfficerNotifications,
   markNotificationRead,
 } = require("../controllers/certificateController");
 const { protect, authorize } = require("../middleware/auth");
 const { uploadCertificateDocs } = require("../middleware/upload");
 
-// ─── Citizen routes ──────────────────────────────────
+// ─── Citizen routes ──────────────────────────────────────
 router.post(
   "/request",
   protect,
   authorize("citizen"),
-  uploadCertificateDocs, // ✅ Directly use the middleware
+  uploadCertificateDocs,
   requestCertificate,
 );
-
 router.get("/my-requests", protect, authorize("citizen"), getMyCertificates);
 router.get(
-  "/notifications",
+  "/citizen/notifications",
   protect,
   authorize("citizen"),
   getCitizenNotifications,
@@ -36,31 +35,33 @@ router.put(
   markNotificationRead,
 );
 
-// ─── GN Officer routes ───────────────────────────────
-router.get(
-  "/officer/pending",
-  protect,
-  authorize("gn_officer"),
-  getPendingCertificates,
-);
-router.get(
-  "/officer/:id",
-  protect,
-  authorize("gn_officer"),
-  getCertificateDetails,
-);
-// GN Officer routes
+// ─── GN Officer routes ──────────────────────────────────
+// ✅ SPECIFIC routes MUST come BEFORE the generic :id route
 router.get(
   "/officer/notifications",
   protect,
   authorize("gn_officer"),
   getOfficerNotifications,
 );
+router.get(
+  "/officer/pending",
+  protect,
+  authorize("gn_officer"),
+  getPendingCertificates,
+);
 router.put(
   "/officer/update/:id",
   protect,
   authorize("gn_officer"),
   updateCertificateStatus,
+);
+
+// ⚠️ GENERIC route – MUST BE LAST
+router.get(
+  "/officer/:id",
+  protect,
+  authorize("gn_officer"),
+  getCertificateDetails,
 );
 
 module.exports = router;

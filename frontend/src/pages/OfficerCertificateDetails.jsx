@@ -33,7 +33,7 @@ const OfficerCertificateDetails = () => {
       }
     };
     fetchDetails();
-  }, [id]);
+  }, [id, token]);
 
   const updateStatus = async (newStatus) => {
     try {
@@ -43,13 +43,69 @@ const OfficerCertificateDetails = () => {
         { headers: { Authorization: `Bearer ${token}` } },
       );
       setStatus(newStatus);
-      // Refresh
+      // Refresh details
       const res = await axios.get(`${API_URL}/api/certificate/officer/${id}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setCert(res.data.data);
     } catch (err) {
       alert(err.response?.data?.message || "Update failed.");
+    }
+  };
+
+  // ─── Render Attachment with Download ──────────────────────
+  const renderAttachment = (filePath, index) => {
+    if (!filePath) return null;
+    const fullUrl = filePath.startsWith("/uploads/")
+      ? `${API_URL}${filePath}`
+      : `${API_URL}/uploads/certificates/${filePath}`;
+    const ext = filePath.split(".").pop().toLowerCase();
+
+    if (["jpg", "jpeg", "png", "gif", "webp"].includes(ext)) {
+      return (
+        <div key={index} className="attachment-item">
+          <img
+            src={fullUrl}
+            alt={`Attachment ${index + 1}`}
+            className="attachment-img"
+          />
+          <div className="attachment-actions">
+            <a href={fullUrl} target="_blank" rel="noopener noreferrer">
+              👁️ View
+            </a>
+            <a href={fullUrl} download>
+              ⬇️ Download
+            </a>
+          </div>
+        </div>
+      );
+    } else if (ext === "pdf") {
+      return (
+        <div key={index} className="attachment-item">
+          <div className="attachment-pdf-icon">📄</div>
+          <span>Document {index + 1}</span>
+          <div className="attachment-actions">
+            <a href={fullUrl} target="_blank" rel="noopener noreferrer">
+              👁️ View
+            </a>
+            <a href={fullUrl} download>
+              ⬇️ Download
+            </a>
+          </div>
+        </div>
+      );
+    } else {
+      return (
+        <div key={index} className="attachment-item">
+          <div className="attachment-other-icon">📎</div>
+          <span>File {index + 1}</span>
+          <div className="attachment-actions">
+            <a href={fullUrl} download>
+              ⬇️ Download
+            </a>
+          </div>
+        </div>
+      );
     }
   };
 
@@ -62,38 +118,6 @@ const OfficerCertificateDetails = () => {
   const isResidential = cert.certificateType === "residential";
   const isIncome = cert.certificateType === "income";
   const isCharacter = cert.certificateType === "character";
-
-  // Helper to render attachment preview
-  const renderAttachment = (filePath, index) => {
-    const fullUrl = `${API_URL}${filePath}`;
-    const ext = filePath.split(".").pop().toLowerCase();
-    if (["jpg", "jpeg", "png", "gif", "webp"].includes(ext)) {
-      return (
-        <img
-          key={index}
-          src={fullUrl}
-          alt={`Attachment ${index + 1}`}
-          className="attachment-img"
-        />
-      );
-    } else if (ext === "pdf") {
-      return (
-        <div key={index} className="attachment-pdf">
-          <a href={fullUrl} target="_blank" rel="noopener noreferrer">
-            📄 View PDF
-          </a>
-        </div>
-      );
-    } else {
-      return (
-        <div key={index} className="attachment-other">
-          <a href={fullUrl} target="_blank" rel="noopener noreferrer">
-            📎 Download File
-          </a>
-        </div>
-      );
-    }
-  };
 
   return (
     <div className="certificate-detail-container">
@@ -145,14 +169,12 @@ const OfficerCertificateDetails = () => {
         </div>
       </div>
 
-      {/* Certificate Type Specific Details */}
+      {/* Certificate Specific Details */}
       <div className="cert-details-card">
         <h3>
-          {cert.certificateType === "residential"
-            ? "🏠 Residential Confirmation"
-            : cert.certificateType === "income"
-              ? "💰 Income Certificate"
-              : "⭐ Character Certificate"}
+          {isResidential && "🏠 Residential Confirmation"}
+          {isIncome && "💰 Income Certificate"}
+          {isCharacter && "⭐ Character Certificate"}
         </h3>
 
         {isResidential && (
@@ -258,7 +280,7 @@ const OfficerCertificateDetails = () => {
           </div>
         )}
 
-        {/* All attachments from the request */}
+        {/* ─── All Attachments ──────────────────────────────── */}
         {cert.attachments && cert.attachments.length > 0 && (
           <div className="attachment-section">
             <h4>Supporting Documents</h4>
@@ -266,6 +288,10 @@ const OfficerCertificateDetails = () => {
               {cert.attachments.map((file, idx) => renderAttachment(file, idx))}
             </div>
           </div>
+        )}
+
+        {(!cert.attachments || cert.attachments.length === 0) && (
+          <div className="no-attachments">No attachments uploaded.</div>
         )}
       </div>
 

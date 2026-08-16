@@ -68,23 +68,40 @@ exports.getCertificateDetails = async (req, res) => {
     console.error("Get certificate details error:", error);
     res.status(500).json({ success: false, message: "Server error" });
   }
+  res.json({ success: true, data: certificate });
 };
 
 // ─── Citizen: Request Certificate (with file upload) ──────
 
 exports.requestCertificate = async (req, res) => {
   try {
-    const { certificateType, formData } = req.body;
-    const citizenId = req.user.id;
+    const { certificateType } = req.body;
 
-    const citizen = await Citizen.findById(citizenId);
+    // ✅ Parse formData from JSON string (sent by frontend)
+    let formData = {};
+    if (req.body.formData) {
+      try {
+        formData =
+          typeof req.body.formData === "string"
+            ? JSON.parse(req.body.formData)
+            : req.body.formData;
+      } catch (parseError) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid form data format.",
+        });
+      }
+    }
+
+    // Get citizen
+    const citizen = await Citizen.findById(req.user.id);
     if (!citizen) {
       return res
         .status(404)
         .json({ success: false, message: "Citizen not found" });
     }
 
-    // Validate type
+    // Validate certificate type
     const validTypes = ["residential", "income", "character"];
     if (!validTypes.includes(certificateType)) {
       return res
@@ -92,7 +109,7 @@ exports.requestCertificate = async (req, res) => {
         .json({ success: false, message: "Invalid certificate type" });
     }
 
-    // Validate required fields
+    // ✅ Validate required fields using the parsed formData
     const requiredFields = {
       residential: ["reason", "survey_number"],
       income: ["anual_income", "reason"],
@@ -110,19 +127,15 @@ exports.requestCertificate = async (req, res) => {
     }
 
     // Auto-fill from citizen but allow user to override address/phone
-    const autoData = {
+    const finalFormData = {
       nic: citizen.nic,
       first_name: citizen.first_name,
       middle_name: citizen.middle_name,
       last_name: citizen.last_name,
       surname: citizen.surname,
-    };
-    // Merge: user can override address/telephone
-    const finalFormData = {
-      ...autoData,
       address: formData.address || citizen.address,
       telephone: formData.telephone || citizen.phone_numbers?.[0] || "",
-      reason: formData.reason,
+      reason: formData.reason || "",
       survey_number: formData.survey_number || "",
       anual_income: formData.anual_income || "",
     };
@@ -146,7 +159,7 @@ exports.requestCertificate = async (req, res) => {
     });
     await certificate.save();
 
-    // Notify GN Officer (in-app)
+    // Notify GN Officer
     const officer = await GNOfficer.findOne({ village_id: citizen.village_id });
     if (officer) {
       await Notification.create({

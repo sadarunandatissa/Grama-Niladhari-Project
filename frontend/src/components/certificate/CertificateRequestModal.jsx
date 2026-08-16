@@ -13,7 +13,7 @@ const CertificateRequestModal = ({ onClose, onSuccess }) => {
 
   const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
-  // Auto-fill fields from user context
+  // Auto‑fill fields from user context
   const citizenDetails = {
     nic: user?.nic || "",
     first_name: user?.first_name || "",
@@ -37,6 +37,7 @@ const CertificateRequestModal = ({ onClose, onSuccess }) => {
       reason: "",
       survey_number: "",
       anual_income: "",
+      // Files will be stored as File objects
       copy_of_bill: null,
       plan_or_receipt: null,
     });
@@ -46,6 +47,7 @@ const CertificateRequestModal = ({ onClose, onSuccess }) => {
   const handleChange = (e) => {
     const { name, value, files } = e.target;
     if (files) {
+      // Store the File object for later use
       setFormData((prev) => ({ ...prev, [name]: files[0] }));
     } else {
       setFormData((prev) => ({ ...prev, [name]: value }));
@@ -57,7 +59,7 @@ const CertificateRequestModal = ({ onClose, onSuccess }) => {
     setLoading(true);
     setError("");
 
-    // Validate required fields per type
+    // Validate required fields
     let missing = [];
     if (certificateType === "residential") {
       if (!formData.reason) missing.push("reason");
@@ -75,17 +77,37 @@ const CertificateRequestModal = ({ onClose, onSuccess }) => {
     }
 
     try {
-      const payload = {
-        certificateType,
-        formData: { ...formData },
-      };
-      delete payload.formData.copy_of_bill;
-      delete payload.formData.plan_or_receipt;
+      // Build FormData
+      const data = new FormData();
+
+      // Append certificate type
+      data.append("certificateType", certificateType);
+
+      // Prepare formData object (text fields) and send as JSON string
+      const textData = { ...formData };
+      // Remove file fields from the object (they are handled separately)
+      delete textData.copy_of_bill;
+      delete textData.plan_or_receipt;
+
+      data.append("formData", JSON.stringify(textData));
+
+      // Append files as 'attachments' (the field name expected by multer)
+      if (formData.copy_of_bill) {
+        data.append("attachments", formData.copy_of_bill);
+      }
+      if (formData.plan_or_receipt) {
+        data.append("attachments", formData.plan_or_receipt);
+      }
 
       const response = await axios.post(
         `${API_URL}/api/certificate/request`,
-        payload,
-        { headers: { Authorization: `Bearer ${token}` } },
+        data,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "multipart/form-data",
+          },
+        },
       );
       setSuccess("Certificate requested successfully!");
       setTimeout(() => {
@@ -145,46 +167,83 @@ const CertificateRequestModal = ({ onClose, onSuccess }) => {
             {error && <div className="alert error">{error}</div>}
             {success && <div className="alert success">{success}</div>}
 
+            {/* Auto‑filled read‑only fields */}
             <div className="form-row">
               <div className="form-group">
                 <label>NIC</label>
-                <input type="text" value={formData.nic} disabled />
+                <input
+                  type="text"
+                  value={formData.nic || ""}
+                  readOnly
+                  onChange={() => {}}
+                />
               </div>
               <div className="form-group">
                 <label>First Name</label>
-                <input type="text" value={formData.first_name} disabled />
+                <input
+                  type="text"
+                  value={formData.first_name || ""}
+                  readOnly
+                  onChange={() => {}}
+                />
               </div>
             </div>
             <div className="form-row">
               <div className="form-group">
                 <label>Middle Name</label>
-                <input type="text" value={formData.middle_name} disabled />
+                <input
+                  type="text"
+                  value={formData.middle_name || ""}
+                  readOnly
+                  onChange={() => {}}
+                />
               </div>
               <div className="form-group">
                 <label>Last Name</label>
-                <input type="text" value={formData.last_name} disabled />
+                <input
+                  type="text"
+                  value={formData.last_name || ""}
+                  readOnly
+                  onChange={() => {}}
+                />
               </div>
             </div>
             <div className="form-group">
               <label>Surname</label>
-              <input type="text" value={formData.surname} disabled />
+              <input
+                type="text"
+                value={formData.surname || ""}
+                readOnly
+                onChange={() => {}}
+              />
             </div>
             <div className="form-group">
               <label>Address</label>
-              <textarea value={formData.address} rows="2" />
+              <textarea
+                value={formData.address || ""}
+                readOnly
+                onChange={() => {}}
+                rows="2"
+              />
             </div>
             <div className="form-group">
               <label>Telephone</label>
-              <input type="text" value={formData.telephone} />
+              <input
+                type="text"
+                value={formData.telephone || ""}
+                readOnly
+                onChange={() => {}}
+              />
             </div>
 
+            {/* Residential Certificate fields */}
             {certificateType === "residential" && (
               <>
                 <div className="form-group">
                   <label>Reason for Request *</label>
                   <textarea
                     name="reason"
-                    value={formData.reason}
+                    value={formData.reason || ""}
                     onChange={handleChange}
                     required
                     rows="3"
@@ -195,7 +254,7 @@ const CertificateRequestModal = ({ onClose, onSuccess }) => {
                   <input
                     type="text"
                     name="survey_number"
-                    value={formData.survey_number}
+                    value={formData.survey_number || ""}
                     onChange={handleChange}
                     required
                   />
@@ -213,6 +272,7 @@ const CertificateRequestModal = ({ onClose, onSuccess }) => {
               </>
             )}
 
+            {/* Income Certificate fields */}
             {certificateType === "income" && (
               <>
                 <div className="form-group">
@@ -220,7 +280,7 @@ const CertificateRequestModal = ({ onClose, onSuccess }) => {
                   <input
                     type="number"
                     name="anual_income"
-                    value={formData.anual_income}
+                    value={formData.anual_income || ""}
                     onChange={handleChange}
                     required
                     min="1"
@@ -230,7 +290,7 @@ const CertificateRequestModal = ({ onClose, onSuccess }) => {
                   <label>Reason for Request *</label>
                   <textarea
                     name="reason"
-                    value={formData.reason}
+                    value={formData.reason || ""}
                     onChange={handleChange}
                     required
                     rows="3"
@@ -249,12 +309,13 @@ const CertificateRequestModal = ({ onClose, onSuccess }) => {
               </>
             )}
 
+            {/* Character Certificate fields */}
             {certificateType === "character" && (
               <div className="form-group">
                 <label>Reason for Request *</label>
                 <textarea
                   name="reason"
-                  value={formData.reason}
+                  value={formData.reason || ""}
                   onChange={handleChange}
                   required
                   rows="3"
