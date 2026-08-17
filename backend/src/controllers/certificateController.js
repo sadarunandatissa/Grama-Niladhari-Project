@@ -334,6 +334,37 @@ exports.getCertificateDetails = async (req, res) => {
   }
 };
 
+// ─── Citizen: Get Single Certificate Details ──────────────
+exports.getCitizenCertificateDetails = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const citizenId = req.user.id;
+
+    const certificate = await Certificate.findById(id).populate(
+      "citizenId",
+      "full_name email nic phone_numbers profile_picture address",
+    );
+
+    if (!certificate) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Certificate not found" });
+    }
+
+    // Verify citizen owns the certificate
+    if (certificate.citizenId._id.toString() !== citizenId) {
+      return res
+        .status(403)
+        .json({ success: false, message: "Not authorized" });
+    }
+
+    res.json({ success: true, data: certificate });
+  } catch (error) {
+    console.error("Get citizen certificate details error:", error);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+};
+
 // ─── GN Officer: Update Status ────────────────────────────
 
 exports.updateCertificateStatus = async (req, res) => {
