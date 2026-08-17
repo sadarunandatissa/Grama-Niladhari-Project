@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useAuth } from "../../context/AuthContext";
+import { Link } from "react-router-dom";
 
 const CitizenCertificateList = () => {
   const { token } = useAuth();
@@ -75,7 +76,12 @@ const CitizenCertificateList = () => {
                 </td>
                 <td>{new Date(cert.requestedAt).toLocaleDateString()}</td>
                 <td>
-                  <button className="btn-view">View</button>
+                  <Link
+                    to={`/citizen/certificate/${cert._id}`}
+                    className="btn-view"
+                  >
+                    View
+                  </Link>
                 </td>
               </tr>
             ))}
