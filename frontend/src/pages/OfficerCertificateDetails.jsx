@@ -7,13 +7,18 @@ const OfficerCertificateDetails = () => {
   const { id } = useParams();
   const { token } = useAuth();
   const navigate = useNavigate();
+
+  // ─── State ──────────────────────────────────────────────
   const [cert, setCert] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [status, setStatus] = useState("");
+  const [showRejectForm, setShowRejectForm] = useState(false);
+  const [rejectReason, setRejectReason] = useState("");
 
   const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
+  // ─── Fetch Details ──────────────────────────────────────
   useEffect(() => {
     const fetchDetails = async () => {
       try {
@@ -25,6 +30,10 @@ const OfficerCertificateDetails = () => {
         );
         setCert(res.data.data);
         setStatus(res.data.data.status);
+        // If already rejected, show the reason
+        if (res.data.data.rejectionReason) {
+          setRejectReason(res.data.data.rejectionReason);
+        }
       } catch (err) {
         setError("Failed to load certificate details.");
         console.error(err);
@@ -35,11 +44,16 @@ const OfficerCertificateDetails = () => {
     fetchDetails();
   }, [id, token]);
 
-  const updateStatus = async (newStatus) => {
+  // ─── Update Status (with optional rejection reason) ────
+  const updateStatus = async (newStatus, reason = "") => {
     try {
+      const payload = { status: newStatus };
+      if (newStatus === "rejected" && reason) {
+        payload.rejectionReason = reason;
+      }
       await axios.put(
         `${API_URL}/api/certificate/officer/update/${id}`,
-        { status: newStatus },
+        payload,
         { headers: { Authorization: `Bearer ${token}` } },
       );
       setStatus(newStatus);
@@ -48,12 +62,17 @@ const OfficerCertificateDetails = () => {
         headers: { Authorization: `Bearer ${token}` },
       });
       setCert(res.data.data);
+      if (res.data.data.rejectionReason) {
+        setRejectReason(res.data.data.rejectionReason);
+      }
+      // Close reject form if open
+      setShowRejectForm(false);
     } catch (err) {
       alert(err.response?.data?.message || "Update failed.");
     }
   };
 
-  // ─── Render Attachment with Download ──────────────────────
+  // ─── Render Attachment ──────────────────────────────────
   const renderAttachment = (filePath, index) => {
     if (!filePath) return null;
     const fullUrl = filePath.startsWith("/uploads/")
@@ -109,6 +128,7 @@ const OfficerCertificateDetails = () => {
     }
   };
 
+  // ─── Loading / Error ────────────────────────────────────
   if (loading) return <div className="loading">Loading...</div>;
   if (error) return <div className="error">{error}</div>;
   if (!cert) return <div>Certificate not found</div>;
@@ -119,6 +139,7 @@ const OfficerCertificateDetails = () => {
   const isIncome = cert.certificateType === "income";
   const isCharacter = cert.certificateType === "character";
 
+  // ─── Render ──────────────────────────────────────────────
   return (
     <div className="certificate-detail-container">
       <div className="detail-header">
@@ -280,7 +301,7 @@ const OfficerCertificateDetails = () => {
           </div>
         )}
 
-        {/* ─── All Attachments ──────────────────────────────── */}
+        {/* Attachments */}
         {cert.attachments && cert.attachments.length > 0 && (
           <div className="attachment-section">
             <h4>Supporting Documents</h4>
@@ -289,25 +310,79 @@ const OfficerCertificateDetails = () => {
             </div>
           </div>
         )}
-
         {(!cert.attachments || cert.attachments.length === 0) && (
           <div className="no-attachments">No attachments uploaded.</div>
         )}
+
+        {/* ─── Show Rejection Reason if present ────────────── */}
+        {cert.rejectionReason && (
+          <div className="rejection-reason">
+            <strong>Rejection Reason:</strong> {cert.rejectionReason}
+          </div>
+        )}
       </div>
 
-      {/* Status Update */}
+      {/* ─── Status Update Section ─────────────────────────── */}
       <div className="status-section">
         <h4>Update Status</h4>
-        <div className="status-controls">
-          <select value={status} onChange={(e) => setStatus(e.target.value)}>
-            <option value="not_seen">Not Seen</option>
-            <option value="in_progress">In Progress</option>
-            <option value="completed">Completed</option>
-          </select>
-          <button className="btn-update" onClick={() => updateStatus(status)}>
-            Update Status
-          </button>
-        </div>
+
+        {!showRejectForm ? (
+          <div className="status-controls">
+            <select value={status} onChange={(e) => setStatus(e.target.value)}>
+              <option value="not_seen">Not Seen</option>
+              <option value="in_progress">In Progress</option>
+              <option value="completed">Completed</option>
+              <option value="rejected">Rejected</option>
+            </select>
+            <button className="btn-update" onClick={() => updateStatus(status)}>
+              Update Status
+            </button>
+            {/* Reject Button – only show if not already rejected */}
+            {status !== "rejected" && (
+              <button
+                className="btn-danger"
+                onClick={() => setShowRejectForm(true)}
+              >
+                ❌ Reject
+              </button>
+            )}
+          </div>
+        ) : (
+          <div className="reject-form">
+            <label>Rejection Reason *</label>
+            <textarea
+              value={rejectReason}
+              onChange={(e) => setRejectReason(e.target.value)}
+              placeholder="Enter the reason for rejecting this certificate request..."
+              rows="4"
+              required
+            />
+            <div className="reject-actions">
+              <button
+                className="btn-danger"
+                onClick={() => {
+                  if (rejectReason.trim()) {
+                    updateStatus("rejected", rejectReason);
+                  } else {
+                    alert("Please enter a rejection reason.");
+                  }
+                }}
+              >
+                Confirm Reject
+              </button>
+              <button
+                className="btn-secondary"
+                onClick={() => {
+                  setShowRejectForm(false);
+                  setRejectReason("");
+                }}
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        )}
+
         <div className="current-status">
           Current:{" "}
           <span className={`status-${status}`}>{status.replace("_", " ")}</span>
