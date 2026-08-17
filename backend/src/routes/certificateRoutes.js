@@ -9,6 +9,7 @@ const {
   getCitizenNotifications,
   getOfficerNotifications,
   markNotificationRead,
+  getCitizenCertificateDetails,
 } = require("../controllers/certificateController");
 const { protect, authorize } = require("../middleware/auth");
 const { uploadCertificateDocs } = require("../middleware/upload");
@@ -62,6 +63,13 @@ router.get(
   protect,
   authorize("gn_officer"),
   getCertificateDetails,
+);
+// Citizen routes
+router.get(
+  "/citizen/request/:id",
+  protect,
+  authorize("citizen"),
+  getCitizenCertificateDetails,
 );
 
 module.exports = router;
