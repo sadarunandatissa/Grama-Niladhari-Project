@@ -333,6 +333,25 @@ exports.getCertificateDetails = async (req, res) => {
     res.status(500).json({ success: false, message: "Server error" });
   }
 };
+// ─── Citizen: Get Single Certificate Details ────────────
+exports.getCitizenCertificate = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const certificate = await Certificate.findOne({
+      _id: id,
+      citizenId: req.user.id,
+    });
+    if (!certificate) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Certificate not found" });
+    }
+    res.json({ success: true, data: certificate });
+  } catch (error) {
+    console.error("Get citizen certificate error:", error);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+};
 
 // ─── Citizen: Get Single Certificate Details ──────────────
 exports.getCitizenCertificateDetails = async (req, res) => {

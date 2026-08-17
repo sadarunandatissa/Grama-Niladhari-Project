@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { useAuth } from "../context/AuthContext";
-import "./CitizenCertificateDetails.css";
 
 const CitizenCertificateDetails = () => {
   const { id } = useParams();
@@ -34,114 +33,111 @@ const CitizenCertificateDetails = () => {
     fetchDetails();
   }, [id, token]);
 
-  const renderAttachment = (filePath, index) => {
-    if (!filePath) return null;
-    const fullUrl = filePath.startsWith("/uploads/")
-      ? `${API_URL}${filePath}`
-      : `${API_URL}/uploads/certificates/${filePath}`;
-    const ext = filePath.split(".").pop().toLowerCase();
-
-    if (["jpg", "jpeg", "png", "gif", "webp"].includes(ext)) {
-      return (
-        <div key={index} className="attachment-item">
-          <img
-            src={fullUrl}
-            alt={`Attachment ${index + 1}`}
-            className="attachment-img"
-          />
-          <a href={fullUrl} target="_blank" rel="noopener noreferrer">
-            View
-          </a>
-        </div>
-      );
-    } else if (ext === "pdf") {
-      return (
-        <div key={index} className="attachment-item">
-          <a href={fullUrl} target="_blank" rel="noopener noreferrer">
-            📄 View PDF
-          </a>
-        </div>
-      );
-    } else {
-      return (
-        <div key={index} className="attachment-item">
-          <a href={fullUrl} target="_blank" rel="noopener noreferrer">
-            📎 Download
-          </a>
-        </div>
-      );
-    }
-  };
-
   if (loading) return <div>Loading...</div>;
   if (error) return <div className="error">{error}</div>;
   if (!cert) return <div>Certificate not found</div>;
 
   const formData = cert.formData || {};
-  const statusColors = {
-    not_seen: "#f39c12",
-    in_progress: "#3498db",
-    completed: "#27ae60",
-    rejected: "#e74c3c",
-  };
+  const isResidential = cert.certificateType === "residential";
+  const isIncome = cert.certificateType === "income";
+  const isCharacter = cert.certificateType === "character";
 
   return (
-    <div className="citizen-certificate-details">
-      <div className="detail-header">
-        <h2>Certificate Request Details</h2>
-        <button className="btn-back" onClick={() => navigate(-1)}>
-          ← Back
-        </button>
-      </div>
+    <div className="citizen-cert-detail">
+      <button className="btn-back" onClick={() => navigate(-1)}>
+        ← Back
+      </button>
+      <h2>Certificate Request Details</h2>
 
-      <div className="cert-card">
-        <div className="cert-type">
-          {cert.certificateType === "residential" &&
-            "🏠 Residential Confirmation"}
-          {cert.certificateType === "income" && "💰 Income Certificate"}
-          {cert.certificateType === "character" && "⭐ Character Certificate"}
-        </div>
-        <div className="cert-status">
-          Status:{" "}
-          <span
-            style={{ color: statusColors[cert.status], fontWeight: "bold" }}
-          >
-            {cert.status.replace("_", " ").toUpperCase()}
+      <div className="cert-info">
+        <p>
+          <strong>Type:</strong>{" "}
+          {cert.certificateType.replace("_", " ").toUpperCase()}
+        </p>
+        <p>
+          <strong>Status:</strong>{" "}
+          <span className={`status-${cert.status}`}>
+            {cert.status.replace("_", " ")}
           </span>
-        </div>
-        {cert.rejectionReason && (
-          <div className="rejection-reason">
+        </p>
+        <p>
+          <strong>Requested On:</strong>{" "}
+          {new Date(cert.requestedAt).toLocaleString()}
+        </p>
+        {cert.status === "rejected" && cert.rejectionReason && (
+          <div className="rejection-box">
             <strong>Rejection Reason:</strong> {cert.rejectionReason}
           </div>
         )}
-        <div className="cert-details">
-          <p>
-            <strong>Requested On:</strong>{" "}
-            {new Date(cert.requestedAt).toLocaleDateString()}
-          </p>
-          <p>
-            <strong>Purpose:</strong> {formData.reason || "N/A"}
-          </p>
-          {formData.survey_number && (
+        {cert.status === "completed" && (
+          <div className="completion-box">
             <p>
-              <strong>Survey Number:</strong> {formData.survey_number}
+              ✅ Your certificate is ready. Please collect it at the GN office.
             </p>
-          )}
-          {formData.anual_income && (
-            <p>
-              <strong>Annual Income:</strong> LKR {formData.anual_income}
-            </p>
-          )}
-        </div>
-        {cert.attachments && cert.attachments.length > 0 && (
-          <div className="attachments-section">
-            <h4>Attachments</h4>
-            <div className="attachments-grid">
-              {cert.attachments.map((file, idx) => renderAttachment(file, idx))}
-            </div>
           </div>
         )}
       </div>
+
+      <div className="form-details">
+        <h4>Submitted Information</h4>
+        <div className="detail-row">
+          <label>NIC:</label>
+          <span>{formData.nic}</span>
+        </div>
+        <div className="detail-row">
+          <label>Name:</label>
+          <span>
+            {formData.first_name} {formData.middle_name} {formData.last_name}
+          </span>
+        </div>
+        <div className="detail-row">
+          <label>Address:</label>
+          <span>{formData.address}</span>
+        </div>
+        <div className="detail-row">
+          <label>Telephone:</label>
+          <span>{formData.telephone}</span>
+        </div>
+        <div className="detail-row">
+          <label>Reason:</label>
+          <span>{formData.reason}</span>
+        </div>
+        {isResidential && (
+          <div className="detail-row">
+            <label>Survey Number:</label>
+            <span>{formData.survey_number}</span>
+          </div>
+        )}
+        {isIncome && (
+          <div className="detail-row">
+            <label>Annual Income:</label>
+            <span>LKR {formData.anual_income}</span>
+          </div>
+        )}
+      </div>
+
+      {cert.attachments && cert.attachments.length > 0 && (
+        <div className="attachments">
+          <h4>Supporting Documents</h4>
+          <ul>
+            {cert.attachments.map((file, idx) => (
+              <li key={idx}>
+                <a
+                  href={`${API_URL}${file}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  View Document {idx + 1}
+                </a>
+                <a href={`${API_URL}${file}`} download>
+                  {" "}
+                  Download
+                </a>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
     </div>
   );
 };

@@ -57,6 +57,7 @@ const CitizenCertificateList = () => {
             </tr>
           </thead>
           <tbody>
+            {/* Inside the table body */}
             {certificates.map((cert) => (
               <tr key={cert._id}>
                 <td>{cert.certificateType.replace("_", " ").toUpperCase()}</td>
@@ -73,6 +74,17 @@ const CitizenCertificateList = () => {
                   >
                     {statusLabels[cert.status]}
                   </span>
+                  {cert.status === "rejected" && cert.rejectionReason && (
+                    <div
+                      style={{
+                        fontSize: "12px",
+                        color: "#e74c3c",
+                        marginTop: "4px",
+                      }}
+                    >
+                      Reason: {cert.rejectionReason}
+                    </div>
+                  )}
                 </td>
                 <td>{new Date(cert.requestedAt).toLocaleDateString()}</td>
                 <td>
@@ -80,7 +92,7 @@ const CitizenCertificateList = () => {
                     to={`/citizen/certificate/${cert._id}`}
                     className="btn-view"
                   >
-                    View
+                    View Details
                   </Link>
                 </td>
               </tr>
