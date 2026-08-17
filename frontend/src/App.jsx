@@ -11,6 +11,7 @@ import CitizenDashboard from "./pages/CitizenDashboard";
 import LandManagement from "./pages/LandManagement";
 import OfficerCertificateManagement from "./pages/OfficerCertificateManagement";
 import OfficerCertificateDetails from "./pages/OfficerCertificateDetails";
+import CitizenCertificateDetails from "./pages/CitizenCertificateDetails";
 
 function App() {
   return (
@@ -69,6 +70,14 @@ function App() {
             element={
               <PrivateRoute allowedRoles={["gn_officer"]}>
                 <OfficerCertificateDetails />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/citizen/certificate/:id"
+            element={
+              <PrivateRoute allowedRoles={["citizen"]}>
+                <CitizenCertificateDetails />
               </PrivateRoute>
             }
           />
