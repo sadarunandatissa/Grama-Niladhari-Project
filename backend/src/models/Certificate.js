@@ -29,8 +29,12 @@ const CertificateSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ["not_seen", "in_progress", "completed"],
+      enum: ["not_seen", "in_progress", "completed", "rejected"],
       default: "not_seen",
+    },
+    rejectionReason: {
+      type: String,
+      default: "",
     },
     requestedAt: {
       type: Date,
