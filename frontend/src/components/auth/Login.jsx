@@ -44,7 +44,7 @@ const Login = () => {
   };
 
   return (
-    <main class="login-page-wrapper">
+    <main className="login-page-wrapper">
       <div className="login-container">
         {/* Left Section: Illustration */}
         <section className="illustration-section">

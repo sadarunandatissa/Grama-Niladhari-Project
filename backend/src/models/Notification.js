@@ -3,12 +3,25 @@ const mongoose = require("mongoose");
 const NotificationSchema = new mongoose.Schema({
   recipientId: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: "Citizen",
     required: true,
-    index: true,
+    refPath: "recipientModel",
+  },
+  recipientModel: {
+    type: String,
+    enum: ["Citizen", "GNOfficer"],
+    required: true,
+    default: "Citizen",
   },
   type: {
     type: String,
+    enum: [
+      "certificate_ready",
+      "certificate_rejected",
+      "certificate_request", // ✅ Added this
+      "verification",
+      "appointment",
+      "warning",
+    ],
     required: true,
   },
   title: {
@@ -16,6 +29,10 @@ const NotificationSchema = new mongoose.Schema({
     required: true,
   },
   message: {
+    type: String,
+    required: true,
+  },
+  isRead: {
     type: Boolean,
     default: false,
   },
