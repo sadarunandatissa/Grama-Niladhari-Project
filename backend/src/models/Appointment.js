@@ -52,11 +52,11 @@ const AppointmentSchema = new mongoose.Schema({
   },
 });
 
-// Ensure slots are within working hours and days (Mon-Fri, 8am-4pm)
-AppointmentSchema.pre("save", function (next) {
+// ✅ Correct pre-save hook: use async function without `next`
+AppointmentSchema.pre("save", async function () {
   const slots = this.proposedSlots;
   for (let slot of slots) {
-    const day = slot.getDay(); // 0=Sun, 1=Mon, ..., 6=Sat
+    const day = slot.getDay();
     if (day === 0 || day === 6) {
       throw new Error("Appointments are only available Monday to Friday.");
     }
@@ -67,7 +67,6 @@ AppointmentSchema.pre("save", function (next) {
       );
     }
   }
-  next();
 });
 
 module.exports = mongoose.model("Appointment", AppointmentSchema);
