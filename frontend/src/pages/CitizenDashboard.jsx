@@ -7,6 +7,8 @@ import "./CitizenDashboard.css";
 import CertificateRequestModal from "../components/certificate/CertificateRequestModal";
 import CitizenCertificateList from "../components/certificate/CitizenCertificateList";
 import CitizenNotifications from "../components/certificate/CitizenNotifications";
+import AppointmentModal from "../components/appointments/AppointmentModal";
+import ResidentAppointmentList from "../components/appointments/ResidentAppointmentList";
 
 const getApiUrl = () => {
   if (import.meta.env && import.meta.env.VITE_API_URL) {
@@ -19,14 +21,15 @@ const CitizenDashboard = () => {
   const { user, token, logout } = useAuth();
   const API_URL = getApiUrl();
 
-  // All useState hooks INSIDE the component
+  // ─── State ──────────────────────────────────────────────
   const [profile, setProfile] = useState(null);
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [familyMsg, setFamilyMsg] = useState("");
   const [activeTab, setActiveTab] = useState("profile");
-  const [showModal, setShowModal] = useState(false);
+  const [showCertificateModal, setShowCertificateModal] = useState(false);
+  const [showAppointmentModal, setShowAppointmentModal] = useState(false);
   const [notifications, setNotifications] = useState([]);
 
   // ─── Fetch profile and requests ──────────────────────────
@@ -200,12 +203,21 @@ const CitizenDashboard = () => {
         >
           Notifications
         </button>
+        <button
+          className={activeTab === "appointments" ? "active" : ""}
+          onClick={() => setActiveTab("appointments")}
+        >
+          Appointments
+        </button>
       </div>
 
       {/* Tab Content */}
       {activeTab === "certificates" && (
         <div className="tab-content">
-          <button className="btn-primary" onClick={() => setShowModal(true)}>
+          <button
+            className="btn-primary"
+            onClick={() => setShowCertificateModal(true)}
+          >
             Request Certificate
           </button>
           <CitizenCertificateList />
@@ -218,13 +230,34 @@ const CitizenDashboard = () => {
         </div>
       )}
 
-      {/* Certificate Request Modal */}
-      {showModal && (
+      {activeTab === "appointments" && (
+        <div className="tab-content">
+          <button
+            className="btn-primary"
+            onClick={() => setShowAppointmentModal(true)}
+          >
+            Book Appointment
+          </button>
+          <ResidentAppointmentList />
+        </div>
+      )}
+
+      {/* Modals */}
+      {showCertificateModal && (
         <CertificateRequestModal
-          onClose={() => setShowModal(false)}
+          onClose={() => setShowCertificateModal(false)}
           onSuccess={() => {
-            // Refresh certificate list after submission
             fetchData();
+          }}
+        />
+      )}
+
+      {showAppointmentModal && (
+        <AppointmentModal
+          onClose={() => setShowAppointmentModal(false)}
+          onSuccess={() => {
+            // Refresh appointment list (will happen automatically on next visit)
+            // Optionally, you can trigger a refresh of the list
           }}
         />
       )}
