@@ -20,5 +20,11 @@ router.get(
   getVillageAppointments,
 );
 router.put("/officer/:id", protect, authorize("gn_officer"), updateAppointment);
+router.get(
+  "/officer/today",
+  protect,
+  authorize("gn_officer"),
+  getTodaySchedule,
+);
 
 module.exports = router;
