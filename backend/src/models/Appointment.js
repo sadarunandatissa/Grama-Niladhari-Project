@@ -52,11 +52,11 @@ const AppointmentSchema = new mongoose.Schema({
   },
 });
 
-// ✅ Correct pre-save hook: use async function without `next`
+// ✅ CORRECT pre‑save hook – async function (no `next` parameter)
 AppointmentSchema.pre("save", async function () {
   const slots = this.proposedSlots;
   for (let slot of slots) {
-    const day = slot.getDay();
+    const day = slot.getDay(); // 0=Sun, 1=Mon, ..., 6=Sat
     if (day === 0 || day === 6) {
       throw new Error("Appointments are only available Monday to Friday.");
     }
@@ -67,6 +67,7 @@ AppointmentSchema.pre("save", async function () {
       );
     }
   }
+  // No `next()` needed – async hooks resolve automatically
 });
 
 module.exports = mongoose.model("Appointment", AppointmentSchema);

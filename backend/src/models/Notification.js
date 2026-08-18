@@ -17,9 +17,12 @@ const NotificationSchema = new mongoose.Schema({
     enum: [
       "certificate_ready",
       "certificate_rejected",
-      "certificate_request", // ✅ Added this
+      "certificate_request",
       "verification",
       "appointment",
+      "appointment_accepted",
+      "appointment_rejected",
+      "appointment_rescheduled",
       "warning",
     ],
     required: true,
