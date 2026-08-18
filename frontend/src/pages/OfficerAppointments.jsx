@@ -76,37 +76,41 @@ const OfficerAppointments = () => {
             <th>Citizen</th>
             <th>Reason</th>
             <th>Proposed Slots</th>
+            <th>Selected Slot</th> {/* ← new column */}
             <th>Status</th>
             <th>Actions</th>
           </tr>
         </thead>
         <tbody>
-          {appointments.length === 0 ? (
-            <tr>
-              <td colSpan="5">No appointments found.</td>
+          {appointments.map((app) => (
+            <tr key={app._id}>
+              <td>{app.citizenId?.full_name}</td>
+              <td>{app.reason}</td>
+              <td>
+                {app.proposedSlots.map((slot, i) => (
+                  <div key={i}>{new Date(slot).toLocaleString()}</div>
+                ))}
+              </td>
+              <td>
+                {app.status === "accepted" && app.selectedSlot ? (
+                  <span style={{ color: "#27ae60", fontWeight: "bold" }}>
+                    {new Date(app.selectedSlot).toLocaleString()}
+                  </span>
+                ) : (
+                  "—"
+                )}
+              </td>
+              <td>{app.status}</td>
+              <td>
+                <button
+                  className="btn-edit"
+                  onClick={() => setSelectedApp(app)}
+                >
+                  Manage
+                </button>
+              </td>
             </tr>
-          ) : (
-            appointments.map((app) => (
-              <tr key={app._id}>
-                <td>{app.citizenId?.full_name}</td>
-                <td>{app.reason}</td>
-                <td>
-                  {app.proposedSlots.map((slot, i) => (
-                    <div key={i}>{new Date(slot).toLocaleString()}</div>
-                  ))}
-                </td>
-                <td>{app.status}</td>
-                <td>
-                  <button
-                    className="btn-edit"
-                    onClick={() => setSelectedApp(app)}
-                  >
-                    Manage
-                  </button>
-                </td>
-              </tr>
-            ))
-          )}
+          ))}
         </tbody>
       </table>
 
