@@ -5,6 +5,7 @@ const {
   getMyAppointments,
   getVillageAppointments,
   updateAppointment,
+  getTodaySchedule, // <-- must be included
 } = require("../controllers/appointmentController");
 const { protect, authorize } = require("../middleware/auth");
 
@@ -19,12 +20,12 @@ router.get(
   authorize("gn_officer"),
   getVillageAppointments,
 );
-router.put("/officer/:id", protect, authorize("gn_officer"), updateAppointment);
 router.get(
   "/officer/today",
   protect,
   authorize("gn_officer"),
   getTodaySchedule,
 );
+router.put("/officer/:id", protect, authorize("gn_officer"), updateAppointment);
 
 module.exports = router;
