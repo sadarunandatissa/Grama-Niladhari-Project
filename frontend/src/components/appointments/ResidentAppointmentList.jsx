@@ -66,14 +66,21 @@ const ResidentAppointmentList = () => {
                     {app.status}
                   </span>
                 </td>
+
                 <td>
                   {app.proposedSlots.map((slot, i) => (
                     <div key={i}>{new Date(slot).toLocaleString()}</div>
                   ))}
-                  {app.selectedSlot && (
-                    <div>
-                      <strong>Selected:</strong>{" "}
-                      {new Date(app.selectedSlot).toLocaleString()}
+                  {/* Show selected slot if accepted */}
+                  {app.status === "accepted" && app.selectedSlot && (
+                    <div
+                      style={{
+                        color: "#27ae60",
+                        fontWeight: "bold",
+                        marginTop: "4px",
+                      }}
+                    >
+                      ✅ Selected: {new Date(app.selectedSlot).toLocaleString()}
                     </div>
                   )}
                 </td>
