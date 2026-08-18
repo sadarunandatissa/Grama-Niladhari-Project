@@ -25,7 +25,7 @@ const sendNotification = async (
   });
 };
 
-// ─── Helper: Get Available Slots for a Given Day ──────────
+// ─── Helper: Get Available Slots ──────────────────────────
 const getAvailableSlots = async (
   villageId,
   date,
@@ -41,7 +41,6 @@ const getAvailableSlots = async (
   const dayEnd = new Date(baseDate);
   dayEnd.setHours(endTime, 0, 0, 0);
 
-  // Get all accepted appointments for this village on this day
   const accepted = await Appointment.find({
     village_id: villageId,
     status: "accepted",
@@ -55,7 +54,6 @@ const getAvailableSlots = async (
     })
     .sort((a, b) => a - b);
 
-  // Generate 15‑minute slots
   let current = new Date(dayStart);
   while (current < dayEnd) {
     const isOccupied = occupiedSlots.some((occupied) => {
@@ -254,7 +252,7 @@ exports.updateAppointment = async (req, res) => {
           });
       }
 
-      // ─── CONFLICT CHECK ──────────────────────────────────────
+      // ─── Conflict Check ──────────────────────────────────────
       const availableSlots = await getAvailableSlots(
         appointment.village_id,
         slotDate,
@@ -263,7 +261,6 @@ exports.updateAppointment = async (req, res) => {
         (s) => Math.abs(s.getTime() - slotDate.getTime()) < 60000,
       );
       if (!isAvailable) {
-        // Suggest next 3 free slots after the requested time
         const suggested = availableSlots
           .filter((s) => s > slotDate)
           .slice(0, 3)
