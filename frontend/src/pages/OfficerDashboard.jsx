@@ -117,9 +117,9 @@ const Officerdashboard = () => {
                 <h4>Citizen details</h4>
               </div>
               <div className="stat-rows-group">
-                <div className="stat-row"><span>Total Citizens:</span><strong className="val-box">240</strong></div>
-                <div className="stat-row"><span>Total Families:</span><strong className="val-box">63</strong></div>
-                <div className="stat-row"><span>Total Houses:</span><strong className="val-box">58</strong></div>
+                <div className="stat-row"><span className="val-box">Total Citizens:</span><strong>240</strong></div>
+                <div className="stat-row"><span className="val-box">Total Families:</span><strong>63</strong></div>
+                <div className="stat-row"><span className="val-box">Total Houses:</span><strong>58</strong></div>
               </div>
             </div>
           </div>

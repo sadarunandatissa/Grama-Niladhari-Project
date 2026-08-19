@@ -9,7 +9,7 @@ body {
 
 /* SIDEBAR */
 .sidebar {
-  width: 340px;
+  width: 320px;
   height: 100vh;
 
   position: fixed;
@@ -95,7 +95,7 @@ body {
 } */
 
 .main-content {
-  margin-left: 340px;
+  margin-left: 320px;
   width: calc(100% - 340px);
   flex-grow: 1;
   display: flex;
@@ -168,6 +168,7 @@ body {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   justify-content: space-between;
+  gap: 16px;
 }
 
 .visuals-row {
@@ -263,12 +264,120 @@ body {
   gap: 16px;
 }
 
-.status-card.border-blue { border: 1px solid #1364E8 };
-.status-card.border-green { border: 1px solid #10AB5B };
-.status-card.border-orange { border: 1px solid #FD9C00 };
+.status-card.border-blue { border: 2px solid #1364E8; }
+.status-card.border-green { border: 2px solid #10AB5B; }
+.status-card.border-orange { border: 2px solid #FD9C00; }
 
 .card-head {
   display: flex;
   align-items: center;
   gap: 8px;
+}
+
+.card-head-icon {
+  background-color: #E2EEFB;
+  padding: 12px;
+  border-radius: 100%;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.status-card.border-green .card-head-icon {
+  background-color: #E2F6ED;
+}
+
+.status-card.border-orange .card-head-icon {
+  background-color: #FEEFDC;
+}
+
+.card-head h4 {
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.counter-badge-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+}
+
+.badge-box {
+  padding: 0;
+  text-align: center;
+  color: white;
+  display: flex;
+  flex-direction: column;
+}
+
+.badge-box span {
+  font-size: 0.75rem;
+  font-weight: 700;
+  background-color: #1364E8;
+  padding: 4px 3px;
+}
+
+.status-card.border-green .badge-box span {
+  background-color: #0CA049;
+}
+
+.badge-box strong {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #000;
+  padding: 12px;
+  background-color: #E2EEFB;
+  border-radius: 10px;
+}
+
+.status-card.border-green .badge-box strong {
+  background-color: #E0F5EC;
+}
+
+.bg-blue { background-color: #F6F9FD; }
+.bg-green { background-color: #F4FBFA; }
+
+.mini-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.list-item {
+  background-color: #E2EEFB;
+  padding: 3px 20px;
+  border-radius: 4px;
+  font-size: 0.625rem;
+  font-weight: 700;
+  display: flex;
+  justify-content: center;
+}
+
+.status-card.border-green .list-item {
+  background-color: #E0F5EC;
+}
+
+.stat-rows-group {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.stat-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.875rem;
+  font-weight: 700;
+  background-color: #FEEFDC;
+  padding: 4px 20px;
+  border-radius: 4px;
+}
+
+.val-box {
+  
+  
+  
+
 }
