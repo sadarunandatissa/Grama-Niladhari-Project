@@ -6,7 +6,7 @@ const {
   getResidentAnnouncements,
   getAnnouncement,
   deleteAnnouncement,
-} = require("../controllers/announcementController");
+} = require("../controllers/announcementsController");
 const { protect, authorize } = require("../middleware/auth");
 const { uploadAnnouncementAttachments } = require("../middleware/upload");
 

@@ -77,4 +77,5 @@ module.exports = {
   handleUpload,
   uploadCitizenPicture,
   uploadCertificateDocs,
+  uploadAnnouncementAttachments,
 };
