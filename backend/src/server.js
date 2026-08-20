@@ -5,6 +5,7 @@ const helmet = require("helmet");
 const path = require("path");
 const connectDB = require("../src/config/db");
 const landRoutes = require("./routes/landRoutes");
+const announcementRoutes = require("./routes/announcementRoutes");
 
 dotenv.config();
 connectDB();
