@@ -83,7 +83,7 @@ const AnnouncementSchema = new mongoose.Schema(
   { timestamps: true },
 );
 
-// Ensure scheduledAt is set if publishMode = scheduled
+// ✅ Fixed pre-save hook (async, no `next` parameter)
 AnnouncementSchema.pre("save", async function () {
   if (this.publishMode === "scheduled" && !this.scheduledAt) {
     throw new Error("Scheduled date is required for scheduled announcements.");

@@ -88,6 +88,8 @@ app.use("/api/announcements", require("./routes/announcementRoutes"));
 app.get("/api/health", (req, res) => {
   res.json({ success: true, message: "Server running" });
 });
+const { startScheduler } = require("./src/scheduler/announcementScheduler");
+app.use("/api/announcements", require("./src/routes/announcementRoutes"));
 
 app.use((err, req, res, next) => {
   console.error(err.stack);
