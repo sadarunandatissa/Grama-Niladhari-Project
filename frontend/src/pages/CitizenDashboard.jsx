@@ -185,7 +185,7 @@ const CitizenDashboard = () => {
         </ul>
       )}
 
-      {/* Tab Navigation */}
+      {/* Tab Navigation – fixed */}
       <div className="citizen-tabs">
         <button
           className={activeTab === "profile" ? "active" : ""}
@@ -215,7 +215,7 @@ const CitizenDashboard = () => {
           className={activeTab === "announcements" ? "active" : ""}
           onClick={() => setActiveTab("announcements")}
         >
-          Appointments
+          Announcements
         </button>
       </div>
 
@@ -250,6 +250,12 @@ const CitizenDashboard = () => {
         </div>
       )}
 
+      {activeTab === "announcements" && (
+        <div className="tab-content">
+          <ResidentAnnouncements />
+        </div>
+      )}
+
       {/* Modals */}
       {showCertificateModal && (
         <CertificateRequestModal
@@ -265,7 +271,6 @@ const CitizenDashboard = () => {
           onClose={() => setShowAppointmentModal(false)}
           onSuccess={() => {
             // Refresh appointment list (will happen automatically on next visit)
-            // Optionally, you can trigger a refresh of the list
           }}
         />
       )}
