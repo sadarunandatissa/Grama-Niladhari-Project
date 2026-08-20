@@ -84,16 +84,13 @@ const AnnouncementSchema = new mongoose.Schema(
 );
 
 // Ensure scheduledAt is set if publishMode = scheduled
-AnnouncementSchema.pre("save", function (next) {
+AnnouncementSchema.pre("save", async function () {
   if (this.publishMode === "scheduled" && !this.scheduledAt) {
-    return next(
-      new Error("Scheduled date is required for scheduled announcements."),
-    );
+    throw new Error("Scheduled date is required for scheduled announcements.");
   }
   if (this.publishMode === "immediate") {
     this.scheduledAt = null;
   }
-  next();
 });
 
 module.exports = mongoose.model("Announcement", AnnouncementSchema);
