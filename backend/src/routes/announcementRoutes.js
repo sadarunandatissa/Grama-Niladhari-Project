@@ -6,7 +6,7 @@ const {
   getResidentAnnouncements,
   getAnnouncement,
   deleteAnnouncement,
-} = require("../controllers/announcementsController");
+} = require("../controllers/announcementController");
 const { protect, authorize } = require("../middleware/auth");
 const { uploadAnnouncementAttachments } = require("../middleware/upload");
 
@@ -15,7 +15,7 @@ router.post(
   "/officer",
   protect,
   authorize("gn_officer"),
-  uploadAnnouncementAttachments.array("attachments", 5),
+  uploadAnnouncementAttachments, // ✅ middleware (no .array() call)
   createAnnouncement,
 );
 router.get(

@@ -1,25 +1,26 @@
+// backend/src/middleware/upload.js
+
 const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
 
 // Ensure upload directories exist
-const createUploadDirs = () => {
-  const dirs = [
-    "./uploads/gn_officers",
-    "./uploads/citizens",
-    "./uploads/certificates",
-  ];
-  dirs.forEach((dir) => {
-    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-  });
-};
-createUploadDirs();
+const dirs = [
+  "./uploads/gn_officers",
+  "./uploads/citizens",
+  "./uploads/certificates",
+  "./uploads/announcements",
+];
+dirs.forEach((dir) => {
+  if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+});
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     let dest = "./uploads/citizens";
     if (req.path.includes("gn-officer")) dest = "./uploads/gn_officers";
     if (req.path.includes("certificate")) dest = "./uploads/certificates";
+    if (req.path.includes("announcements")) dest = "./uploads/announcements";
     cb(null, dest);
   },
   filename: (req, file, cb) => {
@@ -50,16 +51,13 @@ const upload = multer({
   fileFilter,
 });
 
-// Single file for profile picture
-const uploadSingle = upload.single("profile_picture");
-const uploadCitizenPicture = uploadSingle;
-
-// Multiple files for certificate attachments (up to 5)
+// ─── Middleware exports ──────────────────────────────────
+const uploadCitizenPicture = upload.single("profile_picture");
 const uploadCertificateDocs = upload.array("attachments", 5);
+const uploadAnnouncementAttachments = upload.array("attachments", 5); // ✅ NEW
 
-// Generic upload handler (single file with error handling)
 const handleUpload = (req, res, next) => {
-  uploadSingle(req, res, (err) => {
+  uploadCitizenPicture(req, res, (err) => {
     if (err) {
       if (err.code === "LIMIT_FILE_SIZE") {
         return res
@@ -77,5 +75,5 @@ module.exports = {
   handleUpload,
   uploadCitizenPicture,
   uploadCertificateDocs,
-  uploadAnnouncementAttachments,
+  uploadAnnouncementAttachments, // ✅ EXPORTED
 };

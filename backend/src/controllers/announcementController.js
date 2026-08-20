@@ -80,12 +80,10 @@ exports.createAnnouncement = async (req, res) => {
       targetAudience === "specific" &&
       (!specificNICs || specificNICs.length === 0)
     ) {
-      return res
-        .status(400)
-        .json({
-          success: false,
-          message: "Please provide at least one NIC for specific audience.",
-        });
+      return res.status(400).json({
+        success: false,
+        message: "Please provide at least one NIC for specific audience.",
+      });
     }
 
     // Check if NICs exist (optional validation)
