@@ -1,9 +1,6 @@
-// Use Twilio or mock. For free trial, you can sign up at twilio.com and get credentials.
-// If no credentials, we fallback to console log.
-
+// SMS Service – uses Twilio if credentials exist, otherwise mock
 const twilio = require("twilio");
 
-// Load from environment variables
 const accountSid = process.env.TWILIO_ACCOUNT_SID || null;
 const authToken = process.env.TWILIO_AUTH_TOKEN || null;
 const fromPhone = process.env.TWILIO_PHONE_NUMBER || null;
@@ -14,8 +11,6 @@ if (accountSid && authToken && fromPhone) {
 }
 
 const sendSMS = async (to, message) => {
-  // to: phone number with country code (e.g., +94771234567)
-  // message: string
   if (client) {
     try {
       await client.messages.create({
