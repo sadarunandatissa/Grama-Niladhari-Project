@@ -9,6 +9,7 @@ import CitizenCertificateList from "../components/certificate/CitizenCertificate
 import CitizenNotifications from "../components/certificate/CitizenNotifications";
 import AppointmentModal from "../components/appointments/AppointmentModal";
 import ResidentAppointmentList from "../components/appointments/ResidentAppointmentList";
+import ResidentAnnouncements from "../components/announcements/ResidentAnnouncements";
 
 const getApiUrl = () => {
   if (import.meta.env && import.meta.env.VITE_API_URL) {
@@ -31,6 +32,7 @@ const CitizenDashboard = () => {
   const [showCertificateModal, setShowCertificateModal] = useState(false);
   const [showAppointmentModal, setShowAppointmentModal] = useState(false);
   const [notifications, setNotifications] = useState([]);
+  const [announcements, setAnnouncements] = useState([]);
 
   // ─── Fetch profile and requests ──────────────────────────
   const fetchData = async () => {
@@ -206,6 +208,12 @@ const CitizenDashboard = () => {
         <button
           className={activeTab === "appointments" ? "active" : ""}
           onClick={() => setActiveTab("appointments")}
+        >
+          Appointments
+        </button>
+        <button
+          className={activeTab === "announcements" ? "active" : ""}
+          onClick={() => setActiveTab("announcements")}
         >
           Appointments
         </button>
