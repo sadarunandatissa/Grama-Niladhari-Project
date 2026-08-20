@@ -114,7 +114,7 @@ const OfficerDashboard = () => {
           <Link to="/officer/appointments" className="menu-item">
             <UsersRound /> Appointments
           </Link>
-          <Link to="#" className="menu-item">
+          <Link to="/officer/announcements" className="menu-item">
             <Megaphone /> Announcements
           </Link>
           <Link to="#" className="menu-item">
