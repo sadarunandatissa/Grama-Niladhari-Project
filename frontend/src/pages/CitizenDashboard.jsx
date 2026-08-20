@@ -9,6 +9,7 @@ import CitizenCertificateList from "../components/certificate/CitizenCertificate
 import CitizenNotifications from "../components/certificate/CitizenNotifications";
 import AppointmentModal from "../components/appointments/AppointmentModal";
 import ResidentAppointmentList from "../components/appointments/ResidentAppointmentList";
+import ResidentAnnouncements from "../components/announcements/ResidentAnnouncements";
 
 const getApiUrl = () => {
   if (import.meta.env && import.meta.env.VITE_API_URL) {
@@ -31,6 +32,7 @@ const CitizenDashboard = () => {
   const [showCertificateModal, setShowCertificateModal] = useState(false);
   const [showAppointmentModal, setShowAppointmentModal] = useState(false);
   const [notifications, setNotifications] = useState([]);
+  const [announcements, setAnnouncements] = useState([]);
 
   // ─── Fetch profile and requests ──────────────────────────
   const fetchData = async () => {
@@ -183,7 +185,7 @@ const CitizenDashboard = () => {
         </ul>
       )}
 
-      {/* Tab Navigation */}
+      {/* Tab Navigation – fixed */}
       <div className="citizen-tabs">
         <button
           className={activeTab === "profile" ? "active" : ""}
@@ -208,6 +210,12 @@ const CitizenDashboard = () => {
           onClick={() => setActiveTab("appointments")}
         >
           Appointments
+        </button>
+        <button
+          className={activeTab === "announcements" ? "active" : ""}
+          onClick={() => setActiveTab("announcements")}
+        >
+          Announcements
         </button>
       </div>
 
@@ -242,6 +250,12 @@ const CitizenDashboard = () => {
         </div>
       )}
 
+      {activeTab === "announcements" && (
+        <div className="tab-content">
+          <ResidentAnnouncements />
+        </div>
+      )}
+
       {/* Modals */}
       {showCertificateModal && (
         <CertificateRequestModal
@@ -257,7 +271,6 @@ const CitizenDashboard = () => {
           onClose={() => setShowAppointmentModal(false)}
           onSuccess={() => {
             // Refresh appointment list (will happen automatically on next visit)
-            // Optionally, you can trigger a refresh of the list
           }}
         />
       )}
