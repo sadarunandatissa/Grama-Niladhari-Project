@@ -4,6 +4,7 @@ const cors = require("cors");
 const helmet = require("helmet");
 const path = require("path");
 const connectDB = require("../src/config/db");
+const landRoutes = require("./routes/landRoutes");
 
 dotenv.config();
 connectDB();
@@ -24,7 +25,7 @@ app.use(
   }),
 );
 
-// ✅ Allow cross-origin resource loading for images
+//  Allow cross-origin resource loading for images
 app.use(
   helmet({
     crossOriginResourcePolicy: { policy: "cross-origin" },
@@ -50,6 +51,28 @@ app.use(
   express.static(path.join(__dirname, "../uploads")), //  ../../../uploads if needed
 );
 
+app.use(
+  helmet({
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        connectSrc: [
+          "'self'",
+          "http://localhost:5000",
+          "http://localhost:5173",
+        ],
+        scriptSrc: ["'self'", "'unsafe-inline'"],
+        styleSrc: ["'self'", "'unsafe-inline'"],
+        imgSrc: ["'self'", "data:"],
+        // Allow DevTools well-known URL
+        defaultSrc: [
+          "'self'",
+          "http://localhost:5000/.well-known/appspecific/com.chrome.devtools.json",
+        ],
+      },
+    },
+  }),
+);
 // Routes
 app.use("/api/auth", require("../src/routes/authRoutes"));
 app.use("/api/admin", require("../src/routes/adminRoutes"));
@@ -57,7 +80,9 @@ app.use("/api/registration", require("../src/routes/registrationRoutes"));
 app.use("/api/citizen", require("../src/routes/citizenRoutes"));
 app.use("/api/gn-officer", require("../src/routes/gnOfficerRoutes"));
 app.use("/api/villages", require("../src/routes/villageRoutes"));
-
+app.use("/api/land", require("./routes/landRoutes"));
+app.use("/api/certificate", require("./routes/certificateRoutes"));
+app.use("/api/appointments", require("./routes/appointmentRoutes"));
 app.get("/api/health", (req, res) => {
   res.json({ success: true, message: "Server running" });
 });

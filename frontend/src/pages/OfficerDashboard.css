@@ -90,10 +90,6 @@ body {
   margin-top: auto;
 }
 
-/* .menu-item.logout {
-  margin-top: auto;
-} */
-
 .main-content {
   margin-left: 320px;
   width: calc(100% - 340px);

@@ -2,8 +2,13 @@ const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
 
+// Ensure upload directories exist
 const createUploadDirs = () => {
-  const dirs = ["./uploads/gn_officers", "./uploads/citizens"];
+  const dirs = [
+    "./uploads/gn_officers",
+    "./uploads/citizens",
+    "./uploads/certificates",
+  ];
   dirs.forEach((dir) => {
     if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
   });
@@ -14,6 +19,7 @@ const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     let dest = "./uploads/citizens";
     if (req.path.includes("gn-officer")) dest = "./uploads/gn_officers";
+    if (req.path.includes("certificate")) dest = "./uploads/certificates";
     cb(null, dest);
   },
   filename: (req, file, cb) => {
@@ -24,21 +30,34 @@ const storage = multer.diskStorage({
 });
 
 const fileFilter = (req, file, cb) => {
-  const allowed = ["image/jpeg", "image/png", "image/gif", "image/webp"];
+  const allowed = [
+    "image/jpeg",
+    "image/png",
+    "image/gif",
+    "image/webp",
+    "application/pdf",
+  ];
   if (allowed.includes(file.mimetype)) {
     cb(null, true);
   } else {
-    cb(new Error("Only image files allowed (JPEG, PNG, GIF, WEBP)"), false);
+    cb(new Error("Only images and PDFs are allowed"), false);
   }
 };
 
 const upload = multer({
   storage,
-  limits: { fileSize: 5 * 1024 * 1024 },
+  limits: { fileSize: 10 * 1024 * 1024 },
   fileFilter,
 });
-const uploadSingle = upload.single("profile_picture");
 
+// Single file for profile picture
+const uploadSingle = upload.single("profile_picture");
+const uploadCitizenPicture = uploadSingle;
+
+// Multiple files for certificate attachments (up to 5)
+const uploadCertificateDocs = upload.array("attachments", 5);
+
+// Generic upload handler (single file with error handling)
 const handleUpload = (req, res, next) => {
   uploadSingle(req, res, (err) => {
     if (err) {
@@ -53,6 +72,9 @@ const handleUpload = (req, res, next) => {
   });
 };
 
-const uploadCitizenPicture = uploadSingle;
-
-module.exports = { upload, handleUpload, uploadCitizenPicture };
+module.exports = {
+  upload,
+  handleUpload,
+  uploadCitizenPicture,
+  uploadCertificateDocs,
+};
