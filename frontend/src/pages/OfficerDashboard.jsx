@@ -1,28 +1,26 @@
 import React, { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import axios from "axios";
 import "./OfficerDashboard.css";
 import gnAvatar from "../assets/Officer-Avatar.png";
 import LandManagement from "./LandManagement";
+import Sidebar from "../components/gn-officer/sideBar";
 import {
-  Cross,
-  UsersRound,
-  Megaphone,
-  MessageSquare,
-  Smartphone,
-  Settings,
-  LogOut,
   LayoutDashboard,
   CircleUserRound,
-  FileCheckCorner,
   FileStack,
-  House,
   Circle,
   Calendar,
   ChevronDown,
   UserRound,
   Download,
+  Cross,
+  UsersRound,
+  Megaphone,
+  MessageSquare,
+  FileCheckCorner,
+  House
 } from "lucide-react";
 
 const OfficerDashboard = () => {
@@ -34,7 +32,7 @@ const OfficerDashboard = () => {
   const [pendingCertificates, setPendingCertificates] = useState(0);
   const [loading, setLoading] = useState(true);
 
-  // State for Land Management modal popup
+  // // State for Land Management modal popup
   const [showLandModal, setShowLandModal] = useState(false);
 
   // Fetch dashboard data
@@ -74,7 +72,7 @@ const OfficerDashboard = () => {
     fetchNotifications();
   }, [token, API_URL]);
 
-  const handleLogout = () => {
+    const handleLogout = () => {
     logout();
     navigate("/login");
   };
@@ -86,67 +84,12 @@ const OfficerDashboard = () => {
   return (
     <div className="dashboard-wrapper">
       {/* Sidebar */}
-      <aside className="sidebar">
-        <div className="sidebar-brand">
-          <h2>
-            GRAMA NILADHARI
-            <br />
-            <span>MANAGEMENT SYSTEM</span>
-          </h2>
-        </div>
-
-        <nav className="sidebar-menu">
-          <Link to="/officer/dashboard" className="menu-item active">
-            <LayoutDashboard /> Dashboard
-          </Link>
-
-          <span className="menu-category">MAIN</span>
-          <Link to="/pending-verification" className="menu-item">
-            <Cross /> Requests
-          </Link>
-
-          {/* <Link to="/officer/land-management" className="menu-item">
-            <House /> Land Management
-          </Link> */}
-
-          <button
-            type="button"
-            className="menu-item menu-button-link"
-            onClick={() => setShowLandModal(true)}
-            style={{ background: 'none', border: 'none', width: '100%', textAlign: 'left', cursor: 'pointer' }}>
-              <House /> Land Management
-            </button>
-
-          <Link to="/officer/certificates" className="menu-item">
-            <FileCheckCorner /> Certificates
-          </Link>
-          <Link to="#" className="menu-item">
-            <UsersRound /> Citizens
-          </Link>
-          <Link to="/officer/appointments" className="menu-item">
-            <UsersRound /> Appointments
-          </Link>
-          <Link to="#" className="menu-item">
-            <Megaphone /> Announcements
-          </Link>
-          <Link to="#" className="menu-item">
-            <MessageSquare /> Messages
-          </Link>
-          <Link to="#" className="menu-item">
-            <Smartphone /> Alerts
-          </Link>
-          <Link to="#" className="menu-item">
-            <Settings /> Settings
-          </Link>
-        </nav>
-
-        <div className="sidebar-footer">
-          <button className="menu-item logout" onClick={handleLogout}>
-            <LogOut /> Log out
-          </button>
-        </div>
-      </aside>
-
+      <Sidebar
+        activePath = "/officer/dashboard"
+        onOpenLandModal={() => setShowLandModal(true)}
+        onLogout={handleLogout}
+      />
+      
       {/* Main content */}
       <main className="main-content">
         <header className="topbar">
