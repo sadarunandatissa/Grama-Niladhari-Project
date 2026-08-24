@@ -89,7 +89,6 @@ const OfficerDashboard = () => {
         onOpenLandModal={() => setShowLandModal(true)}
         onLogout={handleLogout}
       />
-      
       {/* Main content */}
       <main className="main-content">
         <header className="topbar">

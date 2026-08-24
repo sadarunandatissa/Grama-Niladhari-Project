@@ -5,6 +5,8 @@ const helmet = require("helmet");
 const path = require("path");
 const connectDB = require("../src/config/db");
 const landRoutes = require("./routes/landRoutes");
+const connectDB = require("./config/db"); // ✅ relative to src/
+const { startScheduler } = require("./scheduler/announcementScheduler"); // ✅ no src/
 
 dotenv.config();
 connectDB();
@@ -30,13 +32,13 @@ app.use(
   helmet({
     crossOriginResourcePolicy: { policy: "cross-origin" },
     crossOriginEmbedderPolicy: false,
+    contentSecurityPolicy: false,
   }),
 );
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Serve static files with CORS headers - CORRECT PATH
 app.use(
   "/uploads",
   (req, res, next) => {
@@ -48,7 +50,7 @@ app.use(
     }
     next();
   },
-  express.static(path.join(__dirname, "../uploads")), //  ../../../uploads if needed
+  express.static(path.join(__dirname, "../uploads")), // ✅ relative to backend root
 );
 
 app.use(
@@ -83,6 +85,7 @@ app.use("/api/villages", require("../src/routes/villageRoutes"));
 app.use("/api/land", require("./routes/landRoutes"));
 app.use("/api/certificate", require("./routes/certificateRoutes"));
 app.use("/api/appointments", require("./routes/appointmentRoutes"));
+app.use("/api/announcements", require("./routes/announcementRoutes"));
 app.get("/api/health", (req, res) => {
   res.json({ success: true, message: "Server running" });
 });
@@ -93,4 +96,7 @@ app.use((err, req, res, next) => {
 });
 
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+app.listen(PORT, () => {
+  console.log(`🚀 Server running on port ${PORT}`);
+  startScheduler();
+});

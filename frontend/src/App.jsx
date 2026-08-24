@@ -14,6 +14,8 @@ import OfficerCertificateDetails from "./pages/OfficerCertificateDetails";
 import CitizenCertificateDetails from "./pages/CitizenCertificateDetails";
 import OfficerAppointments from "./pages/OfficerAppointments";
 import PendingVerifications from "./components/gn-officer/PendingVerifications";
+import OfficerAnnouncements from "./pages/OfficerAnnouncements";
+import ResidentAnnouncements from "./components/announcements/ResidentAnnouncements";
 
 function App() {
   return (
@@ -90,6 +92,23 @@ function App() {
             element={
               <PrivateRoute allowedRoles={["gn_officer"]}>
                 <OfficerAppointments />
+              </PrivateRoute>
+            }
+          />
+
+          <Route
+            path="/officer/announcements"
+            element={
+              <PrivateRoute allowedRoles={["gn_officer"]}>
+                <OfficerAnnouncements />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/citizen/announcements"
+            element={
+              <PrivateRoute allowedRoles={["citizen"]}>
+                <ResidentAnnouncements />
               </PrivateRoute>
             }
           />

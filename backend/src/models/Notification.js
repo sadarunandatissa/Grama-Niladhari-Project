@@ -23,6 +23,7 @@ const NotificationSchema = new mongoose.Schema({
       "appointment_accepted",
       "appointment_rejected",
       "appointment_rescheduled",
+      "announcement",
       "warning",
     ],
     required: true,
