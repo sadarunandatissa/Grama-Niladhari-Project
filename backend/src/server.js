@@ -5,8 +5,7 @@ const helmet = require("helmet");
 const path = require("path");
 const connectDB = require("../src/config/db");
 const landRoutes = require("./routes/landRoutes");
-const connectDB = require("./config/db"); // ✅ relative to src/
-const { startScheduler } = require("./scheduler/announcementScheduler"); // ✅ no src/
+const { startScheduler } = require("./scheduler/announcementScheduler");
 
 dotenv.config();
 connectDB();
