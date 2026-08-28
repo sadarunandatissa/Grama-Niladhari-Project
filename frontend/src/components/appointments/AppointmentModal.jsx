@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import axios from "axios";
 import { useAuth } from "../../context/AuthContext";
+import "./AppointmentModal.css";
 
 const AppointmentModal = ({ onClose, onSuccess }) => {
   const { token } = useAuth();
