@@ -2,6 +2,27 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useAuth } from "../../context/AuthContext";
 import { Link } from "react-router-dom";
+import "./CertificateComponents.css";
+import { Home, TrendingUp, Award } from "lucide-react";
+
+const TYPE_ICON = {
+  residential: <Home className="w-5 h-5 text-gray-700" />,
+  income: <TrendingUp className="w-5 h-5 text-emerald-600" />,
+  character: <Award className="w-5 h-5 text-amber-500" />,
+};
+
+const STATUS_LABELS = {
+  not_seen: "Not Seen",
+  in_progress: "In Progress",
+  completed: "Completed",
+};
+
+const STATUS_CLASS = {
+  not_seen: "pending",
+  in_progress: "processing",
+  completed: "completed",
+  rejected: "rejected",
+};
 
 const CitizenCertificateList = () => {
   const { token } = useAuth();
@@ -27,78 +48,68 @@ const CitizenCertificateList = () => {
     fetchData();
   }, []);
 
-  const statusLabels = {
-    not_seen: "Not Seen",
-    in_progress: "In Progress",
-    completed: "Completed",
-  };
-  const statusColors = {
-    not_seen: "#f39c12",
-    in_progress: "#3498db",
-    completed: "#27ae60",
-  };
-
-  if (loading) return <div>Loading your certificate requests...</div>;
+  if (loading)
+    return (
+      <div className="cert-loading">Loading your certificate requests...</div>
+    );
   if (error) return <div className="alert error">{error}</div>;
 
   return (
     <div className="certificate-requests">
-      <h4>My Certificate Requests</h4>
       {certificates.length === 0 ? (
-        <p>You haven't requested any certificates yet.</p>
+        <p className="cert-empty">
+          You haven't requested any certificates yet.
+        </p>
       ) : (
-        <table className="data-table">
-          <thead>
-            <tr>
-              <th>Type</th>
-              <th>Status</th>
-              <th>Requested On</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {/* Inside the table body */}
-            {certificates.map((cert) => (
-              <tr key={cert._id}>
-                <td>{cert.certificateType.replace("_", " ").toUpperCase()}</td>
-                <td>
-                  <span
-                    style={{
-                      background: statusColors[cert.status],
-                      color: "white",
-                      padding: "2px 12px",
-                      borderRadius: "12px",
-                      fontSize: "12px",
-                      fontWeight: "bold",
-                    }}
-                  >
-                    {statusLabels[cert.status]}
+        <div className="certificate-grid">
+          {certificates.map((cert) => (
+            <div className="certificate-card" key={cert._id}>
+              <div className="certificate-card-top">
+                <div className="certificate-icon-box">
+                  {TYPE_ICON[cert.certificateType] || "📄"}
+                </div>
+                <span
+                  className={`status-badge ${STATUS_CLASS[cert.status] || "pending"}`}
+                >
+                  {STATUS_LABELS[cert.status] || cert.status}
+                </span>
+              </div>
+
+              <div className="certificate-type-label">Type</div>
+              <div className="certificate-type-value">
+                {cert.certificateType.replace("_", " ").toUpperCase()}
+              </div>
+
+              {cert.status === "rejected" && cert.rejectionReason && (
+                <div className="certificate-rejection-note">
+                  Reason: {cert.rejectionReason}
+                </div>
+              )}
+
+              <div className="certificate-card-footer">
+                <div className="footer-item">
+                  <span className="label">Request ID</span>
+                  <span className="value">
+                    #{cert._id.slice(-6).toUpperCase()}
                   </span>
-                  {cert.status === "rejected" && cert.rejectionReason && (
-                    <div
-                      style={{
-                        fontSize: "12px",
-                        color: "#e74c3c",
-                        marginTop: "4px",
-                      }}
-                    >
-                      Reason: {cert.rejectionReason}
-                    </div>
-                  )}
-                </td>
-                <td>{new Date(cert.requestedAt).toLocaleDateString()}</td>
-                <td>
-                  <Link
-                    to={`/citizen/certificate/${cert._id}`}
-                    className="btn-view"
-                  >
-                    View Details
-                  </Link>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+                </div>
+                <div className="footer-item">
+                  <span className="label">Date Requested</span>
+                  <span className="value">
+                    {new Date(cert.requestedAt).toLocaleDateString()}
+                  </span>
+                </div>
+              </div>
+
+              <Link
+                to={`/citizen/certificate/${cert._id}`}
+                className="btn-view-details"
+              >
+                View Details
+              </Link>
+            </div>
+          ))}
+        </div>
       )}
     </div>
   );

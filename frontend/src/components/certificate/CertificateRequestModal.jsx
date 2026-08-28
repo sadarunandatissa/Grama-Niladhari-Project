@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import axios from "axios";
 import { useAuth } from "../../context/AuthContext";
+import "./CertificateComponents.css";
 
 const CertificateRequestModal = ({ onClose, onSuccess }) => {
   const { user, token } = useAuth();

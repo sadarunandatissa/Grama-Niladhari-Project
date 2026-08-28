@@ -1,0 +1,493 @@
+/* =============================================
+   CERTIFICATE SYSTEM COMPONENTS
+   Shared styles for: CitizenCertificateList,
+   CitizenNotifications, CertificateRequestModal,
+   CertificateProcessing (officer view)
+   Matches the CitizenDashboard visual language.
+   ============================================= */
+
+:root {
+  --brand-navy: #1a3a6b;
+  --brand-navy-dark: #0f2a4a;
+  --text-dark: #2c3e50;
+  --text-muted: #8a94a6;
+  --border-light: #edf0f4;
+  --bg-soft: #f4f6fa;
+}
+
+.cert-loading,
+.cert-empty {
+  text-align: center;
+  padding: 40px 20px;
+  color: var(--text-muted);
+  font-size: 15px;
+}
+
+.alert {
+  padding: 12px 16px;
+  border-radius: 8px;
+  margin-bottom: 16px;
+  font-size: 14px;
+}
+.alert.error {
+  background: #fbe3e1;
+  color: #c0392b;
+  border: 1px solid #f3c6c1;
+}
+.alert.success {
+  background: #d9f2e3;
+  color: #1e8449;
+  border: 1px solid #bfe8d1;
+}
+.alert.info {
+  background: #eaf0fb;
+  color: var(--brand-navy);
+  border: 1px solid #d4e2f7;
+}
+
+/* ─── Certificate request cards (citizen view) ──────────── */
+.certificate-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 18px;
+}
+
+.certificate-card {
+  background: white;
+  border-radius: 14px;
+  padding: 18px 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  display: flex;
+  flex-direction: column;
+}
+
+.certificate-card-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.certificate-icon-box {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: var(--bg-soft);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+}
+
+.status-badge {
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 12px;
+  border-radius: 20px;
+  white-space: nowrap;
+}
+.status-badge.processing {
+  background: #e3f0fc;
+  color: #2472b8;
+}
+.status-badge.completed {
+  background: #d9f2e3;
+  color: #1e8449;
+}
+.status-badge.pending {
+  background: #fdf1de;
+  color: #b9770e;
+}
+.status-badge.rejected {
+  background: #fbe3e1;
+  color: #c0392b;
+}
+
+.certificate-type-label {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.certificate-type-value {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-dark);
+  margin-bottom: 12px;
+}
+
+.certificate-rejection-note {
+  font-size: 12.5px;
+  color: #c0392b;
+  margin-bottom: 12px;
+}
+
+.certificate-card-footer {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  border-top: 1px solid var(--border-light);
+  padding-top: 12px;
+  margin-top: auto;
+}
+
+.footer-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.footer-item .label {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.footer-item .value {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--text-dark);
+}
+
+.btn-view-details {
+  display: inline-block;
+  text-align: center;
+  margin-top: 14px;
+  padding: 8px 0;
+  border-radius: 8px;
+  background: var(--brand-navy);
+  color: white;
+  font-size: 13.5px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: background 0.2s;
+}
+.btn-view-details:hover {
+  background: var(--brand-navy-dark);
+}
+
+/* ─── Officer-side request cards (CertificateProcessing) ── */
+.requests-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 18px;
+}
+
+.request-card {
+  background: white;
+  border-radius: 14px;
+  padding: 18px 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.request-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.tracking-id {
+  font-weight: 700;
+  color: var(--brand-navy);
+  font-size: 14px;
+}
+
+.badge {
+  color: white;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 20px;
+}
+
+.request-card p {
+  margin: 6px 0;
+  font-size: 13.5px;
+  color: var(--text-dark);
+}
+
+.btn-process {
+  width: 100%;
+  margin-top: 10px;
+  padding: 9px;
+  background: var(--brand-navy);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 13.5px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.btn-process:hover {
+  background: var(--brand-navy-dark);
+}
+
+/* ─── Notifications ─────────────────────────────────────── */
+.notification-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.notification-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  background: white;
+  border-radius: 12px;
+  padding: 14px 16px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.notification-item.read {
+  opacity: 0.6;
+}
+
+.notification-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--brand-navy);
+  margin-top: 6px;
+  flex-shrink: 0;
+}
+
+.notification-item.read .notification-dot {
+  background: var(--text-muted);
+}
+
+.notification-body {
+  flex: 1;
+}
+
+.notification-body strong {
+  font-size: 14.5px;
+  color: var(--text-dark);
+}
+
+.notification-body p {
+  margin: 4px 0;
+  font-size: 13.5px;
+  color: #5f6b7a;
+}
+
+.notification-body small {
+  font-size: 11.5px;
+  color: var(--text-muted);
+}
+
+.btn-mark-read {
+  flex-shrink: 0;
+  background: var(--bg-soft);
+  border: none;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--brand-navy);
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.btn-mark-read:hover {
+  background: #e6eaf3;
+}
+
+/* ─── Modal (request modal + officer processing modal) ──── */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 30, 60, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  z-index: 1000;
+}
+
+.modal {
+  background: white;
+  border-radius: 16px;
+  padding: 28px;
+  width: 100%;
+  max-width: 520px;
+  max-height: 88vh;
+  overflow-y: auto;
+  position: relative;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.2);
+}
+
+.modal h3 {
+  margin: 0 0 4px;
+  color: var(--brand-navy);
+  font-size: 20px;
+}
+
+.modal h4 {
+  margin: 16px 0 12px;
+  color: var(--text-dark);
+  font-size: 15px;
+}
+
+.modal-close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  border: none;
+  background: var(--bg-soft);
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  font-size: 18px;
+  line-height: 1;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+.modal-close:hover {
+  background: #e6eaf3;
+}
+
+/* Certificate type select cards */
+.type-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 14px;
+  margin-top: 12px;
+}
+
+.type-card {
+  border: 1.5px solid var(--border-light);
+  border-radius: 14px;
+  padding: 18px 14px;
+  text-align: center;
+  cursor: pointer;
+  transition:
+    border-color 0.2s,
+    background 0.2s,
+    transform 0.15s;
+}
+.type-card:hover {
+  border-color: var(--brand-navy);
+  background: var(--bg-soft);
+  transform: translateY(-2px);
+}
+.type-card span {
+  font-size: 28px;
+  display: block;
+  margin-bottom: 8px;
+}
+.type-card h4 {
+  margin: 0 0 4px;
+  font-size: 14px;
+  color: var(--text-dark);
+}
+.type-card p {
+  margin: 0;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+/* Form fields inside modals */
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.form-group {
+  margin-bottom: 14px;
+}
+
+.form-group label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-dark);
+  margin-bottom: 5px;
+}
+
+.form-group input,
+.form-group textarea,
+.form-group select {
+  width: 100%;
+  padding: 9px 12px;
+  border: 1.5px solid var(--border-light);
+  border-radius: 8px;
+  font-size: 13.5px;
+  color: var(--text-dark);
+  background: white;
+  box-sizing: border-box;
+  transition: border-color 0.2s;
+}
+.form-group input:focus,
+.form-group textarea:focus,
+.form-group select:focus {
+  outline: none;
+  border-color: var(--brand-navy);
+}
+.form-group input[readonly] {
+  background: var(--bg-soft);
+  color: var(--text-muted);
+}
+.form-group small {
+  font-size: 11.5px;
+  color: var(--text-muted);
+}
+
+.form-actions,
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.btn-primary {
+  background: var(--brand-navy);
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 13.5px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.btn-primary:hover {
+  background: var(--brand-navy-dark);
+}
+.btn-primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btn-secondary {
+  background: var(--bg-soft);
+  color: var(--text-dark);
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 13.5px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.btn-secondary:hover {
+  background: #e6eaf3;
+}
+
+/* ─── Responsive ────────────────────────────────────────── */
+@media (max-width: 600px) {
+  .certificate-grid,
+  .requests-grid {
+    grid-template-columns: 1fr;
+  }
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+  .modal {
+    padding: 20px;
+  }
+}
