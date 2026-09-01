@@ -4,7 +4,6 @@ import React, { useState, useEffect } from "react";
 import { useAuth } from "../context/AuthContext";
 import axios from "axios";
 import "./AdminDashboard.css";
-// import "../components/admin/AdminDashboard.css"; // Create this file or remove the import
 
 // Helper to get API URL (Vite compatible)
 const getApiUrl = () => {
@@ -232,8 +231,10 @@ const AdminDashboard = () => {
     <div className="admin-dashboard">
       {/* Header */}
       <header className="dashboard-header">
-        <h1>Admin Dashboard</h1>
-        <p>Welcome, {user?.name || "Admin"}!</p>
+        <div>
+          <h1>Admin Dashboard</h1>
+          <p>Welcome, {user?.name || "Admin"}!</p>
+        </div>
         <button className="btn-logout" onClick={logout}>
           Logout
         </button>
@@ -264,100 +265,112 @@ const AdminDashboard = () => {
       {/* Actions */}
       <div className="action-bar">
         <button
+          className="btn-primary"
           onClick={() => {
             setModalType("officer");
             setShowModal(true);
           }}
         >
-          Add GN Officer
+          + Add GN Officer
         </button>
         <button
+          className="btn-primary"
           onClick={() => {
             setModalType("village");
             setShowModal(true);
           }}
         >
-          Add Village
+          + Add Village
         </button>
-        <button onClick={fetchData}>Refresh</button>
+        <button className="btn-secondary" onClick={fetchData}>
+          ⟳ Refresh
+        </button>
       </div>
 
       {/* Officers Table */}
       <section className="section">
         <h2>GN Officers</h2>
-        {officers.length === 0 ? (
-          <p>No officers yet.</p>
-        ) : (
-          <table className="data-table">
-            <thead>
-              <tr>
-                <th>Name</th>
-                <th>Email</th>
-                <th>Phone</th>
-                <th>Village</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {officers.map((o) => (
-                <tr key={o._id}>
-                  <td>{o.full_name}</td>
-                  <td>{o.email}</td>
-                  <td>{o.phone}</td>
-                  <td>{o.village_id?.name || o.village_id}</td>
-                  <td>
-                    <button
-                      className="btn-danger"
-                      onClick={() => handleDeleteOfficer(o._id)}
-                    >
-                      Delete
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
+        <div className="table-card">
+          {officers.length === 0 ? (
+            <p className="empty-state">No officers yet.</p>
+          ) : (
+            <div className="table-scroll">
+              <table className="data-table">
+                <thead>
+                  <tr>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Phone</th>
+                    <th>Village</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {officers.map((o) => (
+                    <tr key={o._id}>
+                      <td>{o.full_name}</td>
+                      <td>{o.email}</td>
+                      <td>{o.phone}</td>
+                      <td>{o.village_id?.name || o.village_id}</td>
+                      <td>
+                        <button
+                          className="btn-danger"
+                          onClick={() => handleDeleteOfficer(o._id)}
+                        >
+                          Delete
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
       </section>
 
       {/* Villages Table */}
       <section className="section">
         <h2>Villages</h2>
-        {villages.length === 0 ? (
-          <p>No villages yet.</p>
-        ) : (
-          <table className="data-table">
-            <thead>
-              <tr>
-                <th>ID</th>
-                <th>Name</th>
-                <th>DS Division</th> {/* ✅ Add this column */}
-                <th>District</th> {/* ✅ Add this column */}
-                <th>Province</th> {/* ✅ Add this column */}
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {villages.map((v) => (
-                <tr key={v._id}>
-                  <td>{v.village_id}</td>
-                  <td>{v.name}</td>
-                  <td>{v.ds_division || "—"}</td> {/* ✅ Display DS Division */}
-                  <td>{v.district || "—"}</td> {/* ✅ Display District */}
-                  <td>{v.province || "—"}</td> {/* ✅ Display Province */}
-                  <td>
-                    <button
-                      className="btn-danger"
-                      onClick={() => handleDeleteVillage(v._id)}
-                    >
-                      Delete
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
+        <div className="table-card">
+          {villages.length === 0 ? (
+            <p className="empty-state">No villages yet.</p>
+          ) : (
+            <div className="table-scroll">
+              <table className="data-table">
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>DS Division</th>
+                    <th>District</th>
+                    <th>Province</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {villages.map((v) => (
+                    <tr key={v._id}>
+                      <td>{v.village_id}</td>
+                      <td>{v.name}</td>
+                      <td>{v.ds_division || "—"}</td>
+                      <td>{v.district || "—"}</td>
+                      <td>{v.province || "—"}</td>
+                      <td>
+                        <button
+                          className="btn-danger"
+                          onClick={() => handleDeleteVillage(v._id)}
+                        >
+                          Delete
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
       </section>
 
       {/* Modal */}
@@ -498,8 +511,14 @@ const AdminDashboard = () => {
                 </>
               )}
               <div className="modal-actions">
-                <button type="submit">Save</button>
-                <button type="button" onClick={resetForm}>
+                <button type="submit" className="btn-primary">
+                  Save
+                </button>
+                <button
+                  type="button"
+                  className="btn-secondary"
+                  onClick={resetForm}
+                >
                   Cancel
                 </button>
               </div>

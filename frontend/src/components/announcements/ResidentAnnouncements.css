@@ -1,0 +1,129 @@
+/* =============================================
+   RESIDENT ANNOUNCEMENTS
+   Matches CitizenDashboard / CertificateComponents
+   visual language.
+   ============================================= */
+
+:root {
+  --brand-navy: #1a3a6b;
+  --brand-navy-dark: #0f2a4a;
+  --text-dark: #2c3e50;
+  --text-muted: #8a94a6;
+  --border-light: #edf0f4;
+  --bg-soft: #f4f6fa;
+}
+
+.loading-state,
+.empty-state {
+  text-align: center;
+  padding: 40px 20px;
+  color: var(--text-muted);
+  font-size: 15px;
+}
+
+.announcement-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.announcement-card {
+  background: white;
+  border-radius: 14px;
+  padding: 18px 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  border-left: 4px solid var(--border-light);
+}
+
+/* Priority accent on the left border */
+.announcement-card.priority-high {
+  border-left-color: #e74c3c;
+}
+.announcement-card.priority-medium {
+  border-left-color: #e0a52e;
+}
+.announcement-card.priority-low {
+  border-left-color: #2ecc71;
+}
+
+.announcement-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.announcement-header h4 {
+  margin: 0;
+  font-size: 16px;
+  color: var(--text-dark);
+  line-height: 1.4;
+}
+
+.priority-badge {
+  flex-shrink: 0;
+  font-size: 11.5px;
+  font-weight: 700;
+  padding: 4px 12px;
+  border-radius: 20px;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+.priority-badge-high {
+  background: #fbe3e1;
+  color: #c0392b;
+}
+.priority-badge-medium {
+  background: #fdf1de;
+  color: #b9770e;
+}
+.priority-badge-low {
+  background: #d9f2e3;
+  color: #1e8449;
+}
+
+.announcement-card p {
+  margin: 0 0 12px;
+  font-size: 14px;
+  color: #5f6b7a;
+  line-height: 1.6;
+}
+
+.attachments {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.attachments a {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--brand-navy);
+  background: var(--bg-soft);
+  padding: 6px 12px;
+  border-radius: 8px;
+  text-decoration: none;
+  transition: background 0.2s;
+}
+.attachments a:hover {
+  background: #e6eaf3;
+}
+
+.announcement-card small {
+  display: block;
+  font-size: 12px;
+  color: var(--text-muted);
+  border-top: 1px solid var(--border-light);
+  padding-top: 10px;
+}
+
+/* ─── Responsive ─────────────────────────────────────────── */
+@media (max-width: 600px) {
+  .announcement-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+  }
+}
