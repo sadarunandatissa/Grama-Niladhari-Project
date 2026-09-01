@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useAuth } from "../../context/AuthContext";
+import Sidebar from "../components/gn-officer/Sidebar";
 
 const CertificateRequestModal = ({ onClose, onSuccess }) => {
   const { user, token } = useAuth();

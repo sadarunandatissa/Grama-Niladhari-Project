@@ -1,0 +1,10 @@
+.officer-layout {
+    display: flex;
+    min-height: 100vh;
+}
+
+.officer-main-content {
+    margin-left: 320px;
+    width: calc(100% - 320px);
+    min-height: 100vh;
+}

@@ -5,7 +5,6 @@ import axios from "axios";
 import "./OfficerDashboard.css";
 import gnAvatar from "../assets/Officer-Avatar.png";
 import LandManagement from "./LandManagement";
-import Sidebar from "../components/gn-officer/sideBar";
 import {
   LayoutDashboard,
   CircleUserRound,
@@ -82,15 +81,7 @@ const OfficerDashboard = () => {
   }
 
   return (
-    <div className="dashboard-wrapper">
-      {/* Sidebar */}
-      <Sidebar
-        activePath = "/officer/dashboard"
-        onOpenLandModal={() => setShowLandModal(true)}
-        onLogout={handleLogout}
-      />
-      {/* Main content */}
-      <main className="main-content">
+    <>
         <header className="topbar">
           <div className="page-title">
             <LayoutDashboard /> Dashboard
@@ -308,13 +299,12 @@ const OfficerDashboard = () => {
             </div>
           </div>
         </div>
-      </main>
 
       {/* Render the Land Management Modal when active */}
       {showLandModal && (
         <LandManagement onClose={() => setShowLandModal(false)} />
       )}
-    </div>
+    </>
   );
 };
 
