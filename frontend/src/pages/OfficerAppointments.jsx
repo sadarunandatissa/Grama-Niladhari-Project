@@ -1,6 +1,15 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useAuth } from "../context/AuthContext";
+import Sidebar from "../components/gn-officer/Sidebar";
+import "./OfficerAppointments.css"
+
+import {
+  CalendarDays,
+  RefreshCw,
+  X,
+  ChevronDown
+} from 'lucide-react';
 
 const OfficerAppointments = () => {
   const { token } = useAuth();
@@ -89,11 +98,11 @@ const OfficerAppointments = () => {
   // ─── Render Today's Schedule ─────────────────────────────
   const renderTodaySchedule = () => (
     <div className="today-schedule">
-      <h3>📋 Today's Appointments</h3>
+      <h3>Today's Appointments</h3>
       {todayAppointments.length === 0 ? (
         <p className="no-appointments">No appointments scheduled for today.</p>
       ) : (
-        <table className="data-table">
+        <table className="today-table">
           <thead>
             <tr>
               <th>Time</th>
@@ -105,7 +114,7 @@ const OfficerAppointments = () => {
           <tbody>
             {todayAppointments.map((app, idx) => (
               <tr key={idx}>
-                <td>
+                <td className="time-col">
                   <strong>{new Date(app.time).toLocaleTimeString()}</strong>
                 </td>
                 <td>{app.citizen?.full_name || "N/A"}</td>
@@ -117,7 +126,7 @@ const OfficerAppointments = () => {
                     : "—"}
                   {app.citizen?.email && (
                     <div style={{ fontSize: "12px", color: "#7f8c8d" }}>
-                      ✉️ {app.citizen.email}
+                      {app.citizen.email}
                     </div>
                   )}
                 </td>
@@ -171,232 +180,257 @@ const OfficerAppointments = () => {
   if (loading) return <div className="loading">Loading appointments...</div>;
 
   return (
-    <div className="officer-appointments">
-      <div className="header">
-        <h2>📅 Appointment Requests</h2>
-        <button
-          className={`btn-toggle-schedule ${showToday ? "active" : ""}`}
-          onClick={() => setShowToday(!showToday)}
-        >
-          {showToday ? "Hide" : "Show"} Today's Schedule
-        </button>
-      </div>
+    <div className="appointments-wrapper">
+        <div className="appointment-page-title">
+          <CalendarDays />
+          <h2>Appointment Requests</h2>
+        </div>
 
-      {showToday && renderTodaySchedule()}
-
-      <div className="filter-bar">
-        <label>Filter by status:</label>
-        <select value={filter} onChange={(e) => setFilter(e.target.value)}>
-          <option value="all">All</option>
-          <option value="pending">Pending</option>
-          <option value="accepted">Accepted</option>
-          <option value="rejected">Rejected</option>
-          <option value="rescheduled">Rescheduled</option>
-        </select>
-        <button className="btn-refresh" onClick={fetchAppointments}>
-          🔄 Refresh
-        </button>
-      </div>
-
-      {actionMessage && <div className="alert success">{actionMessage}</div>}
-
-      <div className="table-container">
-        <table className="data-table">
-          <thead>
-            <tr>
-              <th>Citizen</th>
-              <th>Reason</th>
-              <th>Proposed Slots</th>
-              <th>Selected Slot</th>
-              <th>Status</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {appointments.length === 0 ? (
-              <tr>
-                <td colSpan="6" className="empty-state">
-                  No appointments found.
-                </td>
-              </tr>
-            ) : (
-              appointments.map((app) => (
-                <tr key={app._id}>
-                  <td>
-                    <div>
-                      <strong>{app.citizenId?.full_name}</strong>
-                      <div style={{ fontSize: "12px", color: "#7f8c8d" }}>
-                        {app.citizenId?.nic}
-                      </div>
-                    </div>
-                  </td>
-                  <td>{app.reason}</td>
-                  <td>
-                    {app.proposedSlots.map((slot, i) => (
-                      <div key={i} className="slot-item">
-                        {new Date(slot).toLocaleString()}
-                      </div>
-                    ))}
-                  </td>
-                  <td>
-                    {app.status === "accepted" && app.selectedSlot ? (
-                      <span className="selected-slot">
-                        ✅ {new Date(app.selectedSlot).toLocaleString()}
-                      </span>
-                    ) : (
-                      "—"
-                    )}
-                  </td>
-                  <td>
-                    <span className={`status-badge status-${app.status}`}>
-                      {app.status}
-                    </span>
-                  </td>
-                  <td>
-                    <button
-                      className="btn-edit"
-                      onClick={() => setSelectedApp(app)}
-                    >
-                      Manage
-                    </button>
-                  </td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-      </div>
-
-      {/* ─── Manage Appointment Modal ──────────────────────── */}
-      {selectedApp && (
-        <div className="modal-overlay" onClick={() => setSelectedApp(null)}>
-          <div className="modal" onClick={(e) => e.stopPropagation()}>
-            <button
-              className="modal-close"
-              onClick={() => setSelectedApp(null)}
-            >
-              ×
-            </button>
-            <h3>Manage Appointment</h3>
-
-            <div className="appointment-details">
-              <p>
-                <strong>Citizen:</strong> {selectedApp.citizenId?.full_name}
-              </p>
-              <p>
-                <strong>NIC:</strong> {selectedApp.citizenId?.nic || "N/A"}
-              </p>
-              <p>
-                <strong>Phone:</strong>{" "}
-                {selectedApp.citizenId?.phone_numbers?.join(", ") || "N/A"}
-              </p>
-              <p>
-                <strong>Reason:</strong> {selectedApp.reason}
-              </p>
-              <p>
-                <strong>Current Status:</strong> {selectedApp.status}
-              </p>
-            </div>
-
-            <div className="proposed-slots-list">
-              <label>Proposed Time Slots:</label>
-              <ul>
-                {selectedApp.proposedSlots.map((slot, i) => (
-                  <li key={i}>{new Date(slot).toLocaleString()}</li>
-                ))}
-              </ul>
-            </div>
-
-            <div className="form-group">
-              <label>Select slot to accept</label>
-              <select
-                onChange={(e) =>
-                  setSelectedApp({
-                    ...selectedApp,
-                    selectedSlot: e.target.value,
-                  })
-                }
-                value={selectedApp.selectedSlot || ""}
-              >
-                <option value="">-- Select a slot --</option>
-                {selectedApp.proposedSlots.map((slot, i) => (
-                  <option key={i} value={slot}>
-                    {new Date(slot).toLocaleString()}
-                  </option>
-                ))}
+        <div className="card filter-card">
+          <div className="filter-group">
+            <label for="status-filter">Filter by status:</label>
+            <div className="select-wrapper">
+              <select id="status-filter" value={filter} onChange={(e) => setFilter(e.target.value)}>
+                <option value="all">All</option>
+                <option value="pending">Pending</option>
+                <option value="accepted">Accepted</option>
+                <option value="rejected">Rejected</option>
+                <option value="rescheduled">Rescheduled</option>
               </select>
-              <small>Only required if accepting</small>
-            </div>
-
-            <div className="form-group">
-              <label>Message to citizen</label>
-              <textarea
-                value={selectedApp.officerMessage || ""}
-                onChange={(e) =>
-                  setSelectedApp({
-                    ...selectedApp,
-                    officerMessage: e.target.value,
-                  })
-                }
-                placeholder="Add a message (e.g., reason for rejection or alternative suggestion)"
-                rows="3"
-              />
-            </div>
-
-            <div className="status-actions">
-              <button
-                className="btn-accept"
-                onClick={() =>
-                  updateStatus(
-                    selectedApp._id,
-                    "accepted",
-                    selectedApp.selectedSlot,
-                    selectedApp.officerMessage,
-                  )
-                }
-              >
-                Accept
-              </button>
-              <button
-                className="btn-reschedule"
-                onClick={() =>
-                  updateStatus(
-                    selectedApp._id,
-                    "rescheduled",
-                    null,
-                    selectedApp.officerMessage ||
-                      "Please propose new time slots.",
-                  )
-                }
-              >
-                Suggest Alternative
-              </button>
-              <button
-                className="btn-reject"
-                onClick={() =>
-                  updateStatus(
-                    selectedApp._id,
-                    "rejected",
-                    null,
-                    selectedApp.officerMessage || "No reason provided.",
-                  )
-                }
-              >
-                Reject
-              </button>
-              <button
-                className="btn-secondary"
-                onClick={() => setSelectedApp(null)}
-              >
-                Cancel
-              </button>
+              <ChevronDown />
             </div>
           </div>
-        </div>
-      )}
 
-      {/* ─── Conflict Modal ────────────────────────────────── */}
-      {showConflict && renderConflictModal()}
+          <div className="action-buttons">
+            <button className="btn btn-refresh" onClick={fetchAppointments}>
+              <RefreshCw /> Refresh
+            </button>
+            <button
+              className={`btn btn-toggle-schedule ${showToday ? "active" : ""}`}
+              onClick={() => setShowToday(!showToday)}
+            >
+              {showToday ? "Hide" : "Show"} Today's Schedule
+            </button>
+          </div>
+        </div>
+        {showToday && renderTodaySchedule()}
+        {actionMessage && <div className="alert success">{actionMessage}</div>}
+
+        <div className="card table-card main-table-card">
+          <table className="appointments-table">
+            <thead>
+              <tr>
+                <th>Citizen</th>
+                <th>Reason</th>
+                <th>Proposed Slots</th>
+                <th>Selected Slot</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {appointments.length === 0 ? (
+                <tr>
+                  <td colSpan="6" className="empty-state">
+                    No appointments found.
+                  </td>
+                </tr>
+              ) : (
+                appointments.map((app) => (
+                  <tr key={app._id}>
+                    <td>
+                      <div>
+                        <strong className="citizen-name">{app.citizenId?.full_name}</strong>
+                        <div className="nic-number" style={{ fontSize: "12px", color: "#7f8c8d" }}>
+                          {app.citizenId?.nic}
+                        </div>
+                      </div>
+                    </td>
+                    <td>{app.reason}</td>
+                    <td className="slots-col">
+                      {app.proposedSlots.map((slot, i) => (
+                        <div key={i} className="slot-item">
+                          {new Date(slot).toLocaleString()}
+                        </div>
+                      ))}
+                    </td>
+                    <td>
+                      {app.status === "accepted" && app.selectedSlot ? (
+                        <span className="selected-slot">
+                          {new Date(app.selectedSlot).toLocaleString()}
+                        </span>
+                      ) : (
+                        "—"
+                      )}
+                    </td>
+                    <td>
+                      <span className={`status-badge status-${app.status}`}>
+                        {app.status}
+                      </span>
+                    </td>
+                    <td>
+                      <button
+                        className="btn btn-edit"
+                        onClick={() => setSelectedApp(app)}
+                      >
+                        Manage
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+
+        {/* ─── Manage Appointment Modal ──────────────────────── */}
+        {selectedApp && (
+          <div className="modal-overlay" onClick={() => setSelectedApp(null)}>
+            <div className="modal-card" onClick={(e) => e.stopPropagation()}>
+              <div className="modal-header">
+                <h2>Manage Appointment</h2>
+                <button
+                  className="btn-close"
+                  onClick={() => setSelectedApp(null)}
+                >
+                  <X />
+                </button>
+              </div>
+
+              <div className="appointment-modal-body">
+
+                <div className="appointment-details">
+                  <div className="info-grid">
+                    <div className="info-item">
+                      <span className="info-label">Citizen</span>
+                      <span className="info-value">{selectedApp.citizenId?.full_name}</span>
+                    </div>
+                    <div className="info-item">
+                      <span className="info-label">NIC</span>
+                      <span className="info-value">{selectedApp.citizenId?.nic || "N/A"}</span>
+                    </div>
+                    <div className="info-item">
+                      <span className="info-label">Phone</span>{" "}
+                      <span className="info-value">{selectedApp.citizenId?.phone_numbers?.join(", ") || "N/A"}</span>
+                    </div>
+                    <div className="info-item">
+                      <span className="info-label">Current Status</span>
+                      <span className="info-value-status">{selectedApp.status}</span>
+                    </div>
+                    <div className="info-item">
+                      <span className="info-label">Reason</span>
+                      <span className="info-value">{selectedApp.reason}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="form-group">
+                  <label className="group-label">Proposed Time Slots:</label>
+                  <ul className="time-slots-list">
+                    {selectedApp.proposedSlots.map((slot, i) => (
+                      <li key={i}>{new Date(slot).toLocaleString()}</li>
+                    ))}
+                  </ul>
+                </div>
+
+                <div className="form-group">
+                  <label htmlFor="slot-select" className="group-label">Select slot to accept</label>
+                  <div className="modal-select-wrapper">
+                    <select
+                      onChange={(e) =>
+                        setSelectedApp({
+                          ...selectedApp,
+                          selectedSlot: e.target.value,
+                        })
+                      }
+                      value={selectedApp.selectedSlot || ""}
+                    >
+                      <option value="">-- Select a slot --</option>
+                      {selectedApp.proposedSlots.map((slot, i) => (
+                        <option key={i} value={slot}>
+                          {new Date(slot).toLocaleString()}
+                        </option>
+                      ))}
+                    </select>
+                    <ChevronDown />
+                  </div>
+                  <span className="field-hint">Only required if accepting</span>
+                </div>
+
+                <div className="form-group">
+                  <label htmlFor="message-input" className="group-label">Message to citizen</label>
+                  <textarea
+                    id="message-input"
+                    value={selectedApp.officerMessage || ""}
+                    onChange={(e) =>
+                      setSelectedApp({
+                        ...selectedApp,
+                        officerMessage: e.target.value,
+                      })
+                    }
+                    placeholder="Add a message (e.g., reason for rejection or alternative suggestion)"
+                    rows="3"
+                  />
+                </div>
+              </div>
+
+              <div className="status-actions">
+
+                <button
+                  className="btn btn-accept"
+                  onClick={() =>
+                    updateStatus(
+                      selectedApp._id,
+                      "accepted",
+                      selectedApp.selectedSlot,
+                      selectedApp.officerMessage,
+                    )
+                  }
+                >
+                  Accept
+                </button>
+
+                <button
+                  className="btn btn-reschedule"
+                  onClick={() =>
+                    updateStatus(
+                      selectedApp._id,
+                      "rescheduled",
+                      null,
+                      selectedApp.officerMessage ||
+                        "Please propose new time slots.",
+                    )
+                  }
+                >
+                  Suggest Alternative
+                </button>
+
+                <button
+                  className="btn btn-reject"
+                  onClick={() =>
+                    updateStatus(
+                      selectedApp._id,
+                      "rejected",
+                      null,
+                      selectedApp.officerMessage || "No reason provided.",
+                    )
+                  }
+                >
+                  Reject
+                </button>
+
+                {/* <button
+                  className="btn-secondary"
+                  onClick={() => setSelectedApp(null)}
+                >
+                  Cancel
+                </button> */}
+              </div>
+            </div>
+          </div>
+        )}
+        {/* ─── Conflict Modal ────────────────────────────────── */}
+        {showConflict && renderConflictModal()}
     </div>
   );
 };
