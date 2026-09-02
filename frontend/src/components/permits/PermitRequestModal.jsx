@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import axios from "axios";
 import { useAuth } from "../../context/AuthContext";
 import "./PermitRequestModal.css";
@@ -73,7 +73,6 @@ const PermitRequestModal = ({ onClose, onSuccess }) => {
 
     try {
       let payload = { permitType, formData: { ...formData } };
-      // Auto-fill fields from user (already handled on backend, but we can skip)
       const res = await axios.post(`${API_URL}/api/permits/citizen`, payload, {
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -183,7 +182,11 @@ const PermitRequestModal = ({ onClose, onSuccess }) => {
                         required
                       />
                       {formData.trees.length > 1 && (
-                        <button type="button" onClick={() => removeTree(idx)}>
+                        <button
+                          type="button"
+                          className="btn-remove"
+                          onClick={() => removeTree(idx)}
+                        >
                           ×
                         </button>
                       )}

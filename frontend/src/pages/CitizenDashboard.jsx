@@ -12,6 +12,8 @@ import CitizenNotifications from "../components/certificate/CitizenNotifications
 import AppointmentModal from "../components/appointments/AppointmentModal";
 import ResidentAppointmentList from "../components/appointments/ResidentAppointmentList";
 import ResidentAnnouncements from "../components/announcements/ResidentAnnouncements";
+import PermitRequestModal from "../components/permits/PermitRequestModal";
+import CitizenPermitList from "../components/permits/CitizenPermitList";
 
 const getApiUrl = () => {
   if (import.meta.env && import.meta.env.VITE_API_URL) {
@@ -140,6 +142,22 @@ const IconPlus = () => (
     <path d="M12 5v14M5 12h14" />
   </svg>
 );
+const IconPermit = () => (
+  <svg
+    width="18"
+    height="18"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <path d="M9 12l2 2 4-4" />
+    <path d="M21 12c0 4.97-4.03 9-9 9s-9-4.03-9-9 4.03-9 9-9c1.7 0 3.29.47 4.65 1.28" />
+    <path d="M21 5l-3 3" />
+  </svg>
+);
 const IconFamily = () => (
   <svg
     width="16"
@@ -160,6 +178,7 @@ const IconFamily = () => (
 const NAV_ITEMS = [
   { key: "profile", label: "Profile", icon: IconProfile },
   { key: "certificates", label: "Certificates", icon: IconCertificate },
+  { key: "permits", label: "Permits", icon: IconPermit },
   { key: "appointments", label: "Appointments", icon: IconCalendar },
   { key: "notifications", label: "Notifications", icon: IconBell },
   { key: "announcements", label: "Announcements", icon: IconMegaphone },
@@ -168,6 +187,7 @@ const NAV_ITEMS = [
 const TAB_TITLES = {
   profile: "Profile",
   certificates: "Certificates",
+  permits: "Permits",
   appointments: "Appointments",
   notifications: "Notifications",
   announcements: "Announcements",
@@ -185,6 +205,8 @@ const CitizenDashboard = () => {
   const [familyMsg, setFamilyMsg] = useState("");
   const [activeTab, setActiveTab] = useState("certificates");
   const [showCertificateModal, setShowCertificateModal] = useState(false);
+  const [showPermitModal, setShowPermitModal] = useState(false);
+  const [permitRefreshKey, setPermitRefreshKey] = useState(0);
   const [showAppointmentModal, setShowAppointmentModal] = useState(false);
   const [notifications, setNotifications] = useState([]);
   const [announcements, setAnnouncements] = useState([]);
@@ -448,6 +470,21 @@ const CitizenDashboard = () => {
             </div>
           )}
 
+          {activeTab === "permits" && (
+            <div className="tab-content permits-tab">
+              <div className="section-header">
+                <h2>My Permit Requests</h2>
+                <button
+                  className="btn-primary"
+                  onClick={() => setShowPermitModal(true)}
+                >
+                  <IconPlus /> Request Permit
+                </button>
+              </div>
+              <CitizenPermitList refreshKey={permitRefreshKey} />
+            </div>
+          )}
+
           {activeTab === "appointments" && (
             <div className="tab-content appointments-tab">
               <div className="section-header">
@@ -500,6 +537,16 @@ const CitizenDashboard = () => {
           onSuccess={() => {
             fetchData();
             setShowAppointmentModal(false);
+          }}
+        />
+      )}
+
+      {showPermitModal && (
+        <PermitRequestModal
+          onClose={() => setShowPermitModal(false)}
+          onSuccess={() => {
+            setPermitRefreshKey((prev) => prev + 1);
+            setShowPermitModal(false);
           }}
         />
       )}

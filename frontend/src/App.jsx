@@ -17,6 +17,8 @@ import PendingVerifications from "./components/gn-officer/PendingVerifications";
 import OfficerAnnouncements from "./pages/OfficerAnnouncements";
 import ResidentAnnouncements from "./components/announcements/ResidentAnnouncements";
 
+import OfficerPermits from "./pages/OfficerPermits";
+
 function App() {
   return (
     <BrowserRouter>
@@ -29,7 +31,10 @@ function App() {
             path="/registration-success"
             element={<RegistrationSuccess />}
           />
-<Route path="/pending-verification" element={<PendingVerifications/>}/>
+          <Route
+            path="/pending-verification"
+            element={<PendingVerifications />}
+          />
 
           <Route
             path="/admin/dashboard"
@@ -112,6 +117,26 @@ function App() {
               </PrivateRoute>
             }
           />
+
+          <Route
+            path="/officer/permits"
+            element={
+              <PrivateRoute allowedRoles={["gn_officer"]}>
+                <OfficerPermits />
+              </PrivateRoute>
+            }
+          />
+
+          {/* Citizen routes */}
+          <Route
+            path="/citizen/dashboard"
+            element={
+              <PrivateRoute allowedRoles={["citizen"]}>
+                <CitizenDashboard />
+              </PrivateRoute>
+            }
+          />
+          <Route path="*" element={<div>Page not found</div>} />
         </Routes>
       </AuthProvider>
     </BrowserRouter>
