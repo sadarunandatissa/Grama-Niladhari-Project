@@ -1,3 +1,7 @@
+* {
+    box-sizing: border-box;
+}
+
 .sidebar {
     width: 320px;
     height: 100vh;
