@@ -1,0 +1,64 @@
+.type-cards {
+  display: flex;
+  gap: 16px;
+  margin: 16px 0;
+  flex-wrap: wrap;
+}
+.type-card {
+  background: #f8f9fa;
+  border: 2px solid #e9ecef;
+  border-radius: 12px;
+  padding: 20px;
+  flex: 1;
+  min-width: 150px;
+  cursor: pointer;
+  transition: all 0.3s;
+  text-align: center;
+}
+.type-card:hover {
+  border-color: #1a3a6b;
+  transform: translateY(-2px);
+}
+.type-card span {
+  font-size: 40px;
+  display: block;
+}
+.type-card h4 {
+  margin: 10px 0 4px;
+}
+.tree-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 8px 0;
+  align-items: center;
+  background: #f8f9fa;
+  padding: 8px;
+  border-radius: 8px;
+}
+.tree-group select,
+.tree-group input {
+  flex: 1 1 120px;
+  padding: 6px 8px;
+  border: 1px solid #dce1e8;
+  border-radius: 6px;
+}
+.tree-group button {
+  background: #e74c3c;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 28px;
+  height: 28px;
+  cursor: pointer;
+  font-size: 16px;
+}
+.btn-add {
+  background: transparent;
+  color: #1a3a6b;
+  border: 1px dashed #1a3a6b;
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  margin: 8px 0;
+}
