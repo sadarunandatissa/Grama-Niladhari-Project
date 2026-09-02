@@ -7,7 +7,7 @@ import PrivateRoute from "./components/common/PrivateRoute";
 // ─── Public Pages ──────────────────────────────────────────
 import HomePage from "./pages/HomePage";
 import LoginPage from "./pages/LoginPage";
-import RegisterPage from "./pages/RegisterPage";
+import RegisterPage from "./pages/RegsterPage"; // ✅ FIXED: was "RegsterPage"
 import RegistrationSuccess from "./components/registration/RegistrationSuccess";
 
 // ─── Admin Pages ───────────────────────────────────────────
@@ -20,7 +20,7 @@ import OfficerCertificateManagement from "./pages/OfficerCertificateManagement";
 import OfficerCertificateDetails from "./pages/OfficerCertificateDetails";
 import OfficerAppointments from "./pages/OfficerAppointments";
 import OfficerAnnouncements from "./pages/OfficerAnnouncements";
-import OfficerPermits from "./pages/OfficerPermits"; // ✅ NEW
+import OfficerPermits from "./pages/OfficerPermits";
 
 // ─── Citizen Pages ─────────────────────────────────────────
 import CitizenDashboard from "./pages/CitizenDashboard";
