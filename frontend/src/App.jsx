@@ -18,6 +18,8 @@ import OfficerAnnouncements from "./pages/OfficerAnnouncements";
 import ResidentAnnouncements from "./components/announcements/ResidentAnnouncements";
 import OfficerLayout from "./layouts/OfficerLayout";
 
+import OfficerPermits from "./pages/OfficerPermits";
+
 function App() {
   return (
     <BrowserRouter>
