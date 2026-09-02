@@ -16,6 +16,7 @@ import OfficerAppointments from "./pages/OfficerAppointments";
 import PendingVerifications from "./components/gn-officer/PendingVerifications";
 import OfficerAnnouncements from "./pages/OfficerAnnouncements";
 import ResidentAnnouncements from "./components/announcements/ResidentAnnouncements";
+import OfficerLayout from "./layouts/OfficerLayout";
 
 import OfficerPermits from "./pages/OfficerPermits";
 
@@ -31,10 +32,13 @@ function App() {
             path="/registration-success"
             element={<RegistrationSuccess />}
           />
-          <Route
-            path="/pending-verification"
-            element={<PendingVerifications />}
-          />
+
+          {/* <Route 
+            path="/pending-verification" 
+            element={
+              <PendingVerifications />
+            }
+          /> */}
 
           <Route
             path="/admin/dashboard"
@@ -44,14 +48,14 @@ function App() {
               </PrivateRoute>
             }
           />
-          <Route
+          {/* <Route
             path="/officer/dashboard"
             element={
               <PrivateRoute allowedRoles={["gn_officer"]}>
                 <OfficerDashboard />
               </PrivateRoute>
             }
-          />
+          /> */}
           <Route
             path="/citizen/dashboard"
             element={
@@ -60,30 +64,30 @@ function App() {
               </PrivateRoute>
             }
           />
-          <Route
+          {/* <Route
             path="/officer/land-management"
             element={
               <PrivateRoute allowedRoles={["gn_officer"]}>
                 <LandManagement />
               </PrivateRoute>
             }
-          />
-          <Route
+          /> */}
+          {/* <Route
             path="/officer/certificates"
             element={
               <PrivateRoute allowedRoles={["gn_officer"]}>
                 <OfficerCertificateManagement />
               </PrivateRoute>
             }
-          />
-          <Route
+          /> */}
+          {/* <Route
             path="/officer/certificate/:id"
             element={
               <PrivateRoute allowedRoles={["gn_officer"]}>
                 <OfficerCertificateDetails />
               </PrivateRoute>
             }
-          />
+          /> */}
           <Route
             path="/citizen/certificate/:id"
             element={
@@ -92,23 +96,23 @@ function App() {
               </PrivateRoute>
             }
           />
-          <Route
+          {/* <Route
             path="/officer/appointments"
             element={
               <PrivateRoute allowedRoles={["gn_officer"]}>
                 <OfficerAppointments />
               </PrivateRoute>
             }
-          />
+          /> */}
 
-          <Route
+          {/* <Route
             path="/officer/announcements"
             element={
               <PrivateRoute allowedRoles={["gn_officer"]}>
                 <OfficerAnnouncements />
               </PrivateRoute>
             }
-          />
+          /> */}
           <Route
             path="/citizen/announcements"
             element={
@@ -119,24 +123,21 @@ function App() {
           />
 
           <Route
-            path="/officer/permits"
             element={
               <PrivateRoute allowedRoles={["gn_officer"]}>
-                <OfficerPermits />
+                <OfficerLayout />
               </PrivateRoute>
             }
-          />
+            >
+              <Route path="/officer/dashboard" element={<OfficerDashboard />} />
+              <Route path="/pending-verification" element={<PendingVerifications />} />
+              <Route path="/officer/land-management" element={<LandManagement />} />
+              <Route path="/officer/certificates" element={<OfficerCertificateManagement />} />
+              <Route path="/officer/certificate/:id" element={<OfficerCertificateDetails />} />
+              <Route path="/officer/appointments" element={<OfficerAppointments />} />
+              <Route path="/officer/announcements" element={<OfficerAnnouncements />} />
+          </Route>
 
-          {/* Citizen routes */}
-          <Route
-            path="/citizen/dashboard"
-            element={
-              <PrivateRoute allowedRoles={["citizen"]}>
-                <CitizenDashboard />
-              </PrivateRoute>
-            }
-          />
-          <Route path="*" element={<div>Page not found</div>} />
         </Routes>
       </AuthProvider>
     </BrowserRouter>
