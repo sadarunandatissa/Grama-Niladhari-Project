@@ -1,0 +1,184 @@
+:root {
+    --badge-completed: #137333;
+    --badge-not-seen: #B06000;
+    --badge-in-progress: #115CB9;
+    --badge-rejected: #93000A;
+
+    --badge-completed-bg: #E6F4EA;
+    --badge-not-seen-bg: #FEF7E0;
+    --badge-in-progress-bg: #D3E4FE;
+    --badge-rejected-bg: #FFDAD6;
+}
+
+.officer-certificate-management {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+
+    padding: 40px;
+    gap: 32px;
+}
+
+.page-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    gap: 24px;
+}
+
+.header-left {
+    display: flex;
+    align-items: center;
+    flex: 1;
+    min-width: 0;
+}
+
+.page-title {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.page-title h2 {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--text-dark);
+}
+
+.filter-controls {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-shrink: 0;
+}
+
+.filter-group {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.filter-group label {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-muted);
+    white-space: nowrap;
+}
+
+.filter-row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.select-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.select-wrapper select {
+    width: 160px;
+    height: 42px;
+    padding: 0 40px 0 14px;
+
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+
+    background-color: var(--white);
+    color: var(--text-dark);
+
+    font-size: 14px;
+    cursor: pointer;
+
+    appearance: none;
+    outline: none;
+}
+
+.select-wrapper select:focus {
+    border-color: var(--primary-color);
+}
+
+.select-wrapper svg {
+    position: absolute;
+    right: 12px;
+    width: 18px;
+    height: 18px;
+
+    pointer-events: none;
+}
+
+.btn-refresh {
+    height: 42px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+
+    padding: 0 16px;
+
+    border: none;
+    border-radius: 8px;
+
+    cursor: pointer;
+}
+
+.btn-refresh svg {
+    width: 18px;
+    height: 18px;
+}
+
+.status-not_seen {
+    background-color: var(--badge-not-seen-bg);
+    color: var(--badge-not-seen);
+    display: inline-block;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: lowercase;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+}
+
+.status-in_progress {
+    background-color: var(--badge-in-progress-bg);
+    color: var(--badge-in-progress);
+    display: inline-block;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: lowercase;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+}
+
+.status-completed {
+    background-color: var(--badge-completed-bg);
+    color: var(--badge-completed);
+    display: inline-block;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: lowercase;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+}
+
+.status-rejected {
+    background-color: var(--badge-rejected-bg);
+    color: var(--badge-rejected);
+    display: inline-block;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: lowercase;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+}

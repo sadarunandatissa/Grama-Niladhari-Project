@@ -1,0 +1,132 @@
+/* =============================================
+   RESIDENT APPOINTMENT LIST
+   Matches CitizenDashboard / CertificateComponents
+   visual language.
+   ============================================= */
+
+:root {
+  --brand-navy: #1a3a6b;
+  --brand-navy-dark: #0f2a4a;
+  --text-dark: #2c3e50;
+  --text-muted: #8a94a6;
+  --border-light: #edf0f4;
+  --bg-soft: #f4f6fa;
+}
+
+.loading-state,
+.empty-state {
+  text-align: center;
+  padding: 40px 20px;
+  color: var(--text-muted);
+  font-size: 15px;
+}
+
+.appointment-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 18px;
+}
+
+.appointment-card {
+  background: white;
+  border-radius: 14px;
+  padding: 18px 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  display: flex;
+  flex-direction: column;
+}
+
+.appointment-card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.appointment-reason {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-dark);
+  line-height: 1.4;
+}
+
+.status-badge {
+  flex-shrink: 0;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 12px;
+  border-radius: 20px;
+  white-space: nowrap;
+}
+.status-badge.status-pending {
+  background: #fdf1de;
+  color: #b9770e;
+}
+.status-badge.status-accepted {
+  background: #e3f0fc;
+  color: #2472b8;
+}
+.status-badge.status-completed {
+  background: #d9f2e3;
+  color: #1e8449;
+}
+.status-badge.status-rejected {
+  background: #fbe3e1;
+  color: #c0392b;
+}
+
+.appointment-slots-label {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-bottom: 6px;
+}
+
+.appointment-slots {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.slot-item {
+  font-size: 13.5px;
+  color: var(--text-dark);
+  background: var(--bg-soft);
+  padding: 6px 10px;
+  border-radius: 8px;
+}
+
+.slot-selected {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: #1e8449;
+  background: #d9f2e3;
+  padding: 8px 10px;
+  border-radius: 8px;
+  margin-bottom: 10px;
+}
+
+.appointment-message {
+  border-top: 1px solid var(--border-light);
+  padding-top: 10px;
+  margin-top: auto;
+}
+
+.appointment-message .label {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.appointment-message p {
+  margin: 4px 0 0;
+  font-size: 13.5px;
+  color: var(--text-dark);
+}
+
+/* ─── Responsive ─────────────────────────────────────────── */
+@media (max-width: 600px) {
+  .appointment-grid {
+    grid-template-columns: 1fr;
+  }
+}

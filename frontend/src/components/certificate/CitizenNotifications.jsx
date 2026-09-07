@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useAuth } from "../../context/AuthContext";
+import "./CertificateComponents.css";
 
 const CitizenNotifications = () => {
   const { token } = useAuth();
@@ -45,24 +46,33 @@ const CitizenNotifications = () => {
     }
   };
 
-  if (loading) return <div>Loading notifications...</div>;
+  if (loading)
+    return <div className="cert-loading">Loading notifications...</div>;
 
   return (
-    <div className="notifications-list">
-      <h4>Notifications</h4>
+    <div className="notifications-panel">
       {notifications.length === 0 ? (
-        <p>No notifications.</p>
+        <p className="cert-empty">No notifications.</p>
       ) : (
-        <ul>
+        <ul className="notification-list">
           {notifications.map((n) => (
-            <li key={n._id} style={{ opacity: n.isRead ? 0.6 : 1 }}>
-              <div>
+            <li
+              key={n._id}
+              className={`notification-item ${n.isRead ? "read" : "unread"}`}
+            >
+              <div className="notification-dot" />
+              <div className="notification-body">
                 <strong>{n.title}</strong>
                 <p>{n.message}</p>
                 <small>{new Date(n.createdAt).toLocaleString()}</small>
               </div>
               {!n.isRead && (
-                <button onClick={() => markRead(n._id)}>Mark as read</button>
+                <button
+                  className="btn-mark-read"
+                  onClick={() => markRead(n._id)}
+                >
+                  Mark as read
+                </button>
               )}
             </li>
           ))}

@@ -4,7 +4,6 @@ import { useAuth } from "../context/AuthContext";
 import axios from "axios";
 import "./OfficerDashboard.css";
 import gnAvatar from "../assets/Officer-Avatar.png";
-import LandManagement from "./LandManagement";
 import {
   LayoutDashboard,
   CircleUserRound,
@@ -23,16 +22,13 @@ import {
 } from "lucide-react";
 
 const OfficerDashboard = () => {
-  const { user, token, logout } = useAuth();
+  const { user, token } = useAuth();
   const navigate = useNavigate();
   const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
   const [notifications, setNotifications] = useState([]);
   const [pendingCertificates, setPendingCertificates] = useState(0);
   const [loading, setLoading] = useState(true);
-
-  // // State for Land Management modal popup
-  const [showLandModal, setShowLandModal] = useState(false);
 
   // Fetch dashboard data
   useEffect(() => {
@@ -70,11 +66,6 @@ const OfficerDashboard = () => {
     };
     fetchNotifications();
   }, [token, API_URL]);
-
-    const handleLogout = () => {
-    logout();
-    navigate("/login");
-  };
 
   if (loading) {
     return <div className="loading-spinner">Loading dashboard...</div>;
@@ -299,11 +290,6 @@ const OfficerDashboard = () => {
             </div>
           </div>
         </div>
-
-      {/* Render the Land Management Modal when active */}
-      {showLandModal && (
-        <LandManagement onClose={() => setShowLandModal(false)} />
-      )}
     </>
   );
 };

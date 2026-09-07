@@ -1,6 +1,16 @@
+// src/components/appointments/ResidentAppointmentList.jsx
+
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useAuth } from "../../context/AuthContext";
+import "./ResidentAppointmentList.css";
+
+const STATUS_LABELS = {
+  pending: "Pending",
+  accepted: "Accepted",
+  rejected: "Rejected",
+  completed: "Completed",
+};
 
 const ResidentAppointmentList = () => {
   const { token } = useAuth();
@@ -23,72 +33,50 @@ const ResidentAppointmentList = () => {
       }
     };
     fetch();
-  }, []);
+  }, [token]);
 
-  const statusColors = {
-    pending: "#f39c12",
-    accepted: "#27ae60",
-    rejected: "#e74c3c",
-    rescheduled: "#3498db",
-  };
-
-  if (loading) return <div>Loading appointments...</div>;
+  if (loading)
+    return <div className="loading-state">Loading appointments...</div>;
 
   return (
     <div className="appointments-list">
-      <h4>My Appointments</h4>
       {appointments.length === 0 ? (
-        <p>No appointments yet.</p>
+        <p className="empty-state">No appointments yet.</p>
       ) : (
-        <table className="data-table">
-          <thead>
-            <tr>
-              <th>Reason</th>
-              <th>Status</th>
-              <th>Proposed Slots</th>
-              <th>Message</th>
-            </tr>
-          </thead>
-          <tbody>
-            {appointments.map((app) => (
-              <tr key={app._id}>
-                <td>{app.reason}</td>
-                <td>
-                  <span
-                    style={{
-                      background: statusColors[app.status],
-                      color: "white",
-                      padding: "2px 12px",
-                      borderRadius: "12px",
-                      fontSize: "12px",
-                    }}
-                  >
-                    {app.status}
-                  </span>
-                </td>
+        <div className="appointment-grid">
+          {appointments.map((app) => (
+            <div className="appointment-card" key={app._id}>
+              <div className="appointment-card-top">
+                <span className="appointment-reason">{app.reason}</span>
+                <span className={`status-badge status-${app.status}`}>
+                  {STATUS_LABELS[app.status] || app.status}
+                </span>
+              </div>
 
-                <td>
-                  {app.proposedSlots.map((slot, i) => (
-                    <div key={i}>{new Date(slot).toLocaleString()}</div>
-                  ))}
-                  {/* Show selected slot if accepted */}
-                  {app.status === "accepted" && app.selectedSlot && (
-                    <div
-                      style={{
-                        color: "#27ae60",
-                        fontWeight: "bold",
-                        marginTop: "4px",
-                      }}
-                    >
-                      ✅ Selected: {new Date(app.selectedSlot).toLocaleString()}
-                    </div>
-                  )}
-                </td>
-                <td>{app.officerMessage || "—"}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+              <div className="appointment-slots-label">Proposed Slots</div>
+              <div className="appointment-slots">
+                {app.proposedSlots.map((slot, i) => (
+                  <div key={i} className="slot-item">
+                    {new Date(slot).toLocaleString()}
+                  </div>
+                ))}
+              </div>
+
+              {app.status === "accepted" && app.selectedSlot && (
+                <div className="slot-selected">
+                  ✅ Selected: {new Date(app.selectedSlot).toLocaleString()}
+                </div>
+              )}
+
+              {app.officerMessage && (
+                <div className="appointment-message">
+                  <span className="label">Message from officer</span>
+                  <p>{app.officerMessage}</p>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
       )}
     </div>
   );

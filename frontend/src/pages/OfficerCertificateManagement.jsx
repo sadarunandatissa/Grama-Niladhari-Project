@@ -2,6 +2,14 @@ import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom"; // ← ADD THIS IMPORT
 import axios from "axios";
 import { useAuth } from "../context/AuthContext";
+import "./OfficerCertificateManagement.css";
+
+import { 
+  FileCheckCorner,
+  RefreshCcw,
+  RefreshCw,
+  ChevronDown
+} from 'lucide-react';
 
 const OfficerCertificateManagement = () => {
   const { token } = useAuth();
@@ -55,80 +63,102 @@ const OfficerCertificateManagement = () => {
 
   return (
     <div className="officer-certificate-management">
-      <h2>📜 Certificate Requests</h2>
-      {message && <div className="alert info">{message}</div>}
+      <div className="page-header">
 
-      <div className="filter-bar">
-        <label>Filter by status:</label>
-        <select
-          value={statusFilter}
-          onChange={(e) => setStatusFilter(e.target.value)}
-        >
-          <option value="all">All</option>
-          <option value="not_seen">Not Seen</option>
-          <option value="in_progress">In Progress</option>
-          <option value="completed">Completed</option>
-        </select>
-        <button className="btn-refresh" onClick={fetchCertificates}>
-          🔄 Refresh
-        </button>
+        <div className="header-left">
+          <div className="page-title">
+            <FileCheckCorner size={48} />
+            <h2>Certificate Requests</h2>
+          </div>
+
+          {message && <div className="alert info">{message}</div>}
+        </div>
+
+        <div className="filter-controls">
+          <div className="filter-group">
+            <label htmlFor="status-filter">Filter by status:</label>
+
+            <div className="filter-row">
+              <div className="select-wrapper">
+                <select
+                  id="status-filter"
+                  value={statusFilter}
+                  onChange={(e) => setStatusFilter(e.target.value)}
+                >
+                  <option value="all">All</option>
+                  <option value="not_seen">Not Seen</option>
+                  <option value="in_progress">In Progress</option>
+                  <option value="completed">Completed</option>
+                  <option value="rejected">Rejected</option>
+                </select>
+                <ChevronDown />
+              </div>
+              
+              <button className="btn btn-refresh" onClick={fetchCertificates}>
+                <RefreshCcw /> Refresh
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
 
       {loading ? (
         <div>Loading...</div>
       ) : (
-        <table className="data-table">
-          <thead>
-            <tr>
-              <th>Citizen</th>
-              <th>Type</th>
-              <th>Status</th>
-              <th>Requested</th>
-              <th>Warning</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filtered.length === 0 ? (
+        <div className="table-card">
+          <table className="data-table">
+            <thead>
               <tr>
-                <td colSpan="6">No certificate requests found.</td>
+                <th>Citizen</th>
+                <th>Type</th>
+                <th>Status</th>
+                <th>Requested</th>
+                <th>Warning</th>
+                <th class="text-right">Actions</th>
               </tr>
-            ) : (
-              filtered.map((cert) => (
-                <tr key={cert._id}>
-                  <td>{cert.citizenId?.full_name}</td>
-                  <td>
-                    {cert.certificateType.replace("_", " ").toUpperCase()}
-                  </td>
-                  <td>
-                    <span className={`status-${cert.status}`}>
-                      {cert.status.replace("_", " ")}
-                    </span>
-                  </td>
-                  <td>{new Date(cert.requestedAt).toLocaleDateString()}</td>
-                  <td>{cert.warning ? "⚠️" : "✅"}</td>
-                  <td>
-                    {/* ✅ ADD THE LINK TO DETAILS */}
-                    <Link
-                      to={`/officer/certificate/${cert._id}`}
-                      className="btn-view"
-                    >
-                      View Details
-                    </Link>
-                    {/* Keep the status update button if you want, or use a separate modal */}
-                    <button
-                      className="btn-edit"
-                      onClick={() => setSelectedCert(cert)}
-                      style={{ marginLeft: "8px" }}
-                    >
-                      Update Status
-                    </button>
-                  </td>
+            </thead>
+            <tbody>
+              {filtered.length === 0 ? (
+                <tr>
+                  <td colSpan="6">No certificate requests found.</td>
                 </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+              ) : (
+                filtered.map((cert) => (
+                  <tr key={cert._id}>
+                    <td>{cert.citizenId?.full_name}</td>
+                    <td>
+                      {cert.certificateType.replace("_", " ").toUpperCase()}
+                    </td>
+                    <td>
+                      <span className={`status-${cert.status}`}>
+                        {cert.status.replace("_", " ")}
+                      </span>
+                    </td>
+                    <td>{new Date(cert.requestedAt).toLocaleDateString()}</td>
+                    <td>{cert.warning ? "⚠️" : "✅"}</td>
+                    <td>
+                      {/* ✅ ADD THE LINK TO DETAILS */}
+                      <Link
+                        to={`/officer/certificate/${cert._id}`}
+                        className="btn-view"
+                      >
+                        View Details
+                      </Link>
+                      {/* Keep the status update button if you want, or use a separate modal */}
+                      <button
+                        className="btn-edit"
+                        onClick={() => setSelectedCert(cert)}
+                        style={{ marginLeft: "8px" }}
+                      >
+                        Update Status
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
       )}
 
       {/* Status update modal (unchanged) */}

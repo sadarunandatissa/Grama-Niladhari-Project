@@ -17,6 +17,7 @@ import PendingVerifications from "./components/gn-officer/PendingVerifications";
 import OfficerAnnouncements from "./pages/OfficerAnnouncements";
 import ResidentAnnouncements from "./components/announcements/ResidentAnnouncements";
 import OfficerLayout from "./layouts/OfficerLayout";
+import CertificateRequestsList from "./Pages/CertificateRequestsList";
 
 function App() {
   return (

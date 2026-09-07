@@ -1,0 +1,257 @@
+/* =============================================
+   CITIZEN CERTIFICATE DETAILS
+   Matches CitizenDashboard / CertificateComponents
+   visual language.
+   ============================================= */
+
+:root {
+  --brand-navy: #1a3a6b;
+  --brand-navy-dark: #0f2a4a;
+  --text-dark: #2c3e50;
+  --text-muted: #8a94a6;
+  --border-light: #edf0f4;
+  --bg-soft: #f4f6fa;
+}
+
+.citizen-cert-detail {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 28px 20px 60px;
+}
+
+.loading-state,
+.error-state {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--text-muted);
+  font-size: 16px;
+}
+.error-state {
+  color: #e74c3c;
+}
+
+/* ─── Back button ────────────────────────────────────────── */
+.btn-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: white;
+  border: 1.5px solid var(--border-light);
+  color: var(--brand-navy);
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 13.5px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-bottom: 18px;
+  transition:
+    background 0.2s,
+    border-color 0.2s;
+}
+.btn-back:hover {
+  background: var(--bg-soft);
+  border-color: var(--brand-navy);
+}
+
+/* ─── Header ─────────────────────────────────────────────── */
+.cert-detail-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 18px;
+}
+
+.cert-detail-header h2 {
+  margin: 0;
+  font-size: 21px;
+  color: var(--brand-navy);
+}
+
+.status-badge {
+  font-size: 12px;
+  font-weight: 600;
+  padding: 5px 14px;
+  border-radius: 20px;
+  text-transform: capitalize;
+  white-space: nowrap;
+}
+.status-badge.status-not_seen,
+.status-badge.status-pending {
+  background: #fdf1de;
+  color: #b9770e;
+}
+.status-badge.status-in_progress,
+.status-badge.status-processing {
+  background: #e3f0fc;
+  color: #2472b8;
+}
+.status-badge.status-completed {
+  background: #d9f2e3;
+  color: #1e8449;
+}
+.status-badge.status-rejected {
+  background: #fbe3e1;
+  color: #c0392b;
+}
+
+/* ─── Info card ──────────────────────────────────────────── */
+.cert-info-card {
+  background: white;
+  border-radius: 14px;
+  padding: 18px 22px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  display: flex;
+  gap: 40px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+
+.info-row {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.info-row .label {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.info-row .value {
+  font-size: 14.5px;
+  font-weight: 600;
+  color: var(--text-dark);
+}
+
+/* ─── Notice boxes ───────────────────────────────────────── */
+.notice-box {
+  padding: 14px 18px;
+  border-radius: 10px;
+  font-size: 14px;
+  margin-bottom: 16px;
+}
+
+.rejection-box {
+  background: #fbe3e1;
+  color: #c0392b;
+  border: 1px solid #f3c6c1;
+}
+
+.completion-box {
+  background: #d9f2e3;
+  color: #1e8449;
+  border: 1px solid #bfe8d1;
+  font-weight: 600;
+}
+
+/* ─── Submitted information ──────────────────────────────── */
+.form-details {
+  background: white;
+  border-radius: 14px;
+  padding: 20px 22px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  margin-bottom: 16px;
+}
+
+.form-details h4 {
+  margin: 0 0 14px;
+  font-size: 15px;
+  color: var(--text-dark);
+}
+
+.detail-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border-light);
+  font-size: 14px;
+}
+.detail-row:last-child {
+  border-bottom: none;
+}
+
+.detail-row label {
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.detail-row span {
+  color: var(--text-dark);
+  font-weight: 500;
+  text-align: right;
+}
+
+/* ─── Attachments ─────────────────────────────────────────── */
+.attachments-section {
+  background: white;
+  border-radius: 14px;
+  padding: 20px 22px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.attachments-section h4 {
+  margin: 0 0 12px;
+  font-size: 15px;
+  color: var(--text-dark);
+}
+
+.attachments-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.attachments-list li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  background: var(--bg-soft);
+  padding: 10px 14px;
+  border-radius: 10px;
+  flex-wrap: wrap;
+}
+
+.attachment-name {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--text-dark);
+}
+
+.attachment-actions {
+  display: flex;
+  gap: 14px;
+}
+
+.attachment-actions a {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--brand-navy);
+  text-decoration: none;
+}
+.attachment-actions a:hover {
+  text-decoration: underline;
+}
+
+/* ─── Responsive ─────────────────────────────────────────── */
+@media (max-width: 600px) {
+  .citizen-cert-detail {
+    padding: 20px 14px 48px;
+  }
+  .cert-info-card {
+    gap: 20px;
+  }
+  .detail-row {
+    flex-direction: column;
+    gap: 3px;
+  }
+  .detail-row span {
+    text-align: left;
+  }
+}
