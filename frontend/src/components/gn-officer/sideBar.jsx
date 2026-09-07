@@ -2,48 +2,45 @@ import React from "react";
 import { Link, NavLink } from "react-router-dom";
 import "./sideBar.css";
 import {
-    LayoutDashboard,
-    House,
-    Cross,
-    FileCheckCorner,
-    UsersRound,
-    Megaphone,
-    MessageSquare,
-    Smartphone,
-    Settings,
-    CalendarDays,
-    LogOut
+  LayoutDashboard,
+  House,
+  Cross,
+  FileCheckCorner,
+  UsersRound,
+  Megaphone,
+  MessageSquare,
+  Smartphone,
+  Settings,
+  CalendarDays,
+  LogOut,
 } from "lucide-react";
 
 const Sidebar = ({ onOpenLandModal, onLogout }) => {
-    return (
-        <aside className="sidebar">
-            <div className="sidebar-brand">
-                <h2>
-                    GRAMA NILADHARI
-                    <br />
-                    <span>MANAGEMENT SYSTEM</span>
-                </h2>
-            </div>
+  return (
+    <aside className="sidebar">
+      <div className="sidebar-brand">
+        <h2>
+          GRAMA NILADHARI
+          <br />
+          <span>MANAGEMENT SYSTEM</span>
+        </h2>
+      </div>
 
-            <nav className="sidebar-menu">
-                <NavLink 
-                    to="/officer/dashboard" 
-                    className={({ isActive }) =>
-                        `menu-item ${isActive ? "active" : ""}`}
-                >
-                    <LayoutDashboard /> Dashboard
-                </NavLink>
+      <nav className="sidebar-menu">
+        <NavLink
+          to="/officer/dashboard"
+          className={({ isActive }) => `menu-item ${isActive ? "active" : ""}`}
+        >
+          <LayoutDashboard /> Dashboard
+        </NavLink>
 
-                {/* <span className="menu-category">MAIN</span> */}
-                <NavLink 
-                    to="/pending-verification" 
-                    className={({ isActive }) =>
-                        `menu-item ${isActive ? "active" : ""}`
-                    }
-                >
-                    <Cross /> Requests
-                </NavLink>
+        {/* <span className="menu-category">MAIN</span> */}
+        <NavLink
+          to="/pending-verification"
+          className={({ isActive }) => `menu-item ${isActive ? "active" : ""}`}
+        >
+          <Cross /> Requests
+        </NavLink>
 
         {/* <Link to="/officer/land-management" className="menu-item">
             <House /> Land Management
@@ -64,36 +61,30 @@ const Sidebar = ({ onOpenLandModal, onLogout }) => {
           <House /> Land Management
         </button>
 
-                <NavLink 
-                    to="/officer/certificates" 
-                    className={({ isActive }) =>
-                        `menu-item ${isActive ? "active" : ""}`
-                    }
-                >
-                    <FileCheckCorner /> Certificates
-                </NavLink>
+        <NavLink
+          to="/officer/certificates"
+          className={({ isActive }) => `menu-item ${isActive ? "active" : ""}`}
+        >
+          <FileCheckCorner /> Certificates
+        </NavLink>
 
-        <Link to="#" className="menu-item">
+        <Link to="/officer/residents" className="menu-item">
           <UsersRound /> Citizens
         </Link>
 
-                <NavLink 
-                    to="/officer/appointments" 
-                    className={({ isActive }) =>
-                        `menu-item ${isActive ? "active" : ""}`
-                    }
-                >
-                    <CalendarDays /> Appointments
-                </NavLink>
+        <NavLink
+          to="/officer/appointments"
+          className={({ isActive }) => `menu-item ${isActive ? "active" : ""}`}
+        >
+          <CalendarDays /> Appointments
+        </NavLink>
 
-                <NavLink 
-                    to="/officer/announcements" 
-                    className={({ isActive }) =>
-                        `menu-item ${isActive ? "active" : ""}`
-                    }
-                >
-                    <Megaphone /> Announcements
-                </NavLink>
+        <NavLink
+          to="/officer/announcements"
+          className={({ isActive }) => `menu-item ${isActive ? "active" : ""}`}
+        >
+          <Megaphone /> Announcements
+        </NavLink>
 
         <Link to="#" className="menu-item">
           <MessageSquare /> Messages
