@@ -3,6 +3,8 @@ const router = express.Router();
 const {
   getProfile,
   updateProfile,
+  getVillageResidents,
+  getResidentDetails,
 } = require("../controllers/gnOfficerController");
 const { protect, authorize } = require("../middleware/auth");
 
