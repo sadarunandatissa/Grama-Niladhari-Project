@@ -1,7 +1,13 @@
+// backend/src/controllers/gnOfficerController.js
+
 const GNOfficer = require("../models/GNOfficer");
+const Citizen = require("../models/Citizen");
+const Family = require("../models/Family");
+const Land = require("../models/Land");
 const bcrypt = require("bcryptjs");
 const { validatePhone, validateEmail } = require("../utils/validators");
 
+// ─── Profile ──────────────────────────────────────────────
 exports.getProfile = async (req, res) => {
   try {
     const officer = await GNOfficer.findById(req.user.id)
@@ -61,14 +67,7 @@ exports.updateProfile = async (req, res) => {
   }
 };
 
-// backend/src/controllers/gnOfficerController.js
-
-// ... existing functions ...
-
-/**
- * Get residents in the officer's village (with search)
- * GET /api/gn-officer/residents?search=...
- */
+// ─── Resident Search ──────────────────────────────────────
 exports.getVillageResidents = async (req, res) => {
   try {
     const officerId = req.user.id;
@@ -103,16 +102,11 @@ exports.getVillageResidents = async (req, res) => {
   }
 };
 
-/**
- * Get full resident details (with family members and lands)
- * GET /api/gn-officer/residents/:id
- */
 exports.getResidentDetails = async (req, res) => {
   try {
     const { id } = req.params;
     const officerId = req.user.id;
 
-    // Verify officer belongs to the same village
     const officer = await GNOfficer.findById(officerId);
     if (!officer) {
       return res
@@ -127,15 +121,12 @@ exports.getResidentDetails = async (req, res) => {
     }).select("-password_hash");
 
     if (!citizen) {
-      return res
-        .status(404)
-        .json({
-          success: false,
-          message: "Resident not found in your village",
-        });
+      return res.status(404).json({
+        success: false,
+        message: "Resident not found in your village",
+      });
     }
 
-    // Get family members (if citizen has a family)
     let familyMembers = [];
     let familyDetails = null;
     if (citizen.family_id) {
@@ -147,13 +138,11 @@ exports.getResidentDetails = async (req, res) => {
       familyMembers = family.members || [];
     }
 
-    // Get lands owned by this citizen (using NIC)
     const lands = await Land.find({
       owner_nic: citizen.nic,
       is_active: true,
     }).lean();
 
-    // Also get lands where citizen is real owner (if gift land)
     const giftLands = await Land.find({
       real_owner_nic: citizen.nic,
       is_active: true,

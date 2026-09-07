@@ -19,6 +19,7 @@ import ResidentAnnouncements from "./components/announcements/ResidentAnnounceme
 import OfficerLayout from "./layouts/OfficerLayout";
 
 import OfficerPermits from "./pages/OfficerPermits";
+import ResidentSearch from "./pages/ResidentSearch";
 
 function App() {
   return (
@@ -155,6 +156,14 @@ function App() {
               element={<OfficerAnnouncements />}
             />
           </Route>
+          <Route
+            path="/officer/residents"
+            element={
+              <PrivateRoute allowedRoles={["gn_officer"]}>
+                <ResidentSearch />
+              </PrivateRoute>
+            }
+          />
         </Routes>
       </AuthProvider>
     </BrowserRouter>
