@@ -19,6 +19,8 @@ import ResidentAnnouncements from "./components/announcements/ResidentAnnounceme
 import OfficerLayout from "./layouts/OfficerLayout";
 import CertificateRequestsList from "./Pages/CertificateRequestsList";
 
+import OfficerPermits from "./pages/OfficerPermits";
+
 function App() {
   return (
     <BrowserRouter>
