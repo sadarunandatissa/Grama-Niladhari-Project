@@ -2,9 +2,17 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useAuth } from "../context/AuthContext";
 import "./ResidentSearch.css";
+import {
+  UsersRound,
+  CircleUserRound,
+  Search,
+  X,
+  RefreshCw,
+  Loader2,
+} from "lucide-react";
 
 const ResidentSearch = () => {
-  const { token } = useAuth();
+  const { user, token } = useAuth();
   const [searchTerm, setSearchTerm] = useState("");
   const [residents, setResidents] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -33,6 +41,7 @@ const ResidentSearch = () => {
   // ─── Load all residents on mount ──────────────────────────
   useEffect(() => {
     fetchResidents("");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // ─── Debounced search when searchTerm changes ─────────────
@@ -41,6 +50,7 @@ const ResidentSearch = () => {
       fetchResidents(searchTerm.trim());
     }, 500);
     return () => clearTimeout(delayDebounce);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchTerm]);
 
   // ─── Clear search ─────────────────────────────────────────
@@ -71,56 +81,82 @@ const ResidentSearch = () => {
   };
 
   return (
-    <div className="resident-search-page">
-      <div className="page-header">
-        <h2>Resident Search</h2>
-        <p className="page-subtitle">
-          Find residents by name, NIC, or phone number
-        </p>
-      </div>
-
-      <div className="search-card">
-        <div className="search-bar">
-          <span className="search-icon">🔍</span>
-          <input
-            type="text"
-            placeholder="Search by Name, NIC, or Phone..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="search-input"
-          />
-          {searchTerm && (
-            <button
-              className="btn-clear"
-              onClick={clearSearch}
-              aria-label="Clear search"
-            >
-              ✕
-            </button>
-          )}
+    <>
+      <header className="topbar">
+        <div className="page-title">
+          <UsersRound /> Resident Search
         </div>
-        <button
-          className="btn-refresh"
-          onClick={() => fetchResidents(searchTerm.trim())}
-        >
-          ⟳ Refresh
-        </button>
-      </div>
-
-      <div className="results-table-container">
-        {loading && (
-          <div className="loading-row">
-            <span className="spinner" /> Loading residents...
+        <div className="topbar-right">
+          <div className="topbar-greeting">
+            <span className="greeting-line">{user?.name || "GN Officer"}</span>
+            <span className="greeting-sub">
+              GN Division {user?.village_id || "N/A"}
+            </span>
           </div>
-        )}
+          <div className="profile-avatar">
+            <CircleUserRound />
+          </div>
+        </div>
+      </header>
 
-        {!loading && residents.length === 0 && (
-          <p className="no-results">No residents found.</p>
-        )}
+      <div className="dashboard-grid">
+        <div className="panel">
+          <div className="panel-header">
+            <h5>Search Residents</h5>
+            <span className="panel-note">
+              Find residents by name, NIC, or phone number
+            </span>
+          </div>
 
-        {!loading && residents.length > 0 && (
-          <div className="table-card">
-            <div className="table-scroll">
+          <div className="filter-row">
+            <div className="search-input-wrapper">
+              <Search className="search-icon" size={16} />
+              <input
+                type="text"
+                placeholder="   Search by Name, NIC, or Phone..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="search-input"
+              />
+              {searchTerm && (
+                <button
+                  className="btn-clear"
+                  onClick={clearSearch}
+                  aria-label="Clear search"
+                >
+                  <X size={14} />
+                </button>
+              )}
+            </div>
+            <button
+              className="btn-refresh"
+              onClick={() => fetchResidents(searchTerm.trim())}
+            >
+              <RefreshCw size={16} /> Refresh
+            </button>
+          </div>
+        </div>
+
+        <div className="panel">
+          <div className="panel-header">
+            <h5>Results</h5>
+            {!loading && (
+              <span className="panel-total">{residents.length} residents</span>
+            )}
+          </div>
+
+          {loading && (
+            <div className="loading-inline">
+              <Loader2 className="spin" size={16} /> Loading residents...
+            </div>
+          )}
+
+          {!loading && residents.length === 0 && (
+            <div className="empty-state">No residents found.</div>
+          )}
+
+          {!loading && residents.length > 0 && (
+            <div className="land-table-container">
               <table className="data-table">
                 <thead>
                   <tr>
@@ -141,7 +177,7 @@ const ResidentSearch = () => {
                       <td>{r.family_id?.family_reg_no || "—"}</td>
                       <td>
                         {r.is_head ? (
-                          <span className="head-badge">Head</span>
+                          <span className="badge badge-primary">Head</span>
                         ) : (
                           "—"
                         )}
@@ -159,19 +195,29 @@ const ResidentSearch = () => {
                 </tbody>
               </table>
             </div>
-          </div>
-        )}
+          )}
+        </div>
       </div>
 
       {/* ─── Resident Detail Modal ──────────────────────── */}
       {showDetailModal && selectedResident && (
-        <div className="modal-overlay" onClick={closeModal}>
-          <div className="modal modal-lg" onClick={(e) => e.stopPropagation()}>
-            <button className="modal-close" onClick={closeModal}>
-              ×
+        <div className="form-modal-backdrop" onClick={closeModal}>
+          <div
+            className="form-modal form-modal-lg"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              className="modal-close"
+              onClick={closeModal}
+              aria-label="Close"
+            >
+              <X size={18} />
             </button>
+
             {detailLoading ? (
-              <div className="modal-loading">Loading details...</div>
+              <div className="loading-inline">
+                <Loader2 className="spin" size={16} /> Loading details...
+              </div>
             ) : (
               <>
                 <h3>Resident Full Profile</h3>
@@ -256,11 +302,13 @@ const ResidentSearch = () => {
                             <span className="member-name">
                               {m.full_name}
                               {m.is_head && (
-                                <span className="head-badge inline">Head</span>
+                                <span className="badge badge-primary inline">
+                                  Head
+                                </span>
                               )}
                             </span>
                             <span className="member-meta">
-                              {m.nic} · {m.phone_numbers?.[0] || "—"}
+                              {m.nic} &middot; {m.phone_numbers?.[0] || "—"}
                             </span>
                           </li>
                         ))}
@@ -275,33 +323,31 @@ const ResidentSearch = () => {
                   <h4>Land Records</h4>
                   {selectedResident.lands &&
                   selectedResident.lands.length > 0 ? (
-                    <div className="table-card nested">
-                      <div className="table-scroll">
-                        <table className="data-table">
-                          <thead>
-                            <tr>
-                              <th>Land ID</th>
-                              <th>Survey No</th>
-                              <th>Size</th>
-                              <th>Type</th>
-                              <th>Owner Type</th>
+                    <div className="land-table-container nested">
+                      <table className="data-table">
+                        <thead>
+                          <tr>
+                            <th>Land ID</th>
+                            <th>Survey No</th>
+                            <th>Size</th>
+                            <th>Type</th>
+                            <th>Owner Type</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {selectedResident.lands.map((l) => (
+                            <tr key={l._id}>
+                              <td>{l.land_id}</td>
+                              <td>{l.survey_number || "—"}</td>
+                              <td>
+                                {l.size.value} {l.size.unit}
+                              </td>
+                              <td>{l.type}</td>
+                              <td>{l.owner_type}</td>
                             </tr>
-                          </thead>
-                          <tbody>
-                            {selectedResident.lands.map((l) => (
-                              <tr key={l._id}>
-                                <td>{l.land_id}</td>
-                                <td>{l.survey_number || "—"}</td>
-                                <td>
-                                  {l.size.value} {l.size.unit}
-                                </td>
-                                <td>{l.type}</td>
-                                <td>{l.owner_type}</td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      </div>
+                          ))}
+                        </tbody>
+                      </table>
                     </div>
                   ) : (
                     <p className="empty-note">No land records found.</p>
@@ -312,7 +358,7 @@ const ResidentSearch = () => {
           </div>
         </div>
       )}
-    </div>
+    </>
   );
 };
 

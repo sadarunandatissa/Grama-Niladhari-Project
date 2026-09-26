@@ -3,8 +3,7 @@ import { Link, NavLink } from "react-router-dom";
 import "./sideBar.css";
 import {
   LayoutDashboard,
-  House,
-  Cross,
+  Plus,
   FileCheckCorner,
   UsersRound,
   Megaphone,
@@ -15,7 +14,7 @@ import {
   LogOut,
 } from "lucide-react";
 
-const Sidebar = ({ onOpenLandModal, onLogout }) => {
+const Sidebar = ({ onLogout }) => {
   return (
     <aside className="sidebar">
       <div className="sidebar-brand">
@@ -34,32 +33,21 @@ const Sidebar = ({ onOpenLandModal, onLogout }) => {
           <LayoutDashboard /> Dashboard
         </NavLink>
 
-        {/* <span className="menu-category">MAIN</span> */}
+        <span className="menu-category">MAIN</span>
+
+        <NavLink
+          to="/officer/announcements"
+          className={({ isActive }) => `menu-item ${isActive ? "active" : ""}`}
+        >
+          <Megaphone /> Announcements
+        </NavLink>
+
         <NavLink
           to="/pending-verification"
           className={({ isActive }) => `menu-item ${isActive ? "active" : ""}`}
         >
-          <Cross /> Requests
+          <Plus /> Requests
         </NavLink>
-
-        {/* <Link to="/officer/land-management" className="menu-item">
-            <House /> Land Management
-          </Link> */}
-
-        <button
-          type="button"
-          className="menu-item menu-button-link"
-          onClick={onOpenLandModal}
-          style={{
-            background: "none",
-            border: "none",
-            width: "100%",
-            textAlign: "left",
-            cursor: "pointer",
-          }}
-        >
-          <House /> Land Management
-        </button>
 
         <NavLink
           to="/officer/certificates"
@@ -68,9 +56,12 @@ const Sidebar = ({ onOpenLandModal, onLogout }) => {
           <FileCheckCorner /> Certificates
         </NavLink>
 
-        <Link to="/officer/residents" className="menu-item">
+        <NavLink
+          to="/officer/residents"
+          className={({ isActive }) => `menu-item ${isActive ? "active" : ""}`}
+        >
           <UsersRound /> Citizens
-        </Link>
+        </NavLink>
 
         <NavLink
           to="/officer/appointments"
@@ -80,17 +71,21 @@ const Sidebar = ({ onOpenLandModal, onLogout }) => {
         </NavLink>
 
         <NavLink
-          to="/officer/announcements"
+          to="/officer/land-management"
           className={({ isActive }) => `menu-item ${isActive ? "active" : ""}`}
         >
-          <Megaphone /> Announcements
+          <CalendarDays /> Land Management
+        </NavLink>
+
+        <NavLink
+          to="/officer/permits"
+          className={({ isActive }) => `menu-item ${isActive ? "active" : ""}`}
+        >
+          <FileCheckCorner /> Permits
         </NavLink>
 
         <Link to="#" className="menu-item">
           <MessageSquare /> Messages
-        </Link>
-        <Link to="/officer/permits" className="menu-item">
-          <MessageSquare /> Permits
         </Link>
 
         <Link to="#" className="menu-item">
