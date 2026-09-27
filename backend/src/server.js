@@ -65,11 +65,6 @@ app.use(
         scriptSrc: ["'self'", "'unsafe-inline'"],
         styleSrc: ["'self'", "'unsafe-inline'"],
         imgSrc: ["'self'", "data:"],
-        // Allow DevTools well-known URL
-        defaultSrc: [
-          "'self'",
-          "http://localhost:5000/.well-known/appspecific/com.chrome.devtools.json",
-        ],
       },
     },
   }),

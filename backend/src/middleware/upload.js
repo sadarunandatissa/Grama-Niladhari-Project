@@ -3,27 +3,32 @@ const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
 
-// Ensure upload directories exist
-const createUploadDirs = () => {
-  const dirs = [
-    "./uploads/gn_officers",
-    "./uploads/citizens",
-    "./uploads/certificates",
-    "./uploads/announcements",
-  ];
-  dirs.forEach((dir) => {
-    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-  });
+const uploadRoot = path.resolve(__dirname, "../../uploads");
+const uploadDirectories = {
+  gn_officers: path.join(uploadRoot, "gn_officers"),
+  citizens: path.join(uploadRoot, "citizens"),
+  certificates: path.join(uploadRoot, "certificates"),
+  announcements: path.join(uploadRoot, "announcements"),
 };
-createUploadDirs();
+
+Object.values(uploadDirectories).forEach((directory) => {
+  fs.mkdirSync(directory, { recursive: true });
+});
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    let dest = "./uploads/citizens";
-    if (req.path.includes("gn-officer")) dest = "./uploads/gn_officers";
-    if (req.path.includes("certificate")) dest = "./uploads/certificates";
-    if (req.path.includes("announcements")) dest = "./uploads/announcements";
-    cb(null, dest);
+    const routePath = `${req.baseUrl}${req.path}`;
+    let directory = uploadDirectories.citizens;
+    if (routePath.includes("gn-officer")) {
+      directory = uploadDirectories.gn_officers;
+    }
+    if (routePath.includes("certificate")) {
+      directory = uploadDirectories.certificates;
+    }
+    if (routePath.includes("announcements")) {
+      directory = uploadDirectories.announcements;
+    }
+    cb(null, directory);
   },
   filename: (req, file, cb) => {
     const ext = path.extname(file.originalname);
