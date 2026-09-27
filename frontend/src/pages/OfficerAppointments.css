@@ -169,6 +169,11 @@ body {
     border-bottom: none;
 }
 
+.appointments-table th:first-child,
+.appointments-table td:first-child {
+    padding-left: 24px;
+}
+
 .today-schedule {
     margin-bottom: 32px;
 }
@@ -204,6 +209,10 @@ body {
 .slots-col {
     font-size: 0.875rem;
     line-height: 1.4;
+}
+
+.slot-item {
+    background-color: transparent;
 }
 
 .selected-slot {

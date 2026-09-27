@@ -45,11 +45,16 @@ const Sidebar = ({ onOpenLandModal, onLogout }) => {
                     <Cross /> Requests
                 </NavLink>
 
-        {/* <Link to="/officer/land-management" className="menu-item">
-            <House /> Land Management
-          </Link> */}
+                <NavLink 
+                    to="/officer/land-management" 
+                    className={({ isActive }) =>
+                        `menu-item ${isActive ? "active" : ""}`
+                    }
+                >
+                    <House /> Land Management
+                </NavLink>
 
-        <button
+        {/* <button
           type="button"
           className="menu-item menu-button-link"
           onClick={onOpenLandModal}
@@ -62,7 +67,7 @@ const Sidebar = ({ onOpenLandModal, onLogout }) => {
           }}
         >
           <House /> Land Management
-        </button>
+        </button> */}
 
                 <NavLink 
                     to="/officer/certificates" 
@@ -73,9 +78,14 @@ const Sidebar = ({ onOpenLandModal, onLogout }) => {
                     <FileCheckCorner /> Certificates
                 </NavLink>
 
-        <Link to="#" className="menu-item">
-          <UsersRound /> Citizens
-        </Link>
+                <NavLink 
+                    to="/officer/citizens" 
+                    className={({ isActive }) =>
+                        `menu-item ${isActive ? "active" : ""}`
+                    }
+                >
+                    <UsersRound /> Citizens
+                </NavLink>
 
                 <NavLink 
                     to="/officer/appointments" 
@@ -95,21 +105,33 @@ const Sidebar = ({ onOpenLandModal, onLogout }) => {
                     <Megaphone /> Announcements
                 </NavLink>
 
-        <Link to="#" className="menu-item">
-          <MessageSquare /> Messages
-        </Link>
-        <Link to="/officer/permits" className="menu-item">
-          <MessageSquare /> Permits
-        </Link>
+                <NavLink 
+                    to="/officer/permits" 
+                    className={({ isActive }) =>
+                        `menu-item ${isActive ? "active" : ""}`
+                    }
+                >
+                    <CalendarDays /> Permits
+                </NavLink>
 
-        <Link to="#" className="menu-item">
-          <Smartphone /> Alerts
-        </Link>
+                <NavLink 
+                    to="/officer/alerts" 
+                    className={({ isActive }) =>
+                        `menu-item ${isActive ? "active" : ""}`
+                    }
+                >
+                    <Smartphone /> Alerts
+                </NavLink>
 
-        <Link to="#" className="menu-item">
-          <Settings /> Settings
-        </Link>
-      </nav>
+                <NavLink 
+                    to="/officer/settings" 
+                    className={({ isActive }) =>
+                        `menu-item ${isActive ? "active" : ""}`
+                    }
+                >
+                    <Settings /> Settings
+                </NavLink>
+            </nav>
 
       <div className="sidebar-footer">
         <button className="menu-item logout" onClick={onLogout}>

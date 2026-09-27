@@ -1,6 +1,10 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useAuth } from "../context/AuthContext";
+import "./OfficerAnnouncements.css";
+import { 
+  Megaphone
+ } from 'lucide-react';
 
 const OfficerAnnouncements = () => {
   const { token } = useAuth();
@@ -121,8 +125,11 @@ const OfficerAnnouncements = () => {
 
   return (
     <div className="officer-announcements">
-      <div className="header">
-        <h2>📢 Announcements</h2>
+      <div className="announcements-header">
+        <div className="announcements-title">
+          <Megaphone size={28} />
+          <h2>Announcements</h2>
+        </div>
         <button className="btn-primary" onClick={() => setShowForm(!showForm)}>
           {showForm ? "Cancel" : "+ New Announcement"}
         </button>
@@ -131,224 +138,245 @@ const OfficerAnnouncements = () => {
       {message && <div className="alert info">{message}</div>}
 
       {showForm && (
-        <form className="announcement-form" onSubmit={handleSubmit}>
-          <div className="form-group">
-            <label>Title *</label>
-            <input
-              type="text"
-              name="title"
-              value={formData.title}
-              onChange={handleChange}
-              required
-              maxLength="100"
-            />
-          </div>
-          <div className="form-group">
-            <label>Description *</label>
-            <textarea
-              name="description"
-              value={formData.description}
-              onChange={handleChange}
-              required
-              rows="5"
-              maxLength="2000"
-            />
-          </div>
-          <div className="form-row">
-            <div className="form-group">
-              <label>Priority</label>
-              <div className="radio-group">
-                <label>
-                  <input
-                    type="radio"
-                    name="priority"
-                    value="Normal"
-                    checked={formData.priority === "Normal"}
-                    onChange={handleChange}
-                  />{" "}
-                  Normal
-                </label>
-                <label>
-                  <input
-                    type="radio"
-                    name="priority"
-                    value="Important"
-                    checked={formData.priority === "Important"}
-                    onChange={handleChange}
-                  />{" "}
-                  Important
-                </label>
-                <label>
-                  <input
-                    type="radio"
-                    name="priority"
-                    value="Urgent"
-                    checked={formData.priority === "Urgent"}
-                    onChange={handleChange}
-                  />{" "}
-                  Urgent
-                </label>
-                <label>
-                  <input
-                    type="radio"
-                    name="priority"
-                    value="Emergency"
-                    checked={formData.priority === "Emergency"}
-                    onChange={handleChange}
-                  />{" "}
-                  Emergency
-                </label>
-              </div>
-            </div>
-            <div className="form-group">
-              <label>Target Audience</label>
-              <div className="radio-group">
-                <label>
-                  <input
-                    type="radio"
-                    name="targetAudience"
-                    value="all"
-                    checked={formData.targetAudience === "all"}
-                    onChange={handleChange}
-                  />{" "}
-                  All Citizens
-                </label>
-                <label>
-                  <input
-                    type="radio"
-                    name="targetAudience"
-                    value="specific"
-                    checked={formData.targetAudience === "specific"}
-                    onChange={handleChange}
-                  />{" "}
-                  Specific Citizens
-                </label>
-              </div>
-              {formData.targetAudience === "specific" && (
+            <form className="announcement-form" onSubmit={handleSubmit}>
+              {/* Title and Description */}
+              <div className="form-group">
+                <label for="announcement-title">Title <span className="required-star">*</span></label>
                 <input
                   type="text"
-                  name="specificNICs"
-                  value={formData.specificNICs}
-                  onChange={handleChange}
-                  placeholder="Enter NICs separated by commas"
-                />
-              )}
-            </div>
-          </div>
-          <div className="form-row">
-            <div className="form-group">
-              <label>Publish</label>
-              <div className="radio-group">
-                <label>
-                  <input
-                    type="radio"
-                    name="publishMode"
-                    value="immediate"
-                    checked={formData.publishMode === "immediate"}
-                    onChange={handleChange}
-                  />{" "}
-                  Immediately
-                </label>
-                <label>
-                  <input
-                    type="radio"
-                    name="publishMode"
-                    value="scheduled"
-                    checked={formData.publishMode === "scheduled"}
-                    onChange={handleChange}
-                  />{" "}
-                  Schedule
-                </label>
-              </div>
-              {formData.publishMode === "scheduled" && (
-                <input
-                  type="datetime-local"
-                  name="scheduledAt"
-                  value={formData.scheduledAt}
+                  name="title"
+                  value={formData.title}
                   onChange={handleChange}
                   required
+                  maxLength="100"
                 />
-              )}
-            </div>
-            <div className="form-group">
-              <label>Validity Period</label>
-              <input
-                type="date"
-                name="startDate"
-                value={formData.startDate}
-                onChange={handleChange}
-              />
-              <input
-                type="date"
-                name="endDate"
-                value={formData.endDate}
-                onChange={handleChange}
-              />
-              <small>Optional start and end dates for visibility</small>
-            </div>
-          </div>
-          <div className="form-group">
-            <label>Attachments (optional)</label>
-            <input
-              type="file"
-              name="attachments"
-              multiple
-              onChange={handleChange}
-              accept=".pdf,.jpg,.jpeg,.png"
-            />
-            <small>PDF, JPG, PNG (max 5 files)</small>
-          </div>
-          <button type="submit" className="btn-submit" disabled={submitting}>
-            {submitting ? "Publishing..." : "Publish Announcement"}
-          </button>
-        </form>
+              </div>
+              <div className="form-group">
+                <label for="announcement-description">Description <span className="required-star">*</span></label>
+                <textarea
+                  name="description"
+                  value={formData.description}
+                  onChange={handleChange}
+                  required
+                  rows="5"
+                  maxLength="2000"
+                />
+              </div>
+              {/* Priority Level & Target Audience */}
+              <div className="form-card grid-2-col">
+                <div className="section-group">
+                  <span className="section-label">Priority</span>
+                  <div className="radio-options-list">
+                    <label className="radio-option">
+                      <input
+                        type="radio"
+                        name="priority"
+                        value="Normal"
+                        checked={formData.priority === "Normal"}
+                        onChange={handleChange}
+                      />{" "}
+                      <span class="radio-custom"></span>
+                      <span class="radio-text">Normal</span>
+                    </label>
+                    <label className="radio-option">
+                      <input
+                        type="radio"
+                        name="priority"
+                        value="Important"
+                        checked={formData.priority === "Important"}
+                        onChange={handleChange}
+                      />{" "}
+                      <span class="radio-custom"></span>
+                      <span class="radio-text">Important</span>
+                    </label>
+                    <label className="radio-option">
+                      <input
+                        type="radio"
+                        name="priority"
+                        value="Urgent"
+                        checked={formData.priority === "Urgent"}
+                        onChange={handleChange}
+                      />{" "}
+                      <span class="radio-custom"></span>
+                      <span class="radio-text">Urgent</span>
+                    </label>
+                    <label className="radio-option">
+                      <input
+                        type="radio"
+                        name="priority"
+                        value="Emergency"
+                        checked={formData.priority === "Emergency"}
+                        onChange={handleChange}
+                      />{" "}
+                      <span class="radio-custom"></span>
+                      <span class="radio-text text-danger">Emergency</span>
+                    </label>
+                  </div>
+                </div>
+                {/* Target Audience & Assigned Division */}
+                <div className="section-group">
+                  <span className="section-label">Target Audience</span>
+                  <div className="radio-options-list">
+                    <label className="radio-option align-top">
+                      <input
+                        type="radio"
+                        name="targetAudience"
+                        value="all"
+                        checked={formData.targetAudience === "all"}
+                        onChange={handleChange}
+                      />{" "}
+                      <span class="radio-custom"></span>
+                      <div class="radio-text">All Citizens</div>
+                    </label>
+                    <label className="radio-option align-top">
+                      <input
+                        type="radio"
+                        name="targetAudience"
+                        value="specific"
+                        checked={formData.targetAudience === "specific"}
+                        onChange={handleChange}
+                      />{" "}
+                      <span class="radio-custom"></span>
+                      <div class="radio-text">Specific Citizens</div>
+                    </label>
+                  </div>
+                  {formData.targetAudience === "specific" && (
+                    <input
+                      type="text"
+                      name="specificNICs"
+                      value={formData.specificNICs}
+                      onChange={handleChange}
+                      placeholder="Enter NICs separated by commas"
+                    />
+                  )}
+                </div>
+              </div>
+              {/* Publish Options and Visibility Period */}
+              <div className="form-card grid-2-col">
+                <div className="section-group">
+                  <span className="section-label">Publish</span>
+                  <div className="radio-options-list">
+                    <label className="radio-option">
+                      <input
+                        type="radio"
+                        name="publishMode"
+                        value="immediate"
+                        checked={formData.publishMode === "immediate"}
+                        onChange={handleChange}
+                      />{" "}
+                      <span class="radio-custom"></span>
+                      <span class="radio-text">Immediately</span>
+                    </label>
+                    <label className="radio-option">
+                      <input
+                        type="radio"
+                        name="publishMode"
+                        value="scheduled"
+                        checked={formData.publishMode === "scheduled"}
+                        onChange={handleChange}
+                      />{" "}
+                      <span class="radio-custom"></span>
+                      <span class="radio-text">Schedule for Later</span>
+                    </label>
+                  </div>
+                  {formData.publishMode === "scheduled" && (
+                    <input
+                      type="datetime-local"
+                      name="scheduledAt"
+                      value={formData.scheduledAt}
+                      onChange={handleChange}
+                      required
+                    />
+                  )}
+                </div>
+
+                {/* Validity Period */}
+                <div className="section-group">
+                  <span className="section-label">Validity Period</span>
+                  <div className="date-inputs-group">
+                    <input
+                      type="date"
+                      name="startDate"
+                      value={formData.startDate}
+                      onChange={handleChange}
+                    />
+                    <input
+                      type="date"
+                      name="endDate"
+                      value={formData.endDate}
+                      onChange={handleChange}
+                    />
+                  </div>
+                </div>
+              </div>
+              <div className="section-group">
+                <span className="section-label">Attachments (optional)</span>
+                <input
+                  type="file"
+                  name="attachments"
+                  multiple
+                  onChange={handleChange}
+                  accept=".pdf,.jpg,.jpeg,.png"
+                />
+                <small className="text-upload-info">
+                  PDF, JPG, PNG (max 5 files)
+                </small>
+              </div>
+              <button type="submit" className="btn btn-publish" disabled={submitting}>
+                {submitting ? "Publishing..." : "Publish Announcement"}
+              </button>
+            </form>
       )}
 
       <div className="announcements-list">
         {announcements.length === 0 ? (
           <p>No announcements yet.</p>
         ) : (
-          <table className="data-table">
-            <thead>
-              <tr>
-                <th>Title</th>
-                <th>Priority</th>
-                <th>Audience</th>
-                <th>Status</th>
-                <th>Created</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {announcements.map((a) => (
-                <tr key={a._id}>
-                  <td>{a.title}</td>
-                  <td>
-                    <span className={`priority-${a.priority.toLowerCase()}`}>
-                      {a.priority}
-                    </span>
-                  </td>
-                  <td>
-                    {a.targetAudience === "all"
-                      ? "All"
-                      : `${a.specificNICs.length} citizen(s)`}
-                  </td>
-                  <td>{a.status}</td>
-                  <td>{new Date(a.createdAt).toLocaleString()}</td>
-                  <td>
-                    <button
-                      className="btn-delete"
-                      onClick={() => {
-                        /* delete logic */
-                      }}
-                    >
-                      Delete
-                    </button>
-                  </td>
+          <div className="table-card">
+            <table className="data-table">
+              <thead>
+                <tr>
+                  <th>Title</th>
+                  <th>Priority</th>
+                  <th>Audience</th>
+                  <th>Status</th>
+                  <th>Created</th>
+                  <th>Actions</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {announcements.map((a) => (
+                  <tr key={a._id}>
+                    <td>{a.title}</td>
+                    <td>
+                      <span className={`priority-${a.priority.toLowerCase()}`}>
+                        {a.priority}
+                      </span>
+                    </td>
+                    <td>
+                      {a.targetAudience === "all"
+                        ? "All"
+                        : `${a.specificNICs.length} citizen(s)`}
+                    </td>
+                    <td>
+                      <span className="published">{a.status}</span>
+                    </td>
+                    <td>{new Date(a.createdAt).toLocaleString()}</td>
+                    <td>
+                      <button
+                        className="btn-delete"
+                        onClick={() => {
+                          /* delete logic */
+                        }}
+                      >
+                        Delete
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
       </div>
     </div>

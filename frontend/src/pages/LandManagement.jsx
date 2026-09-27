@@ -146,38 +146,6 @@ const LandManagement = ({ onClose }) => {
 
   // ─── Render ────────────────────────────────────────────
   return (
-    <div className="modal-overlay" onClick={onClose} style={{ zIndex: 1000}}>
-      <div 
-        className="modal-content-large"
-        onClick={(e) => e.stopPropagation()}
-        style={{
-          background: "#fff",
-          padding: "20px",
-          borderRadius: "8px",
-          maxWidth: "1100px",
-          width: "90%",
-          maxHeight: "90vh",
-          overflow: "auto",
-          position: "relative"
-        }}
-      >
-
-        {/* Close Button */}
-        <button
-          onClick={onClose}
-          style={{
-            position: "absolute",
-            top: "15px",
-            right: "20px",
-            background: "transparent",
-            border: "none",
-            fontSize: "20px",
-            cursor: "pointer"
-          }}
-        >
-          ✖
-        </button>
-
         <div className="land-management">
           {/* Header */}
           <div className="land-header">
@@ -486,8 +454,6 @@ const LandManagement = ({ onClose }) => {
             </div>
           )}
         </div>
-      </div>
-    </div>
   );
 };
 
