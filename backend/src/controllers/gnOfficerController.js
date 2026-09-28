@@ -1,7 +1,13 @@
+// backend/src/controllers/gnOfficerController.js
+
 const GNOfficer = require("../models/GNOfficer");
+const Citizen = require("../models/Citizen");
+const Family = require("../models/Family");
+const Land = require("../models/Land");
 const bcrypt = require("bcryptjs");
 const { validatePhone, validateEmail } = require("../utils/validators");
 
+// ─── Profile ──────────────────────────────────────────────
 exports.getProfile = async (req, res) => {
   try {
     const officer = await GNOfficer.findById(req.user.id)
@@ -57,6 +63,104 @@ exports.updateProfile = async (req, res) => {
     await officer.save();
     res.json({ success: true, message: "Profile updated", data: officer });
   } catch (error) {
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+};
+
+// ─── Resident Search ──────────────────────────────────────
+exports.getVillageResidents = async (req, res) => {
+  try {
+    const officerId = req.user.id;
+    const officer = await GNOfficer.findById(officerId);
+    if (!officer) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Officer not found" });
+    }
+
+    const { search } = req.query;
+    const filter = { village_id: officer.village_id, is_active: true };
+
+    if (search && search.trim()) {
+      const regex = new RegExp(search.trim(), "i");
+      filter.$or = [
+        { full_name: regex },
+        { nic: regex },
+        { phone_numbers: { $elemMatch: { $regex: regex } } },
+      ];
+    }
+
+    const citizens = await Citizen.find(filter)
+      .select("full_name nic phone_numbers address family_id is_head")
+      .populate("family_id", "family_reg_no")
+      .sort({ full_name: 1 });
+
+    res.json({ success: true, data: citizens });
+  } catch (error) {
+    console.error("Get village residents error:", error);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+};
+
+exports.getResidentDetails = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const officerId = req.user.id;
+
+    const officer = await GNOfficer.findById(officerId);
+    if (!officer) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Officer not found" });
+    }
+
+    const citizen = await Citizen.findOne({
+      _id: id,
+      village_id: officer.village_id,
+      is_active: true,
+    }).select("-password_hash");
+
+    if (!citizen) {
+      return res.status(404).json({
+        success: false,
+        message: "Resident not found in your village",
+      });
+    }
+
+    let familyMembers = [];
+    let familyDetails = null;
+    if (citizen.family_id) {
+      const family = await Family.findById(citizen.family_id).populate(
+        "members",
+        "full_name nic phone_numbers is_head",
+      );
+      familyDetails = family;
+      familyMembers = family.members || [];
+    }
+
+    const lands = await Land.find({
+      owner_nic: citizen.nic,
+      is_active: true,
+    }).lean();
+
+    const giftLands = await Land.find({
+      real_owner_nic: citizen.nic,
+      is_active: true,
+    }).lean();
+
+    const allLands = [...lands, ...giftLands];
+
+    res.json({
+      success: true,
+      data: {
+        citizen,
+        family: familyDetails,
+        familyMembers,
+        lands: allLands,
+      },
+    });
+  } catch (error) {
+    console.error("Get resident details error:", error);
     res.status(500).json({ success: false, message: "Server error" });
   }
 };

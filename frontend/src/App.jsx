@@ -19,6 +19,7 @@ import ResidentAnnouncements from "./components/announcements/ResidentAnnounceme
 import OfficerLayout from "./layouts/OfficerLayout";
 
 import OfficerPermits from "./pages/OfficerPermits";
+import ResidentSearch from "./pages/ResidentSearch";
 
 function App() {
   return (
@@ -128,16 +129,41 @@ function App() {
                 <OfficerLayout />
               </PrivateRoute>
             }
-            >
-              <Route path="/officer/dashboard" element={<OfficerDashboard />} />
-              <Route path="/pending-verification" element={<PendingVerifications />} />
-              <Route path="/officer/land-management" element={<LandManagement />} />
-              <Route path="/officer/certificates" element={<OfficerCertificateManagement />} />
-              <Route path="/officer/certificate/:id" element={<OfficerCertificateDetails />} />
-              <Route path="/officer/appointments" element={<OfficerAppointments />} />
-              <Route path="/officer/announcements" element={<OfficerAnnouncements />} />
+          >
+            <Route path="/officer/dashboard" element={<OfficerDashboard />} />
+            <Route
+              path="/pending-verification"
+              element={<PendingVerifications />}
+            />
+            <Route
+              path="/officer/land-management"
+              element={<LandManagement />}
+            />
+            <Route
+              path="/officer/certificates"
+              element={<OfficerCertificateManagement />}
+            />
+            <Route
+              path="/officer/certificate/:id"
+              element={<OfficerCertificateDetails />}
+            />
+            <Route
+              path="/officer/appointments"
+              element={<OfficerAppointments />}
+            />
+            <Route
+              path="/officer/announcements"
+              element={<OfficerAnnouncements />}
+            />
           </Route>
-
+          <Route
+            path="/officer/residents"
+            element={
+              <PrivateRoute allowedRoles={["gn_officer"]}>
+                <ResidentSearch />
+              </PrivateRoute>
+            }
+          />
         </Routes>
       </AuthProvider>
     </BrowserRouter>
