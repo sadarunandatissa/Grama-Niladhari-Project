@@ -45,81 +45,82 @@ const Login = () => {
 
   return (
     <main className="login-page-wrapper">
-      <div className="login-container">
-        {/* Left Section: Illustration */}
-        <section className="illustration-section">
-          <div className="illustration-wrapper">
-            <img
-              src="./src/assets/20945597.jpg"
-              alt="Login Illustration"
-              className="promo-image"
-            />
-          </div>
-        </section>
+      <div className="login-content">
 
-        {/* Right Section: Login Form */}
-        <section className="form-section">
-          <div className="form-wrapper">
-            <header className="form-header">
-              <h1>Welcome Back</h1>
-              <p>Your services are just a click away</p>
-            </header>
-
-            {error && <div className="alert error">{error}</div>}
-
-            <form onSubmit={handleSubmit} className="login-form">
-              <div className="input-group">
-                <label htmlFor="email">Email</label>
-                <input
-                  type="email"
-                  id="email"
-                  name="email"
-                  value={formData.email}
-                  onChange={handleChange}
-                  required
-                  autoComplete="email"
-                />
-              </div>
-
-              <div className="input-group">
-                <label htmlFor="password">Password</label>
-                <input
-                  type="password"
-                  id="password"
-                  name="password"
-                  value={formData.password}
-                  onChange={handleChange}
-                  required
-                  autoComplete="current-password"
-                />
-              </div>
-
-              <div className="form-options">
-                <label className="checkbox-container">
+        {/* Back to homepage */}
+        <Link to="/" className="back-home-btn">
+          ← Back to Home
+        </Link>
+        
+        <div className="login-container">
+          {/* Left Section: Illustration */}
+          <section className="illustration-section">
+            <div className="illustration-wrapper">
+              <img
+                src="./src/assets/20945597.jpg"
+                alt="Login Illustration"
+                className="promo-image"
+              />
+            </div>
+          </section>
+          {/* Right Section: Login Form */}
+          <section className="form-section">
+            <div className="form-wrapper">
+              <header className="form-header">
+                <h1>Welcome Back</h1>
+                <p>Your services are just a click away</p>
+              </header>
+              {error && <div className="alert error">{error}</div>}
+              <form onSubmit={handleSubmit} className="login-form">
+                <div className="input-group">
+                  <label htmlFor="email">Email</label>
                   <input
-                    type="checkbox"
-                    id="rememberMe"
-                    name="rememberMe"
-                    checked={formData.rememberMe}
+                    type="email"
+                    id="email"
+                    name="email"
+                    value={formData.email}
                     onChange={handleChange}
+                    required
+                    autoComplete="email"
                   />
-                  <span>Remember Me</span>
-                </label>
-                <Link to="/forgot-password" className="forgot-password">
-                  Forgot Password?
-                </Link>
-              </div>
-
-              <button type="submit" className="btn-login" disabled={loading}>
-                {loading ? "Logging in..." : "Login"}
-              </button>
-            </form>
-
-            <p className="register-redirect">
-              Don't have an account? <Link to="/register">Register</Link>
-            </p>
-          </div>
-        </section>
+                </div>
+                <div className="input-group">
+                  <label htmlFor="password">Password</label>
+                  <input
+                    type="password"
+                    id="password"
+                    name="password"
+                    value={formData.password}
+                    onChange={handleChange}
+                    required
+                    autoComplete="current-password"
+                  />
+                </div>
+                <div className="form-options">
+                  <label className="checkbox-container">
+                    <input
+                      type="checkbox"
+                      id="rememberMe"
+                      name="rememberMe"
+                      checked={formData.rememberMe}
+                      onChange={handleChange}
+                    />
+                    <span>Remember Me</span>
+                  </label>
+                  <Link to="/forgot-password" className="forgot-password">
+                    Forgot Password?
+                  </Link>
+                </div>
+                <button type="submit" className="btn-login" disabled={loading}>
+                  {loading ? "Logging in..." : "Login"}
+                </button>
+              </form>
+              <p className="register-redirect">
+                Don't have an account? <Link to="/register">Register</Link>
+              </p>
+            </div>
+          </section>
+        </div>
       </div>
     </main>
   );

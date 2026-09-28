@@ -127,7 +127,7 @@ label {
 }
 
 /* Input Fields */
-input:not([type="radio"]):not([type="file"]),
+input:not([type="radio"]):not([type="file"]):not([type="checkbox"]),
 textarea,
 select {
   width: 100%;
