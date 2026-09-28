@@ -3,63 +3,98 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import axios from "axios";
 import "./OfficerDashboard.css";
-import gnAvatar from "../assets/Officer-Avatar.png";
+import BarChart from "../components/gn-officer/BarChart";
+import DonutChart from "../components/gn-officer/DonutChart";
 import {
   LayoutDashboard,
   CircleUserRound,
+  FileCheckCorner,
   FileStack,
-  Circle,
-  Calendar,
-  ChevronDown,
-  UserRound,
-  Download,
-  Cross,
   UsersRound,
+  House,
+  Plus,
   Megaphone,
   MessageSquare,
-  FileCheckCorner,
-  House
+  Bell,
+  ChevronRight,
 } from "lucide-react";
+
+const MONTH_LABELS = [
+  "Jan",
+  "Feb",
+  "Mar",
+  "Apr",
+  "May",
+  "Jun",
+  "Jul",
+  "Aug",
+  "Sep",
+  "Oct",
+  "Nov",
+  "Dec",
+];
+
+const emptyStats = {
+  certificates: {
+    pending: 0,
+    approved: 0,
+    rejected: 0,
+    monthly: new Array(12).fill(0),
+    recent: [],
+  },
+  permits: {
+    pending: 0,
+    approved: 0,
+    rejected: 0,
+    monthly: new Array(12).fill(0),
+    recent: [],
+  },
+  citizenStats: { totalCitizens: 0, totalFamilies: 0, totalHouses: 0 },
+};
+
+const getGreeting = () => {
+  const hour = new Date().getHours();
+  if (hour < 12) return "Good morning";
+  if (hour < 17) return "Good afternoon";
+  return "Good evening";
+};
 
 const OfficerDashboard = () => {
   const { user, token } = useAuth();
   const navigate = useNavigate();
   const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
+  const [stats, setStats] = useState(emptyStats);
   const [notifications, setNotifications] = useState([]);
-  const [pendingCertificates, setPendingCertificates] = useState(0);
+  const [activeTab, setActiveTab] = useState("certificates");
   const [loading, setLoading] = useState(true);
 
-  // Fetch dashboard data
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchStats = async () => {
       try {
-        // Get pending certificate count (or any stats)
-        const res = await axios.get(
-          `${API_URL}/api/certificate/officer/pending`,
-          {
-            headers: { Authorization: `Bearer ${token}` },
-          },
-        );
-        setPendingCertificates(res.data.data?.length || 0);
+        const res = await axios.get(`${API_URL}/api/dashboard/officer/stats`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (res.data?.data) setStats(res.data.data);
       } catch (error) {
-        console.error("Error fetching dashboard data:", error);
+        console.error("Error fetching dashboard stats:", error);
       } finally {
         setLoading(false);
       }
     };
-    fetchData();
+    fetchStats();
   }, [token, API_URL]);
 
-  // Fetch notifications (if you have this endpoint)
   useEffect(() => {
     const fetchNotifications = async () => {
       try {
         const res = await axios.get(
           `${API_URL}/api/certificate/officer/notifications`,
-          { headers: { Authorization: `Bearer ${token}` } },
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          },
         );
-        setNotifications(res.data.data || []);
+        setNotifications(res.data?.data || []);
       } catch (error) {
         console.error("Error fetching notifications:", error);
       }
@@ -71,225 +106,285 @@ const OfficerDashboard = () => {
     return <div className="loading-spinner">Loading dashboard...</div>;
   }
 
+  const { certificates, permits, citizenStats } = stats;
+  const unreadCount = notifications.filter((n) => !n.isRead).length;
+
+  const activeData = activeTab === "certificates" ? certificates : permits;
+  const activeColor = activeTab === "certificates" ? "#2563eb" : "#16a34a";
+  const activeTotal =
+    activeData.pending + activeData.approved + activeData.rejected;
+
+  const highestMonthIdx = activeData.monthly.reduce(
+    (best, val, idx, arr) => (val > arr[best] ? idx : best),
+    0,
+  );
+
+  const citizenTotal =
+    citizenStats.totalCitizens +
+    citizenStats.totalFamilies +
+    citizenStats.totalHouses;
+  const pct = (value) =>
+    citizenTotal ? Math.round((value / citizenTotal) * 100) : 0;
+
+  const quickActions = [
+    {
+      label: "Requests",
+      icon: <Plus />,
+      color: "#2563eb",
+      bg: "#eaf1ff",
+      onClick: () => navigate("/pending-verification"),
+    },
+    {
+      label: "Citizens",
+      icon: <UsersRound />,
+      color: "#16a34a",
+      bg: "#eafaf0",
+      onClick: () => navigate("/officer/residents"),
+    },
+    {
+      label: "Announcements",
+      icon: <Megaphone />,
+      color: "#f97316",
+      bg: "#fff6ea",
+      onClick: () => navigate("/officer/announcements"),
+    },
+    {
+      label: "Messages",
+      icon: <MessageSquare />,
+      color: "#7c3aed",
+      bg: "#f3ecff",
+      onClick: null,
+    },
+  ];
+
   return (
     <>
-        <header className="topbar">
-          <div className="page-title">
-            <LayoutDashboard /> Dashboard
+      <header className="topbar">
+        <div className="page-title">
+          <LayoutDashboard /> Dashboard
+        </div>
+        <div className="topbar-right">
+          <div className="topbar-greeting">
+            <span className="greeting-line">
+              {getGreeting()}, {user?.name || "GN Officer"}
+            </span>
+            <span className="greeting-sub">
+              GN Division {user?.village_id || "N/A"} &middot;{" "}
+              {new Date().toLocaleDateString()}
+            </span>
           </div>
-          <div className="user-profile">
-            <div className="profile-avatar">
-              <CircleUserRound />
-            </div>
-            <div className="profile-info">
-              <span className="user-name">{user?.name || "GN OFFICER"}</span>
-              <span className="user-role">GRAMA NILADHARI</span>
-            </div>
+          <div className="profile-avatar">
+            <CircleUserRound />
           </div>
-        </header>
+        </div>
+      </header>
 
-        <div className="dashboard-grid">
-          {/* Welcome card + Quick actions */}
-          <div className="upper-grid">
-            <div className="welcome-card">
-              <div className="welcome-graphic">
-                <img src={gnAvatar} alt="GN OFFICER" />
-              </div>
-              <div className="welcome-text">
-                <h3>GOOD MORNING !</h3>
-                <p className="title-sub">GRAMA NILADHARI OFFICER</p>
-                <div className="division-badge">
-                  GN DIVISION{" "}
-                  <span className="badge-num">{user?.village_id || "N/A"}</span>
+      <div className="dashboard-grid">
+        {/* KPI strip */}
+        <div className="kpi-strip">
+          <div className="kpi-card" style={{ "--kpi-color": "#2563eb" }}>
+            <FileCheckCorner />
+            <div>
+              <strong>{certificates.pending}</strong>
+              <span>Pending Certificates</span>
+            </div>
+          </div>
+          <div className="kpi-card" style={{ "--kpi-color": "#16a34a" }}>
+            <FileStack />
+            <div>
+              <strong>{permits.pending}</strong>
+              <span>Pending Permits</span>
+            </div>
+          </div>
+          <div className="kpi-card" style={{ "--kpi-color": "#f97316" }}>
+            <UsersRound />
+            <div>
+              <strong>{citizenStats.totalCitizens}</strong>
+              <span>Total Citizens</span>
+            </div>
+          </div>
+          <div className="kpi-card" style={{ "--kpi-color": "#7c3aed" }}>
+            <House />
+            <div>
+              <strong>{citizenStats.totalHouses}</strong>
+              <span>Total Houses</span>
+            </div>
+          </div>
+          <div className="kpi-card" style={{ "--kpi-color": "#2563eb" }}>
+            <UsersRound />
+            <div>
+              <strong>{citizenStats.totalFamilies}</strong>
+              <span>Total Families</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Two column content */}
+        <div className="content-columns">
+          {/* Main column */}
+          <div className="main-column">
+            <div className="panel">
+              <div className="panel-header">
+                <div className="tab-switch">
+                  <button
+                    className={`tab-btn ${activeTab === "certificates" ? "active" : ""}`}
+                    onClick={() => setActiveTab("certificates")}
+                  >
+                    Certificates
+                  </button>
+                  <button
+                    className={`tab-btn ${activeTab === "permits" ? "active" : ""}`}
+                    onClick={() => setActiveTab("permits")}
+                  >
+                    Permits
+                  </button>
                 </div>
-                <p className="date-stamp">
-                  Today is {new Date().toLocaleDateString()}
-                </p>
+                <span className="panel-total" style={{ color: activeColor }}>
+                  {activeTotal} total
+                </span>
               </div>
-            </div>
-            <div className="quick-actions-grid">
-              <button className="action-btn">
-                <Cross /> Requests
-              </button>
-              <button className="action-btn">
-                <UsersRound /> Citizens
-              </button>
-              <button className="action-btn">
-                <Megaphone /> Announcements
-              </button>
-              <button className="action-btn">
-                <MessageSquare /> Messages
-              </button>
-            </div>
-          </div>
 
-          <div className="notice-strip">IMPORTANT NOTICES</div>
-
-          {/* Status summary row */}
-          <div className="status-summary-row">
-            {/* Certificate Requests */}
-            <div className="status-card border-blue">
-              <div className="card-head">
-                <div className="card-head-icon">
-                  <FileCheckCorner />
-                </div>
-                <h4>Certificate Requests</h4>
-              </div>
-              <div className="counter-badge-row">
-                <div className="badge-box bg-blue">
+              <div className="chip-row">
+                <div className="chip" style={{ "--chip-color": "#f97316" }}>
                   <span>Pending</span>
-                  <strong>{pendingCertificates}</strong>
+                  <strong>{activeData.pending}</strong>
                 </div>
-                <div className="badge-box bg-blue">
+                <div className="chip" style={{ "--chip-color": "#16a34a" }}>
                   <span>Approved</span>
-                  <strong>--</strong>
+                  <strong>{activeData.approved}</strong>
                 </div>
-                <div className="badge-box bg-blue">
+                <div className="chip" style={{ "--chip-color": "#dc2626" }}>
                   <span>Rejected</span>
-                  <strong>--</strong>
+                  <strong>{activeData.rejected}</strong>
                 </div>
               </div>
-              <div className="mini-list">
-                <div className="list-item">Request 1</div>
-                <div className="list-item">Request 2</div>
+
+              <div className="recent-list">
+                {activeData.recent.length === 0 && (
+                  <div className="recent-row empty">No recent requests</div>
+                )}
+                {activeData.recent.map((r) => (
+                  <div className="recent-row" key={r.id}>
+                    <span>{r.label}</span>
+                    <span className={`status-pill status-${r.status}`}>
+                      {r.status.replace("_", " ")}
+                    </span>
+                  </div>
+                ))}
               </div>
             </div>
 
-            {/* Permit Requests */}
-            <div className="status-card border-green">
-              <div className="card-head">
-                <div className="card-head-icon">
-                  <FileStack />
-                </div>
-                <h4>Permit Requests</h4>
+            <div className="panel">
+              <div className="panel-header">
+                <h5>Monthly Trend</h5>
+                <span className="panel-note">
+                  Busiest month:{" "}
+                  <strong>{MONTH_LABELS[highestMonthIdx]}</strong>
+                </span>
               </div>
-              <div className="counter-badge-row">
-                <div className="badge-box bg-green">
-                  <span>Pending</span>
-                  <strong>--</strong>
-                </div>
-                <div className="badge-box bg-green">
-                  <span>Approved</span>
-                  <strong>--</strong>
-                </div>
-                <div className="badge-box bg-green">
-                  <span>Rejected</span>
-                  <strong>--</strong>
-                </div>
-              </div>
-              <div className="mini-list">
-                <div className="list-item">Request 1</div>
-                <div className="list-item">Request 2</div>
-              </div>
-            </div>
-
-            {/* Citizen details */}
-            <div className="status-card border-orange">
-              <div className="card-head">
-                <div className="card-head-icon">
-                  <House />
-                </div>
-                <h4>Citizen details</h4>
-              </div>
-              <div className="stat-rows-group">
-                <div className="stat-row">
-                  <span>Total Citizens:</span>
-                  <strong className="val-box">--</strong>
-                </div>
-                <div className="stat-row">
-                  <span>Total Families:</span>
-                  <strong className="val-box">--</strong>
-                </div>
-                <div className="stat-row">
-                  <span>Total Houses:</span>
-                  <strong className="val-box">--</strong>
-                </div>
-              </div>
+              <BarChart
+                labels={MONTH_LABELS}
+                series={[
+                  {
+                    name: activeTab,
+                    color: activeColor,
+                    data: activeData.monthly,
+                  },
+                ]}
+              />
             </div>
           </div>
 
-          {/* Charts row */}
-          <div className="visuals-row">
-            <div className="chart-card flex-double">
-              <div className="chart-header">
-                <h5>Monthly Requests Overview</h5>
-                <div className="chart-legend">
-                  <span className="blue">
-                    <Circle /> Certificate Requests
-                  </span>
-                  <span className="green">
-                    <Circle /> Permit Requests
-                  </span>
-                </div>
+          {/* Side column */}
+          <div className="side-column">
+            <div className="panel">
+              <div className="panel-header">
+                <h5>Citizens Overview</h5>
               </div>
-              <div className="graph-bars"></div>
-              <div className="graph-summary-tiles">
-                <div className="tile">
-                  <span>Total Certificate Requests</span>
-                  <strong>--</strong>
-                </div>
-                <div className="tile">
-                  <span>Total Permit Requests</span>
-                  <strong>--</strong>
-                </div>
-                <div className="tile">
-                  <span>Highest Month (Certificates)</span>
-                  <strong>--</strong>
-                </div>
-                <div className="tile">
-                  <span>Highest Month (Permits)</span>
-                  <strong>--</strong>
+              <div className="donut-row">
+                <DonutChart
+                  size={120}
+                  strokeWidth={20}
+                  segments={[
+                    {
+                      label: "Citizens",
+                      value: citizenStats.totalCitizens,
+                      color: "#2563eb",
+                    },
+                    {
+                      label: "Families",
+                      value: citizenStats.totalFamilies,
+                      color: "#f97316",
+                    },
+                    {
+                      label: "Houses",
+                      value: citizenStats.totalHouses,
+                      color: "#16a34a",
+                    },
+                  ]}
+                />
+                <div className="donut-legend">
+                  <div className="legend-row">
+                    <span className="dot" style={{ background: "#2563eb" }} />
+                    Citizens <strong>{pct(citizenStats.totalCitizens)}%</strong>
+                  </div>
+                  <div className="legend-row">
+                    <span className="dot" style={{ background: "#f97316" }} />
+                    Families <strong>{pct(citizenStats.totalFamilies)}%</strong>
+                  </div>
+                  <div className="legend-row">
+                    <span className="dot" style={{ background: "#16a34a" }} />
+                    Houses <strong>{pct(citizenStats.totalHouses)}%</strong>
+                  </div>
                 </div>
               </div>
             </div>
 
-            <div className="chart-card">
-              <div className="chart-header">
-                <div>
-                  <h5>Citizen Details</h5>
-                  <span className="sub-caption">
-                    Overview of Citizens, Families and Houses
-                  </span>
-                </div>
-                <div className="dropdown-mock">
-                  <Calendar /> This Year <ChevronDown />
-                </div>
+            <div className="panel">
+              <div className="panel-header">
+                <h5>Quick Actions</h5>
               </div>
-              <div className="mock-pie-layout">
-                <div className="pie-donut-graphic"></div>
-                <div className="pie-breakdown-list">
-                  <div className="breakdown-item">
-                    <span className="lbl">
-                      <UserRound /> Total Citizens
-                    </span>
-                    <strong>--</strong>
-                  </div>
-                  <div className="breakdown-item">
-                    <span className="lbl">
-                      <UserRound /> Total Families
-                    </span>
-                    <strong>--</strong>
-                  </div>
-                  <div className="breakdown-item">
-                    <span className="lbl">
-                      <UserRound /> Total Houses
-                    </span>
-                    <strong>--</strong>
-                  </div>
-                </div>
+              <div className="quick-action-list">
+                {quickActions.map((a) => (
+                  <button
+                    key={a.label}
+                    className="quick-action-row"
+                    style={{ "--qa-color": a.color, "--qa-bg": a.bg }}
+                    onClick={a.onClick || undefined}
+                    disabled={!a.onClick}
+                  >
+                    <span className="qa-icon">{a.icon}</span>
+                    {a.label}
+                    <ChevronRight className="qa-arrow" />
+                  </button>
+                ))}
               </div>
-              <div className="chart-card-footer">
-                <p>
-                  This chart represents the distribution of citizens, families,
-                  and houses
-                </p>
-                <button className="btn-download-report">
-                  <Download /> Download Report
-                </button>
+            </div>
+
+            <div className="panel">
+              <div className="panel-header">
+                <h5>
+                  <Bell size={15} /> Notices
+                </h5>
+                {unreadCount > 0 && (
+                  <span className="notice-count">{unreadCount}</span>
+                )}
+              </div>
+              <div className="notice-list">
+                {notifications.length === 0 && (
+                  <div className="notice-row empty">No notices yet</div>
+                )}
+                {notifications.slice(0, 3).map((n) => (
+                  <div className="notice-row" key={n._id}>
+                    <strong>{n.title}</strong>
+                    <span>{n.message}</span>
+                  </div>
+                ))}
               </div>
             </div>
           </div>
         </div>
+      </div>
     </>
   );
 };

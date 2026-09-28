@@ -143,6 +143,9 @@ function App() {
               path="/officer/certificates"
               element={<OfficerCertificateManagement />}
             />
+
+            <Route path="/officer/permits" element={<OfficerPermits />} />
+
             <Route
               path="/officer/certificate/:id"
               element={<OfficerCertificateDetails />}
@@ -155,15 +158,8 @@ function App() {
               path="/officer/announcements"
               element={<OfficerAnnouncements />}
             />
+            <Route path="/officer/residents" element={<ResidentSearch />} />
           </Route>
-          <Route
-            path="/officer/residents"
-            element={
-              <PrivateRoute allowedRoles={["gn_officer"]}>
-                <ResidentSearch />
-              </PrivateRoute>
-            }
-          />
         </Routes>
       </AuthProvider>
     </BrowserRouter>
