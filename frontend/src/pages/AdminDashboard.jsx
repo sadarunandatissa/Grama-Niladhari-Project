@@ -17,7 +17,7 @@ const AdminDashboard = () => {
   const { user, token, logout } = useAuth();
   const API_URL = getApiUrl();
 
-  // State
+  // Main state
   const [stats, setStats] = useState(null);
   const [villages, setVillages] = useState([]);
   const [officers, setOfficers] = useState([]);
@@ -25,6 +25,17 @@ const AdminDashboard = () => {
   const [error, setError] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [modalType, setModalType] = useState("");
+
+  // Cascading location state
+  const [provinces, setProvinces] = useState([]);
+  const [districts, setDistricts] = useState([]);
+  const [dsDivisions, setDSDivisions] = useState([]);
+  const [existingVillages, setExistingVillages] = useState([]);
+  const [loadingDistricts, setLoadingDistricts] = useState(false);
+  const [loadingDS, setLoadingDS] = useState(false);
+  const [loadingVillages, setLoadingVillages] = useState(false);
+
+  // Officer form data
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -32,14 +43,19 @@ const AdminDashboard = () => {
     phone: "",
     village_id: "",
     profile_picture: null,
-    village_id_village: "",
-    name: "",
-    ds_division: "",
-    district: "",
-    province: "",
   });
 
-  // Fetch all data
+  // Village form data (cascading)
+  const [villageForm, setVillageForm] = useState({
+    province: "",
+    district: "",
+    ds_division: "",
+    name: "",
+  });
+
+  // -------------------------
+  // Fetch dashboard data
+  // -------------------------
   const fetchData = async () => {
     const activeToken = token || localStorage.getItem("token");
     if (!activeToken) {
@@ -81,7 +97,111 @@ const AdminDashboard = () => {
     fetchData();
   }, [token]);
 
-  // Form handlers
+  // -------------------------
+  // Fetch provinces on mount
+  // -------------------------
+  useEffect(() => {
+    const fetchProvinces = async () => {
+      try {
+        const res = await axios.get(`${API_URL}/api/location/provinces`);
+        setProvinces(res.data);
+      } catch (err) {
+        console.error("Failed to load provinces:", err);
+      }
+    };
+    fetchProvinces();
+  }, [API_URL]);
+
+  // -------------------------
+  // When province changes → fetch districts
+  // -------------------------
+  useEffect(() => {
+    if (!villageForm.province) {
+      setDistricts([]);
+      setDSDivisions([]);
+      setExistingVillages([]);
+      return;
+    }
+
+    const fetchDistricts = async () => {
+      setLoadingDistricts(true);
+      try {
+        const res = await axios.get(
+          `${API_URL}/api/location/districts?provinceId=${villageForm.province}`,
+        );
+        setDistricts(res.data);
+        setDSDivisions([]);
+        setExistingVillages([]);
+        setVillageForm((prev) => ({
+          ...prev,
+          district: "",
+          ds_division: "",
+        }));
+      } catch (err) {
+        console.error("Failed to load districts:", err);
+      } finally {
+        setLoadingDistricts(false);
+      }
+    };
+    fetchDistricts();
+  }, [villageForm.province, API_URL]);
+
+  // -------------------------
+  // When district changes → fetch DS divisions
+  // -------------------------
+  useEffect(() => {
+    if (!villageForm.district) {
+      setDSDivisions([]);
+      setExistingVillages([]);
+      return;
+    }
+
+    const fetchDS = async () => {
+      setLoadingDS(true);
+      try {
+        const res = await axios.get(
+          `${API_URL}/api/location/dsdivisions?districtId=${villageForm.district}`,
+        );
+        setDSDivisions(res.data);
+        setExistingVillages([]);
+        setVillageForm((prev) => ({ ...prev, ds_division: "" }));
+      } catch (err) {
+        console.error("Failed to load DS divisions:", err);
+      } finally {
+        setLoadingDS(false);
+      }
+    };
+    fetchDS();
+  }, [villageForm.district, API_URL]);
+
+  // -------------------------
+  // When DS division changes → fetch villages
+  // -------------------------
+  useEffect(() => {
+    if (!villageForm.ds_division) {
+      setExistingVillages([]);
+      return;
+    }
+
+    const fetchVillages = async () => {
+      setLoadingVillages(true);
+      try {
+        const res = await axios.get(
+          `${API_URL}/api/location/villages?dsDivisionId=${villageForm.ds_division}`,
+        );
+        setExistingVillages(res.data);
+      } catch (err) {
+        console.error("Failed to load villages:", err);
+      } finally {
+        setLoadingVillages(false);
+      }
+    };
+    fetchVillages();
+  }, [villageForm.ds_division, API_URL]);
+
+  // -------------------------
+  // Officer form handlers
+  // -------------------------
   const handleChange = (e) => {
     const { name, value, files } = e.target;
     if (name === "profile_picture") {
@@ -89,6 +209,11 @@ const AdminDashboard = () => {
     } else {
       setFormData((prev) => ({ ...prev, [name]: value }));
     }
+  };
+
+  const handleVillageChange = (e) => {
+    const { name, value } = e.target;
+    setVillageForm((prev) => ({ ...prev, [name]: value }));
   };
 
   const resetForm = () => {
@@ -99,17 +224,23 @@ const AdminDashboard = () => {
       phone: "",
       village_id: "",
       profile_picture: null,
-      village_id_village: "",
-      name: "",
-      ds_division: "",
-      district: "",
-      province: "",
     });
+    setVillageForm({
+      province: "",
+      district: "",
+      ds_division: "",
+      name: "",
+    });
+    setDistricts([]);
+    setDSDivisions([]);
+    setExistingVillages([]);
     setShowModal(false);
     setModalType("");
   };
 
+  // -------------------------
   // Create GN Officer
+  // -------------------------
   const handleSubmitOfficer = async (e) => {
     e.preventDefault();
     const activeToken = token || localStorage.getItem("token");
@@ -119,21 +250,13 @@ const AdminDashboard = () => {
     }
 
     const data = new FormData();
-    for (let key in formData) {
+    Object.keys(formData).forEach((key) => {
       if (key === "profile_picture" && formData.profile_picture) {
         data.append("profile_picture", formData.profile_picture);
-      } else if (
-        key !== "profile_picture" &&
-        key !== "village_id_village" &&
-        key !== "name" &&
-        key !== "ds_division" &&
-        key !== "district" &&
-        key !== "province"
-      ) {
+      } else if (key !== "profile_picture") {
         data.append(key, formData[key]);
       }
-    }
-    data.append("village_id", formData.village_id);
+    });
 
     try {
       await axios.post(`${API_URL}/api/admin/gn-officer`, data, {
@@ -151,7 +274,9 @@ const AdminDashboard = () => {
     }
   };
 
-  // Create Village
+  // -------------------------
+  // Create Village (new cascading structure)
+  // -------------------------
   const handleSubmitVillage = async (e) => {
     e.preventDefault();
     const activeToken = token || localStorage.getItem("token");
@@ -160,20 +285,41 @@ const AdminDashboard = () => {
       return;
     }
 
+    if (
+      !villageForm.province ||
+      !villageForm.district ||
+      !villageForm.ds_division
+    ) {
+      alert("Please select Province, District, and DS Division.");
+      return;
+    }
+
+    if (!villageForm.name.trim()) {
+      alert("Please enter a village name.");
+      return;
+    }
+
     try {
       await axios.post(
-        `${API_URL}/api/admin/villages`,
+        `${API_URL}/api/location/villages`,
         {
-          village_id: formData.village_id_village,
-          name: formData.name,
-          ds_division: formData.ds_division,
-          district: formData.district,
-          province: formData.province,
+          name: villageForm.name.trim(),
+          dsDivisionId: villageForm.ds_division,
         },
         { headers: { Authorization: `Bearer ${activeToken}` } },
       );
       alert("Village created successfully!");
-      resetForm();
+
+      // Refresh existing villages for the same DS division
+      const res = await axios.get(
+        `${API_URL}/api/location/villages?dsDivisionId=${villageForm.ds_division}`,
+      );
+      setExistingVillages(res.data);
+
+      // Clear only the name field
+      setVillageForm((prev) => ({ ...prev, name: "" }));
+
+      // Refresh main data table
       fetchData();
     } catch (err) {
       console.error("Create village error:", err);
@@ -181,15 +327,14 @@ const AdminDashboard = () => {
     }
   };
 
-  // Delete GN Officer
+  // -------------------------
+  // Delete handlers
+  // -------------------------
   const handleDeleteOfficer = async (id) => {
     if (!window.confirm("Are you sure you want to delete this GN Officer?"))
       return;
     const activeToken = token || localStorage.getItem("token");
-    if (!activeToken) {
-      alert("Please login again.");
-      return;
-    }
+    if (!activeToken) return alert("Please login again.");
 
     try {
       await axios.delete(`${API_URL}/api/admin/gn-officer/${id}`, {
@@ -202,15 +347,11 @@ const AdminDashboard = () => {
     }
   };
 
-  // Delete Village
   const handleDeleteVillage = async (id) => {
     if (!window.confirm("Are you sure you want to delete this village?"))
       return;
     const activeToken = token || localStorage.getItem("token");
-    if (!activeToken) {
-      alert("Please login again.");
-      return;
-    }
+    if (!activeToken) return alert("Please login again.");
 
     try {
       await axios.delete(`${API_URL}/api/admin/villages/${id}`, {
@@ -340,8 +481,7 @@ const AdminDashboard = () => {
               <table className="data-table">
                 <thead>
                   <tr>
-                    <th>ID</th>
-                    <th>Name</th>
+                    <th>Village Name</th>
                     <th>DS Division</th>
                     <th>District</th>
                     <th>Province</th>
@@ -351,11 +491,10 @@ const AdminDashboard = () => {
                 <tbody>
                   {villages.map((v) => (
                     <tr key={v._id}>
-                      <td>{v.village_id}</td>
                       <td>{v.name}</td>
-                      <td>{v.ds_division || "—"}</td>
-                      <td>{v.district || "—"}</td>
-                      <td>{v.province || "—"}</td>
+                      <td>{v.dsDivision?.name || "—"}</td>
+                      <td>{v.dsDivision?.district?.name || "—"}</td>
+                      <td>{v.dsDivision?.district?.province?.name || "—"}</td>
                       <td>
                         <button
                           className="btn-danger"
@@ -380,149 +519,223 @@ const AdminDashboard = () => {
             <h2>
               {modalType === "officer" ? "Create GN Officer" : "Add Village"}
             </h2>
-            <form
-              onSubmit={
-                modalType === "officer"
-                  ? handleSubmitOfficer
-                  : handleSubmitVillage
-              }
-            >
-              {modalType === "officer" ? (
-                <>
+
+            {modalType === "officer" ? (
+              // ------------- Officer Form -------------
+              <form onSubmit={handleSubmitOfficer}>
+                <div className="form-group">
+                  <label>Email *</label>
+                  <input
+                    type="email"
+                    name="email"
+                    value={formData.email}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
+                <div className="form-group">
+                  <label>Password *</label>
+                  <input
+                    type="password"
+                    name="password"
+                    value={formData.password}
+                    onChange={handleChange}
+                    required
+                    minLength="8"
+                  />
+                </div>
+                <div className="form-group">
+                  <label>Full Name *</label>
+                  <input
+                    type="text"
+                    name="full_name"
+                    value={formData.full_name}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
+                <div className="form-group">
+                  <label>Phone *</label>
+                  <input
+                    type="tel"
+                    name="phone"
+                    value={formData.phone}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
+                <div className="form-group">
+                  <label>Village *</label>
+                  <select
+                    name="village_id"
+                    value={formData.village_id}
+                    onChange={handleChange}
+                    required
+                  >
+                    <option value="">Select village</option>
+                    {villages.map((v) => (
+                      <option key={v._id} value={v._id}>
+                        {v.name} — {v.dsDivision?.name || ""}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className="form-group">
+                  <label>Profile Picture</label>
+                  <input
+                    type="file"
+                    name="profile_picture"
+                    accept="image/*"
+                    onChange={handleChange}
+                  />
+                </div>
+                <div className="modal-actions">
+                  <button type="submit" className="btn-primary">
+                    Save
+                  </button>
+                  <button
+                    type="button"
+                    className="btn-secondary"
+                    onClick={resetForm}
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </form>
+            ) : (
+              // ------------- Village Form (Cascading) -------------
+              <form onSubmit={handleSubmitVillage}>
+                {/* Province */}
+                <div className="form-group">
+                  <label>Province *</label>
+                  <select
+                    name="province"
+                    value={villageForm.province}
+                    onChange={handleVillageChange}
+                    required
+                  >
+                    <option value="">Select Province</option>
+                    {provinces.map((p) => (
+                      <option key={p._id} value={p._id}>
+                        {p.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* District */}
+                <div className="form-group">
+                  <label>District *</label>
+                  <select
+                    name="district"
+                    value={villageForm.district}
+                    onChange={handleVillageChange}
+                    disabled={!villageForm.province || loadingDistricts}
+                    required
+                  >
+                    <option value="">
+                      {loadingDistricts
+                        ? "Loading..."
+                        : !villageForm.province
+                          ? "Select Province first"
+                          : "Select District"}
+                    </option>
+                    {districts.map((d) => (
+                      <option key={d._id} value={d._id}>
+                        {d.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* DS Division */}
+                <div className="form-group">
+                  <label>DS Division *</label>
+                  <select
+                    name="ds_division"
+                    value={villageForm.ds_division}
+                    onChange={handleVillageChange}
+                    disabled={!villageForm.district || loadingDS}
+                    required
+                  >
+                    <option value="">
+                      {loadingDS
+                        ? "Loading..."
+                        : !villageForm.district
+                          ? "Select District first"
+                          : "Select DS Division"}
+                    </option>
+                    {dsDivisions.map((ds) => (
+                      <option key={ds._id} value={ds._id}>
+                        {ds.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Existing villages in selected DS division */}
+                {villageForm.ds_division && (
                   <div className="form-group">
-                    <label>Email *</label>
-                    <input
-                      type="email"
-                      name="email"
-                      value={formData.email}
-                      onChange={handleChange}
-                      required
-                    />
-                  </div>
-                  <div className="form-group">
-                    <label>Password *</label>
-                    <input
-                      type="password"
-                      name="password"
-                      value={formData.password}
-                      onChange={handleChange}
-                      required
-                      minLength="8"
-                    />
-                  </div>
-                  <div className="form-group">
-                    <label>Full Name *</label>
-                    <input
-                      type="text"
-                      name="full_name"
-                      value={formData.full_name}
-                      onChange={handleChange}
-                      required
-                    />
-                  </div>
-                  <div className="form-group">
-                    <label>Phone *</label>
-                    <input
-                      type="tel"
-                      name="phone"
-                      value={formData.phone}
-                      onChange={handleChange}
-                      required
-                    />
-                  </div>
-                  <div className="form-group">
-                    <label>Village *</label>
-                    <select
-                      name="village_id"
-                      value={formData.village_id}
-                      onChange={handleChange}
-                      required
+                    <label>Existing Villages in this DS Division</label>
+                    <div
+                      style={{
+                        maxHeight: "150px",
+                        overflowY: "auto",
+                        border: "1px solid #ddd",
+                        borderRadius: "6px",
+                        padding: "8px",
+                        background: "#f9f9f9",
+                      }}
                     >
-                      <option value="">Select village</option>
-                      {villages.map((v) => (
-                        <option key={v._id} value={v.village_id}>
-                          {v.name}
-                        </option>
-                      ))}
-                    </select>
+                      {loadingVillages ? (
+                        <p>Loading villages...</p>
+                      ) : existingVillages.length === 0 ? (
+                        <p style={{ color: "#888" }}>
+                          No villages yet in this DS Division.
+                        </p>
+                      ) : (
+                        <ul style={{ margin: 0, paddingLeft: "18px" }}>
+                          {existingVillages.map((v) => (
+                            <li key={v._id}>{v.name}</li>
+                          ))}
+                        </ul>
+                      )}
+                    </div>
                   </div>
-                  <div className="form-group">
-                    <label>Profile Picture</label>
-                    <input
-                      type="file"
-                      name="profile_picture"
-                      accept="image/*"
-                      onChange={handleChange}
-                    />
-                  </div>
-                </>
-              ) : (
-                <>
-                  <div className="form-group">
-                    <label>Village ID *</label>
-                    <input
-                      type="text"
-                      name="village_id_village"
-                      value={formData.village_id_village}
-                      onChange={handleChange}
-                      required
-                    />
-                  </div>
-                  <div className="form-group">
-                    <label>Village Name *</label>
-                    <input
-                      type="text"
-                      name="name"
-                      value={formData.name}
-                      onChange={handleChange}
-                      required
-                    />
-                  </div>
-                  <div className="form-group">
-                    <label>DS Division *</label>
-                    <input
-                      type="text"
-                      name="ds_division"
-                      value={formData.ds_division}
-                      onChange={handleChange}
-                      required
-                    />
-                  </div>
-                  <div className="form-group">
-                    <label>District *</label>
-                    <input
-                      type="text"
-                      name="district"
-                      value={formData.district}
-                      onChange={handleChange}
-                      required
-                    />
-                  </div>
-                  <div className="form-group">
-                    <label>Province *</label>
-                    <input
-                      type="text"
-                      name="province"
-                      value={formData.province}
-                      onChange={handleChange}
-                      required
-                    />
-                  </div>
-                </>
-              )}
-              <div className="modal-actions">
-                <button type="submit" className="btn-primary">
-                  Save
-                </button>
-                <button
-                  type="button"
-                  className="btn-secondary"
-                  onClick={resetForm}
-                >
-                  Cancel
-                </button>
-              </div>
-            </form>
+                )}
+
+                {/* New Village Name */}
+                <div className="form-group">
+                  <label>New Village Name *</label>
+                  <input
+                    type="text"
+                    name="name"
+                    value={villageForm.name}
+                    onChange={handleVillageChange}
+                    placeholder="Enter village name"
+                    disabled={!villageForm.ds_division}
+                    required
+                  />
+                </div>
+
+                <div className="modal-actions">
+                  <button
+                    type="submit"
+                    className="btn-primary"
+                    disabled={!villageForm.ds_division}
+                  >
+                    Save Village
+                  </button>
+                  <button
+                    type="button"
+                    className="btn-secondary"
+                    onClick={resetForm}
+                  >
+                    Close
+                  </button>
+                </div>
+              </form>
+            )}
           </div>
         </div>
       )}
