@@ -673,49 +673,66 @@ const AdminDashboard = () => {
                   </select>
                 </div>
 
-                {/* Existing villages in selected DS division */}
-                {villageForm.ds_division && (
-                  <div className="form-group">
-                    <label>Existing Villages in this DS Division</label>
-                    <div
-                      style={{
-                        maxHeight: "150px",
-                        overflowY: "auto",
-                        border: "1px solid #ddd",
-                        borderRadius: "6px",
-                        padding: "8px",
-                        background: "#f9f9f9",
-                      }}
-                    >
-                      {loadingVillages ? (
-                        <p>Loading villages...</p>
-                      ) : existingVillages.length === 0 ? (
-                        <p style={{ color: "#888" }}>
-                          No villages yet in this DS Division.
-                        </p>
-                      ) : (
-                        <ul style={{ margin: 0, paddingLeft: "18px" }}>
-                          {existingVillages.map((v) => (
-                            <li key={v._id}>{v.name}</li>
-                          ))}
-                        </ul>
-                      )}
-                    </div>
-                  </div>
-                )}
-
-                {/* New Village Name */}
+                {/* New Village Name — dropdown with existing villages as suggestions */}
                 <div className="form-group">
-                  <label>New Village Name *</label>
+                  <label>
+                    Village Name *{" "}
+                    {villageForm.ds_division && (
+                      <span
+                        style={{
+                          color: "#888",
+                          fontWeight: "normal",
+                          fontSize: "13px",
+                        }}
+                      >
+                        (
+                        {loadingVillages
+                          ? "loading..."
+                          : `${existingVillages.length} existing`}
+                        )
+                      </span>
+                    )}
+                  </label>
+
                   <input
                     type="text"
                     name="name"
+                    list="existing-villages-list"
                     value={villageForm.name}
                     onChange={handleVillageChange}
-                    placeholder="Enter village name"
+                    placeholder={
+                      !villageForm.ds_division
+                        ? "Select DS Division first"
+                        : existingVillages.length === 0
+                          ? "Type a new village name"
+                          : "Select existing or type a new village name"
+                    }
                     disabled={!villageForm.ds_division}
+                    autoComplete="off"
                     required
                   />
+
+                  {/* Datalist = autocomplete suggestions from existing villages */}
+                  <datalist id="existing-villages-list">
+                    {existingVillages.map((v) => (
+                      <option key={v._id} value={v.name} />
+                    ))}
+                  </datalist>
+
+                  {villageForm.ds_division &&
+                    !loadingVillages &&
+                    existingVillages.length === 0 && (
+                      <small
+                        style={{
+                          color: "#888",
+                          display: "block",
+                          marginTop: "4px",
+                        }}
+                      >
+                        No villages yet in this DS Division — type a name to add
+                        the first one.
+                      </small>
+                    )}
                 </div>
 
                 <div className="modal-actions">

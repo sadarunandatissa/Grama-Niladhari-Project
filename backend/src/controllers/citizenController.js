@@ -1,8 +1,10 @@
 // src/controllers/citizenController.js
 
+const mongoose = require("mongoose");
 const Citizen = require("../models/Citizen");
 const Family = require("../models/Family");
 const RegistrationRequest = require("../models/RegistrationRequest");
+const Village = require("../models/Village");
 const { generateFamilyRegNo } = require("../utils/helpers");
 
 // ─── GET PROFILE ──────────────────────────────────────────
@@ -10,22 +12,26 @@ exports.getProfile = async (req, res) => {
   try {
     const citizen = await Citizen.findById(req.user.id)
       .populate({
-        path: "village_id",
-        model: "Village",
-        select: "name village_id",
-        foreignField: "village_id",
-      })
-      .populate({
         path: "family_id",
         model: "Family",
         select: "family_reg_no members head_citizen_id",
       })
-      .select("-password_hash");
+      .select("-password_hash")
+      .lean();
     if (!citizen) {
       return res
         .status(404)
         .json({ success: false, message: "Citizen not found" });
     }
+
+    if (!citizen.village_id || !mongoose.Types.ObjectId.isValid(citizen.village_id)) {
+      citizen.village = null;
+    } else {
+      citizen.village = await Village.findById(citizen.village_id)
+        .select("name")
+        .lean();
+    }
+
     res.json({ success: true, data: citizen });
   } catch (error) {
     console.error("Get profile error:", error);
