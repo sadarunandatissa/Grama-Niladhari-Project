@@ -1,24 +1,87 @@
-const GNOfficer = require("../models/GNOfficer");
+const mongoose = require("mongoose");
+const User = require("../models/User");
 const Village = require("../models/Village");
-const Citizen = require("../models/Citizen");
-const RegistrationRequest = require("../models/RegistrationRequest");
-const AuditLog = require("../models/AuditLog");
-const bcrypt = require("bcryptjs");
-const {
-  validateEmail,
-  validatePassword,
-  validatePhone,
-} = require("../utils/validators");
+const DSDivision = require("../models/DSDivision");
 
+/* -------------------------------------------------
+   GET all villages (with populated hierarchy)
+------------------------------------------------- */
+exports.getVillages = async (req, res) => {
+  try {
+    const villages = await Village.find()
+      .populate({
+        path: "dsDivision",
+        populate: {
+          path: "district",
+          populate: { path: "province" },
+        },
+      })
+      .sort("name");
+
+    return res.status(200).json({ success: true, data: villages });
+  } catch (err) {
+    console.error("getVillages error:", err);
+    return res
+      .status(500)
+      .json({ success: false, message: "Failed to fetch villages" });
+  }
+};
+
+/* -------------------------------------------------
+   DELETE a village
+------------------------------------------------- */
+exports.deleteVillage = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid village ID" });
+    }
+
+    const village = await Village.findById(id);
+    if (!village) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Village not found" });
+    }
+
+    // Optional: check if any officer or resident is assigned to this village
+    const officerCount = await User.countDocuments({ village_id: id });
+    if (officerCount > 0) {
+      return res.status(400).json({
+        success: false,
+        message: `Cannot delete. ${officerCount} user(s) are assigned to this village.`,
+      });
+    }
+
+    await Village.findByIdAndDelete(id);
+    return res
+      .status(200)
+      .json({ success: true, message: "Village deleted successfully" });
+  } catch (err) {
+    console.error("deleteVillage error:", err);
+    return res
+      .status(500)
+      .json({ success: false, message: "Failed to delete village" });
+  }
+};
+
+/* -------------------------------------------------
+   GET stats
+------------------------------------------------- */
 exports.getStats = async (req, res) => {
   try {
-    const totalVillages = await Village.countDocuments();
-    const totalOfficers = await GNOfficer.countDocuments();
-    const totalCitizens = await Citizen.countDocuments();
-    const pendingRegistrations = await RegistrationRequest.countDocuments({
-      status: "pending",
-    });
-    res.json({
+    const [totalVillages, totalOfficers, totalCitizens, pendingRegistrations] =
+      await Promise.all([
+        Village.countDocuments(),
+        User.countDocuments({ role: "gn_officer" }),
+        User.countDocuments({ role: "resident" }),
+        User.countDocuments({ role: "resident", status: "pending" }),
+      ]);
+
+    return res.status(200).json({
       success: true,
       data: {
         totalVillages,
@@ -27,187 +90,204 @@ exports.getStats = async (req, res) => {
         pendingRegistrations,
       },
     });
-  } catch (error) {
-    console.error("Stats error:", error);
-    res.status(500).json({ success: false, message: "Server error" });
+  } catch (err) {
+    console.error("getStats error:", err);
+    return res
+      .status(500)
+      .json({ success: false, message: "Failed to fetch stats" });
   }
 };
 
-exports.getVillages = async (req, res) => {
-  try {
-    // ✅ Remove .select() – return all fields
-    const villages = await Village.find().lean();
-    res.json({ success: true, data: villages });
-  } catch (error) {
-    console.error("Get villages error:", error);
-    res.status(500).json({ success: false, message: "Server error" });
-  }
-};
-
+/* -------------------------------------------------
+   GET all GN Officers
+------------------------------------------------- */
 exports.getAllGNOfficers = async (req, res) => {
   try {
-    const officers = await GNOfficer.find()
+    const officers = await User.find({ role: "gn_officer" })
       .populate({
         path: "village_id",
-        model: "Village",
-        select: "name village_id",
-        foreignField: "village_id",
+        populate: {
+          path: "dsDivision",
+          populate: {
+            path: "district",
+            populate: { path: "province" },
+          },
+        },
       })
-      .sort({ createdAt: -1 });
-    res.json({ success: true, data: officers });
-  } catch (error) {
-    console.error("Get officers error:", error);
-    res.status(500).json({ success: false, message: "Server error" });
+      .select("-password")
+      .sort({ full_name: 1 });
+
+    return res.status(200).json({ success: true, data: officers });
+  } catch (err) {
+    console.error("getAllGNOfficers error:", err);
+    return res
+      .status(500)
+      .json({ success: false, message: "Failed to fetch GN officers" });
   }
 };
 
+/* -------------------------------------------------
+   CREATE GN Officer
+------------------------------------------------- */
 exports.createGNOfficer = async (req, res) => {
   try {
-    const { email, password, full_name, phone, village_id } = req.body;
-    if (!validateEmail(email))
-      return res.status(400).json({ success: false, message: "Invalid email" });
-    if (!validatePassword(password))
-      return res.status(400).json({
-        success: false,
-        message: "Password must be 8+ chars with letter and number",
-      });
-    if (!full_name || full_name.length < 2)
-      return res
-        .status(400)
-        .json({ success: false, message: "Full name required" });
-    if (!validatePhone(phone))
-      return res
-        .status(400)
-        .json({ success: false, message: "Phone must be 10 digits" });
+    const {
+      email,
+      password,
+      full_name,
+      phone,
+      village_id, // This is now a Village ObjectId
+    } = req.body;
 
-    let villageIdString = village_id;
-    if (Array.isArray(village_id)) villageIdString = village_id[0];
-    if (!villageIdString)
+    if (!email || !password || !full_name || !phone || !village_id) {
       return res
         .status(400)
-        .json({ success: false, message: "Village selection required" });
+        .json({ success: false, message: "All fields are required" });
+    }
 
-    const village = await Village.findOne({ village_id: villageIdString });
-    if (!village)
+    if (!mongoose.Types.ObjectId.isValid(village_id)) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid village ID" });
+    }
+
+    const village = await Village.findById(village_id);
+    if (!village) {
       return res
         .status(404)
-        .json({ success: false, message: "Village not found" });
+        .json({ success: false, message: "Selected village not found" });
+    }
 
-    const existing = await GNOfficer.findOne({ email });
-    if (existing)
+    const existing = await User.findOne({ email: email.toLowerCase() });
+    if (existing) {
       return res
         .status(400)
         .json({ success: false, message: "Email already registered" });
-
-    const existingOfficer = await GNOfficer.findOne({
-      village_id: villageIdString,
-      is_active: true,
-    });
-    if (existingOfficer) {
-      return res.status(400).json({
-        success: false,
-        message: `This village already has an officer: ${existingOfficer.full_name}`,
-      });
     }
 
-    const salt = await bcrypt.genSalt(10);
-    const password_hash = await bcrypt.hash(password, salt);
-    let profile_picture = null;
-    if (req.file) profile_picture = `/uploads/gn_officers/${req.file.filename}`;
+    const officerData = {
+      email: email.toLowerCase(),
+      password,
+      full_name,
+      phone,
+      village_id,
+      role: "gn_officer",
+      status: "active",
+    };
 
-    const gnOfficer = new GNOfficer({
-      email: email.trim().toLowerCase(),
-      password_hash,
-      full_name: full_name.trim(),
-      phone: phone.trim(),
-      village_id: villageIdString,
-      profile_picture,
-      created_by: req.user.id,
-      is_active: true,
+    if (req.file) {
+      officerData.profile_picture = `/uploads/${req.file.filename}`;
+    }
+
+    const officer = await User.create(officerData);
+
+    return res.status(201).json({
+      success: true,
+      message: "GN Officer created successfully",
+      data: {
+        _id: officer._id,
+        email: officer.email,
+        full_name: officer.full_name,
+        phone: officer.phone,
+        village_id: officer.village_id,
+        role: officer.role,
+      },
     });
-    await gnOfficer.save();
-
-    await AuditLog.create({
-      user_type: "admin",
-      user_id: req.user.id,
-      user_model: "Admin",
-      action: "CREATE_GN_OFFICER",
-      details: { email, village_id: villageIdString, full_name },
-    });
-
-    res
-      .status(201)
-      .json({ success: true, message: "GN Officer created", data: gnOfficer });
-  } catch (error) {
-    console.error("Create officer error:", error);
-    res.status(500).json({ success: false, message: "Server error" });
+  } catch (err) {
+    console.error("createGNOfficer error:", err);
+    return res
+      .status(500)
+      .json({ success: false, message: "Failed to create GN Officer" });
   }
 };
 
+/* -------------------------------------------------
+   DELETE GN Officer
+------------------------------------------------- */
 exports.deleteGNOfficer = async (req, res) => {
   try {
     const { id } = req.params;
-    const officer = await GNOfficer.findByIdAndDelete(id);
-    if (!officer)
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid officer ID" });
+    }
+
+    const officer = await User.findOne({ _id: id, role: "gn_officer" });
+    if (!officer) {
       return res
         .status(404)
-        .json({ success: false, message: "Officer not found" });
-    await AuditLog.create({
-      user_type: "admin",
-      user_id: req.user.id,
-      action: "DELETE_GN_OFFICER",
-      details: { email: officer.email },
-    });
-    res.json({ success: true, message: "Deleted" });
-  } catch (error) {
-    res.status(500).json({ success: false, message: "Server error" });
+        .json({ success: false, message: "GN Officer not found" });
+    }
+
+    await User.findByIdAndDelete(id);
+    return res
+      .status(200)
+      .json({ success: true, message: "GN Officer deleted successfully" });
+  } catch (err) {
+    console.error("deleteGNOfficer error:", err);
+    return res
+      .status(500)
+      .json({ success: false, message: "Failed to delete GN Officer" });
   }
 };
 
+/* -------------------------------------------------
+   (Optional) Keep createVillage for backwards compat
+   — but delegate to the same logic as /api/location/villages
+------------------------------------------------- */
 exports.createVillage = async (req, res) => {
   try {
-    const { village_id, name, ds_division, district, province } = req.body;
-    if (!village_id || !name || !ds_division || !district || !province) {
-      return res
-        .status(400)
-        .json({ success: false, message: "All fields required" });
-    }
-    const existing = await Village.findOne({ $or: [{ village_id }, { name }] });
-    if (existing)
-      return res
-        .status(400)
-        .json({ success: false, message: "Village already exists" });
-    const village = new Village({
-      village_id,
-      name,
-      ds_division,
-      district,
-      province,
-    });
-    await village.save();
-    res.status(201).json({ success: true, data: village });
-  } catch (error) {
-    res.status(500).json({ success: false, message: "Server error" });
-  }
-};
+    const { name, dsDivisionId } = req.body;
 
-exports.deleteVillage = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const village = await Village.findById(id);
-    if (!village)
-      return res
-        .status(404)
-        .json({ success: false, message: "Village not found" });
-    const officer = await GNOfficer.findOne({ village_id: village.village_id });
-    if (officer)
+    if (!name || !dsDivisionId) {
       return res.status(400).json({
         success: false,
-        message: "Cannot delete village with assigned officer",
+        message: "Village name and DS Division are required",
       });
-    await village.deleteOne();
-    res.json({ success: true, message: "Deleted" });
-  } catch (error) {
-    res.status(500).json({ success: false, message: "Server error" });
+    }
+
+    if (!mongoose.Types.ObjectId.isValid(dsDivisionId)) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid DS Division ID" });
+    }
+
+    const ds = await DSDivision.findById(dsDivisionId);
+    if (!ds) {
+      return res
+        .status(404)
+        .json({ success: false, message: "DS Division not found" });
+    }
+
+    const existing = await Village.findOne({
+      name: name.trim(),
+      dsDivision: dsDivisionId,
+    });
+    if (existing) {
+      return res
+        .status(400)
+        .json({
+          success: false,
+          message: "Village already exists in this DS Division",
+        });
+    }
+
+    const village = await Village.create({
+      name: name.trim(),
+      dsDivision: dsDivisionId,
+    });
+
+    return res.status(201).json({
+      success: true,
+      message: "Village created successfully",
+      data: village,
+    });
+  } catch (err) {
+    console.error("createVillage error:", err);
+    return res
+      .status(500)
+      .json({ success: false, message: "Failed to create village" });
   }
 };
