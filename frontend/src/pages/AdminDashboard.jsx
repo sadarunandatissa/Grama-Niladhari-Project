@@ -680,7 +680,7 @@ const AdminDashboard = () => {
                     {villageForm.ds_division && (
                       <span
                         style={{
-                          color: "#888",
+                          color: "#e8e2e2",
                           fontWeight: "normal",
                           fontSize: "13px",
                         }}
