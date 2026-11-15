@@ -530,6 +530,7 @@ const CitizenDashboard = () => {
       {/* Modals */}
       {showCertificateModal && (
         <CertificateRequestModal
+          citizen={profile}
           onClose={() => setShowCertificateModal(false)}
           onSuccess={() => {
             fetchData();
@@ -549,6 +550,7 @@ const CitizenDashboard = () => {
       )}
       {showPermitModal && (
         <PermitRequestModal
+          citizen={profile}
           onClose={() => setShowPermitModal(false)}
           onSuccess={() => {
             setPermitRefreshKey((prev) => prev + 1);

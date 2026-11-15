@@ -383,6 +383,68 @@ const OfficerPermits = () => {
 
             <div className="modal-body">
               <div className="modal-section">
+                <h4>Applicant Information</h4>
+                <div className="fact-list">
+                  <div className="fact-row">
+                    <span className="fact-label">Name</span>
+                    <span className="fact-value">
+                      {selectedPermit.citizenId?.full_name ||
+                        selectedPermit.formData?.full_name ||
+                        "N/A"}
+                    </span>
+                  </div>
+                  <div className="fact-row">
+                    <span className="fact-label">First Name</span>
+                    <span className="fact-value">
+                      {selectedPermit.citizenId?.first_name ||
+                        selectedPermit.formData?.first_name ||
+                        "N/A"}
+                    </span>
+                  </div>
+                  <div className="fact-row">
+                    <span className="fact-label">Middle Name</span>
+                    <span className="fact-value">
+                      {selectedPermit.citizenId?.middle_name ||
+                        selectedPermit.formData?.middle_name ||
+                        "N/A"}
+                    </span>
+                  </div>
+                  <div className="fact-row">
+                    <span className="fact-label">Last Name</span>
+                    <span className="fact-value">
+                      {selectedPermit.citizenId?.last_name ||
+                        selectedPermit.formData?.last_name ||
+                        "N/A"}
+                    </span>
+                  </div>
+                  <div className="fact-row">
+                    <span className="fact-label">Telephone</span>
+                    <span className="fact-value">
+                      {selectedPermit.citizenId?.phone_numbers?.[0] ||
+                        selectedPermit.formData?.phone ||
+                        "N/A"}
+                    </span>
+                  </div>
+                  <div className="fact-row">
+                    <span className="fact-label">Email</span>
+                    <span className="fact-value">
+                      {selectedPermit.citizenId?.email ||
+                        selectedPermit.formData?.email ||
+                        "N/A"}
+                    </span>
+                  </div>
+                  <div className="fact-row">
+                    <span className="fact-label">NIC</span>
+                    <span className="fact-value">
+                      {selectedPermit.citizenId?.nic ||
+                        selectedPermit.formData?.nic ||
+                        "N/A"}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="modal-section">
                 <h4>Current Status</h4>
                 <span
                   className={`status-badge status-${selectedPermit.status}`}

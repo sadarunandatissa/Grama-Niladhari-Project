@@ -11,7 +11,6 @@ import {
   FileCheckCorner,
   FileStack,
   UsersRound,
-  House,
   Plus,
   Megaphone,
   MessageSquare,
@@ -34,22 +33,31 @@ const MONTH_LABELS = [
   "Dec",
 ];
 
+const createMonthlyCounts = () => ({
+  pending: new Array(12).fill(0),
+  approved: new Array(12).fill(0),
+  rejected: new Array(12).fill(0),
+});
+
 const emptyStats = {
   certificates: {
     pending: 0,
     approved: 0,
     rejected: 0,
-    monthly: new Array(12).fill(0),
+    monthly: createMonthlyCounts(),
     recent: [],
   },
   permits: {
     pending: 0,
     approved: 0,
     rejected: 0,
-    monthly: new Array(12).fill(0),
+    monthly: createMonthlyCounts(),
     recent: [],
   },
-  citizenStats: { totalCitizens: 0, totalFamilies: 0, totalHouses: 0 },
+  citizenStats: { totalCitizens: 0, totalFamilies: 0 },
+  genderStats: { male: 0, female: 0 },
+  pendingRegistrations: 0,
+  pendingAppointments: 0,
 };
 
 const getGreeting = () => {
@@ -106,7 +114,14 @@ const OfficerDashboard = () => {
     return <div className="loading-spinner">Loading dashboard...</div>;
   }
 
-  const { certificates, permits, citizenStats } = stats;
+  const {
+    certificates,
+    permits,
+    citizenStats,
+    genderStats,
+    pendingRegistrations,
+    pendingAppointments,
+  } = stats;
   const unreadCount = notifications.filter((n) => !n.isRead).length;
 
   const activeData = activeTab === "certificates" ? certificates : permits;
@@ -114,17 +129,41 @@ const OfficerDashboard = () => {
   const activeTotal =
     activeData.pending + activeData.approved + activeData.rejected;
 
-  const highestMonthIdx = activeData.monthly.reduce(
-    (best, val, idx, arr) => (val > arr[best] ? idx : best),
-    0,
-  );
-
-  const citizenTotal =
-    citizenStats.totalCitizens +
-    citizenStats.totalFamilies +
-    citizenStats.totalHouses;
-  const pct = (value) =>
-    citizenTotal ? Math.round((value / citizenTotal) * 100) : 0;
+  const genderTotal = genderStats.male + genderStats.female;
+  const genderPercentage = (value) =>
+    genderTotal ? Math.round((value / genderTotal) * 100) : 0;
+  const monthlySeries = [
+    {
+      name: "Certificates pending",
+      color: "#f59e0b",
+      data: certificates.monthly.pending,
+    },
+    {
+      name: "Certificates approved",
+      color: "#2563eb",
+      data: certificates.monthly.approved,
+    },
+    {
+      name: "Certificates rejected",
+      color: "#dc2626",
+      data: certificates.monthly.rejected,
+    },
+    {
+      name: "Permits pending",
+      color: "#fb923c",
+      data: permits.monthly.pending,
+    },
+    {
+      name: "Permits approved",
+      color: "#16a34a",
+      data: permits.monthly.approved,
+    },
+    {
+      name: "Permits rejected",
+      color: "#991b1b",
+      data: permits.monthly.rejected,
+    },
+  ];
 
   const quickActions = [
     {
@@ -197,17 +236,24 @@ const OfficerDashboard = () => {
             </div>
           </div>
           <div className="kpi-card" style={{ "--kpi-color": "#f97316" }}>
+            <Plus />
+            <div>
+              <strong>{pendingRegistrations}</strong>
+              <span>Pending Registrations</span>
+            </div>
+          </div>
+          <div className="kpi-card" style={{ "--kpi-color": "#7c3aed" }}>
+            <Bell />
+            <div>
+              <strong>{pendingAppointments}</strong>
+              <span>Pending Appointments</span>
+            </div>
+          </div>
+          <div className="kpi-card" style={{ "--kpi-color": "#f97316" }}>
             <UsersRound />
             <div>
               <strong>{citizenStats.totalCitizens}</strong>
               <span>Total Citizens</span>
-            </div>
-          </div>
-          <div className="kpi-card" style={{ "--kpi-color": "#7c3aed" }}>
-            <House />
-            <div>
-              <strong>{citizenStats.totalHouses}</strong>
-              <span>Total Houses</span>
             </div>
           </div>
           <div className="kpi-card" style={{ "--kpi-color": "#2563eb" }}>
@@ -276,21 +322,25 @@ const OfficerDashboard = () => {
 
             <div className="panel">
               <div className="panel-header">
-                <h5>Monthly Trend</h5>
+                <h5>Monthly Requests by Status</h5>
                 <span className="panel-note">
-                  Busiest month:{" "}
-                  <strong>{MONTH_LABELS[highestMonthIdx]}</strong>
+                  {new Date().getFullYear()}
                 </span>
+              </div>
+              <div className="monthly-chart-legend">
+                {monthlySeries.map((series) => (
+                  <span className="monthly-legend-item" key={series.name}>
+                    <span
+                      className="dot"
+                      style={{ background: series.color }}
+                    />
+                    {series.name}
+                  </span>
+                ))}
               </div>
               <BarChart
                 labels={MONTH_LABELS}
-                series={[
-                  {
-                    name: activeTab,
-                    color: activeColor,
-                    data: activeData.monthly,
-                  },
-                ]}
+                series={monthlySeries}
               />
             </div>
           </div>
@@ -299,42 +349,35 @@ const OfficerDashboard = () => {
           <div className="side-column">
             <div className="panel">
               <div className="panel-header">
-                <h5>Citizens Overview</h5>
+                <h5>Village Population by Gender</h5>
               </div>
               <div className="donut-row">
                 <DonutChart
                   size={120}
                   strokeWidth={20}
+                  centerLabel="Citizens"
                   segments={[
                     {
-                      label: "Citizens",
-                      value: citizenStats.totalCitizens,
+                      label: "Male",
+                      value: genderStats.male,
                       color: "#2563eb",
                     },
                     {
-                      label: "Families",
-                      value: citizenStats.totalFamilies,
-                      color: "#f97316",
-                    },
-                    {
-                      label: "Houses",
-                      value: citizenStats.totalHouses,
-                      color: "#16a34a",
+                      label: "Female",
+                      value: genderStats.female,
+                      color: "#e879f9",
                     },
                   ]}
                 />
                 <div className="donut-legend">
                   <div className="legend-row">
                     <span className="dot" style={{ background: "#2563eb" }} />
-                    Citizens <strong>{pct(citizenStats.totalCitizens)}%</strong>
+                    Male <strong>{genderPercentage(genderStats.male)}%</strong>
                   </div>
                   <div className="legend-row">
-                    <span className="dot" style={{ background: "#f97316" }} />
-                    Families <strong>{pct(citizenStats.totalFamilies)}%</strong>
-                  </div>
-                  <div className="legend-row">
-                    <span className="dot" style={{ background: "#16a34a" }} />
-                    Houses <strong>{pct(citizenStats.totalHouses)}%</strong>
+                    <span className="dot" style={{ background: "#e879f9" }} />
+                    Female{" "}
+                    <strong>{genderPercentage(genderStats.female)}%</strong>
                   </div>
                 </div>
               </div>

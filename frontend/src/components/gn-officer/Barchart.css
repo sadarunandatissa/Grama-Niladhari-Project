@@ -47,7 +47,7 @@
 .bar-group-bars {
   display: flex;
   align-items: flex-end;
-  gap: 3px;
+  gap: 2px;
   height: 100%;
   width: 100%;
   justify-content: center;
@@ -55,12 +55,15 @@
 
 .bar-wrapper {
   display: flex;
+  flex: 1 1 0;
   align-items: flex-end;
   height: 100%;
+  min-width: 0;
+  max-width: 8px;
 }
 
 .bar {
-  width: 8px;
+  width: 100%;
   min-height: 2px;
   border-radius: 3px 3px 0 0;
   transition: height 0.3s ease;
