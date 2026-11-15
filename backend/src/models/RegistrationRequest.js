@@ -10,6 +10,7 @@ const RegistrationRequestSchema = new mongoose.Schema({
   last_name: String,
   full_name: { type: String, required: true },
   date_of_birth: { type: Date, required: true },
+  gender: { type: String, enum: ["male", "female"], required: true },
   address: { type: String, required: true },
   village_id: { type: String, ref: "Village", required: true },
   phone_numbers: [String],

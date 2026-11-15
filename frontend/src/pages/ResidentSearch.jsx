@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useAuth } from "../context/AuthContext";
+import formatFamilyRegNo from "../utils/formatFamilyRegNo";
 import "./ResidentSearch.css";
 import {
   UsersRound,
@@ -174,7 +175,9 @@ const ResidentSearch = () => {
                       <td className="cell-strong">{r.full_name}</td>
                       <td>{r.nic}</td>
                       <td>{r.phone_numbers?.[0] || "—"}</td>
-                      <td>{r.family_id?.family_reg_no || "—"}</td>
+                      <td>
+                        {formatFamilyRegNo(r.family_id?.family_reg_no) || "—"}
+                      </td>
                       <td>
                         {r.is_head ? (
                           <span className="badge badge-primary">Head</span>
@@ -286,7 +289,9 @@ const ResidentSearch = () => {
                         <div className="detail-item">
                           <span className="label">Family Reg No</span>
                           <span className="value">
-                            {selectedResident.family.family_reg_no}
+                            {formatFamilyRegNo(
+                              selectedResident.family.family_reg_no,
+                            )}
                           </span>
                         </div>
                         <div className="detail-item">

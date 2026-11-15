@@ -25,6 +25,7 @@ const RegistrationForm = () => {
     last_name: "",
     // full_name removed
     date_of_birth: "",
+    gender: "",
     address: "",
     village_id: "",
     phone_numbers: [""],
@@ -425,7 +426,7 @@ const RegistrationForm = () => {
                         name="family_reg_no"
                         value={formData.family_reg_no}
                         onChange={handleChange}
-                        placeholder="e.g., 56776-FAM-001"
+                        placeholder="e.g., FAM-0001"
                         required
                       />
                       <small className="form-help">
@@ -546,6 +547,19 @@ const RegistrationForm = () => {
                       />
                     </div>
                     <div className="form-group">
+                      <label>Gender *</label>
+                      <select
+                        name="gender"
+                        value={formData.gender}
+                        onChange={handleChange}
+                        required
+                      >
+                        <option value="">Select gender</option>
+                        <option value="male">Male</option>
+                        <option value="female">Female</option>
+                      </select>
+                    </div>
+                    <div className="form-group">
                       <label>Occupation</label>
                       <input
                         type="text"
@@ -577,7 +591,7 @@ const RegistrationForm = () => {
                     >
                       <option value="">Select your village</option>
                       {villages.map((v) => (
-                        <option key={v.village_id} value={v.village_id}>
+                        <option key={v._id} value={v._id}>
                           {v.name}
                         </option>
                       ))}
@@ -658,6 +672,7 @@ const RegistrationForm = () => {
                       name="password"
                       value={formData.password}
                       onChange={handleChange}
+                      autoComplete="new-password"
                       required
                       minLength="8"
                     />
@@ -672,6 +687,7 @@ const RegistrationForm = () => {
                       name="confirmPassword"
                       value={formData.confirmPassword}
                       onChange={handleChange}
+                      autoComplete="new-password"
                       required
                     />
                   </div>

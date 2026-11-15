@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useAuth } from "../../context/AuthContext";
+import formatFamilyRegNo from "../../utils/formatFamilyRegNo";
 import "./PendingVerifications.css";
 
 const PendingVerifications = () => {
@@ -103,7 +104,8 @@ const PendingVerifications = () => {
                   <strong>NIC:</strong> {req.nic}
                 </p>
                 <p>
-                  <strong>Village:</strong> {req.village_id}
+                  <strong>Village:</strong>{" "}
+                  {req.village_id?.name || req.village_id}
                 </p>
                 <p>
                   <strong>Username:</strong> {req.email}
@@ -120,7 +122,8 @@ const PendingVerifications = () => {
                 )}
                 {!req.is_family_head && (
                   <p>
-                    <strong>Family Reg No:</strong> {req.family_reg_no}
+                    <strong>Family Reg No:</strong>{" "}
+                    {formatFamilyRegNo(req.family_reg_no)}
                   </p>
                 )}
               </div>
