@@ -79,7 +79,7 @@ exports.createFamily = async (req, res) => {
     }
 
     // Generate family registration number
-    const familyRegNo = await generateFamilyRegNo(citizen.village_id);
+    const familyRegNo = await generateFamilyRegNo();
 
     const family = new Family({
       village_id: citizen.village_id,

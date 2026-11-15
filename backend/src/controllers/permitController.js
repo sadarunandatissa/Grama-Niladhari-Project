@@ -138,12 +138,14 @@ exports.submitPermit = async (req, res) => {
     // Auto-fill citizen details
     const finalFormData = {
       ...formData,
+      full_name: citizen.full_name,
       first_name: citizen.first_name,
       middle_name: citizen.middle_name,
       last_name: citizen.last_name,
       nic: citizen.nic,
       initials: citizen.initials,
       address: citizen.address,
+      email: citizen.email,
       phone: citizen.phone_numbers?.[0] || "",
     };
 
@@ -211,7 +213,10 @@ exports.getVillagePermits = async (req, res) => {
     }
 
     const permits = await Permit.find(filter)
-      .populate("citizenId", "full_name email nic phone_numbers")
+      .populate(
+        "citizenId",
+        "full_name first_name middle_name last_name email nic phone_numbers",
+      )
       .sort({ requestedAt: 1 });
 
     // Add warning flag
@@ -348,7 +353,7 @@ exports.getPermitDetails = async (req, res) => {
     const { id } = req.params;
     const permit = await Permit.findById(id).populate(
       "citizenId",
-      "full_name email nic phone_numbers",
+      "full_name first_name middle_name last_name email nic phone_numbers",
     );
     if (!permit) {
       return res

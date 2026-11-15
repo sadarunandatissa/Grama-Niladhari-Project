@@ -15,6 +15,7 @@ import ResidentAnnouncements from "../components/announcements/ResidentAnnouncem
 
 import PermitRequestModal from "../components/permits/PermitRequestModal";
 import CitizenPermitList from "../components/permits/CitizenPermitList";
+import formatFamilyRegNo from "../utils/formatFamilyRegNo";
 
 const getApiUrl = () => {
   if (import.meta.env && import.meta.env.VITE_API_URL) {
@@ -375,7 +376,9 @@ const CitizenDashboard = () => {
             </h2>
             <span className="village-badge">
               <IconPin />
-              {profile.village_id?.name || profile.village_id}
+              {profile.village?.name ||
+                profile.village_id ||
+                "Village not assigned"}
             </span>
           </div>
 
@@ -404,13 +407,16 @@ const CitizenDashboard = () => {
               <div className="summary-detail-item">
                 <span className="label">Village</span>
                 <span className="value">
-                  {profile.village_id?.name || profile.village_id}
+                  {profile.village?.name ||
+                    profile.village_id ||
+                    "Village not assigned"}
                 </span>
               </div>
               <div className="summary-detail-item">
                 <span className="label">Family Reg</span>
                 <span className="value">
-                  {profile.family_id?.family_reg_no || "Not assigned"}
+                  {formatFamilyRegNo(profile.family_id?.family_reg_no) ||
+                    "Not assigned"}
                 </span>
               </div>
             </div>
@@ -524,6 +530,7 @@ const CitizenDashboard = () => {
       {/* Modals */}
       {showCertificateModal && (
         <CertificateRequestModal
+          citizen={profile}
           onClose={() => setShowCertificateModal(false)}
           onSuccess={() => {
             fetchData();
@@ -543,6 +550,7 @@ const CitizenDashboard = () => {
       )}
       {showPermitModal && (
         <PermitRequestModal
+          citizen={profile}
           onClose={() => setShowPermitModal(false)}
           onSuccess={() => {
             setPermitRefreshKey((prev) => prev + 1);
