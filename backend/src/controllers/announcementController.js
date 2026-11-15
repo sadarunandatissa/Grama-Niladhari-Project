@@ -1,56 +1,7 @@
 const Announcement = require("../models/Announcement");
 const Citizen = require("../models/Citizen");
 const GNOfficer = require("../models/GNOfficer");
-const Notification = require("../models/Notification");
-const sendSMS = require("../services/smsService");
-
-// ─── Helpers ──────────────────────────────────────────────
-// Get all citizen phone numbers in a village (or specific NICs)
-const getTargetPhoneNumbers = async (
-  villageId,
-  targetAudience,
-  specificNICs,
-) => {
-  let filter = { village_id: villageId, is_active: true };
-  if (
-    targetAudience === "specific" &&
-    specificNICs &&
-    specificNICs.length > 0
-  ) {
-    filter.nic = { $in: specificNICs };
-  }
-  const citizens = await Citizen.find(filter).select("phone_numbers");
-  const phones = [];
-  citizens.forEach((c) => {
-    if (c.phone_numbers && c.phone_numbers.length > 0) {
-      const primary = c.phone_numbers[0];
-      // Ensure phone has country code (add +94 if not present)
-      let formatted = primary.trim();
-      if (!formatted.startsWith("+")) {
-        if (formatted.startsWith("0")) {
-          formatted = "+94" + formatted.substring(1);
-        } else {
-          formatted = "+94" + formatted;
-        }
-      }
-      phones.push(formatted);
-    }
-  });
-  return phones;
-};
-
-// Get target citizens for notifications (full objects)
-const getTargetCitizens = async (villageId, targetAudience, specificNICs) => {
-  let filter = { village_id: villageId, is_active: true };
-  if (
-    targetAudience === "specific" &&
-    specificNICs &&
-    specificNICs.length > 0
-  ) {
-    filter.nic = { $in: specificNICs };
-  }
-  return await Citizen.find(filter).select("_id");
-};
+const { publishAnnouncementLogic } = require("../services/announcementService");
 
 // ─── Create Announcement ─────────────────────────────────
 exports.createAnnouncement = async (req, res) => {
@@ -128,15 +79,18 @@ exports.createAnnouncement = async (req, res) => {
     await announcement.save();
 
     // If immediate publish, publish now
+    let delivery;
     if (publishMode === "immediate") {
-      await publishAnnouncement(announcement, officer);
+      delivery = await publishAnnouncementLogic(announcement, officer);
     }
 
     res.status(201).json({
       success: true,
       message:
         publishMode === "immediate"
-          ? "Announcement published successfully."
+          ? delivery.smsFailed > 0
+            ? `Announcement published, but SMS delivery failed for ${delivery.smsFailed} recipient(s).`
+            : "Announcement published successfully."
           : "Announcement scheduled successfully.",
       data: announcement,
     });
@@ -144,46 +98,6 @@ exports.createAnnouncement = async (req, res) => {
     console.error("Create announcement error:", error);
     res.status(500).json({ success: false, message: "Server error" });
   }
-};
-
-// ─── Publish Announcement (internal) ──────────────────────
-const publishAnnouncement = async (announcement, officer) => {
-  // Update status
-  announcement.status = "published";
-  announcement.sentAt = new Date();
-  await announcement.save();
-
-  // Get target citizens
-  const citizens = await getTargetCitizens(
-    announcement.village_id,
-    announcement.targetAudience,
-    announcement.specificNICs,
-  );
-
-  // Create in-app notifications for each citizen
-  const notificationPromises = citizens.map((citizen) => {
-    return Notification.create({
-      recipientId: citizen._id,
-      recipientModel: "Citizen",
-      type: "announcement",
-      title: `📢 ${announcement.title}`,
-      message: announcement.description,
-      link: `/citizen/announcements/${announcement._id}`,
-      priority: announcement.priority,
-      isRead: false,
-    });
-  });
-  await Promise.all(notificationPromises);
-
-  // Send SMS
-  const phones = await getTargetPhoneNumbers(
-    announcement.village_id,
-    announcement.targetAudience,
-    announcement.specificNICs,
-  );
-  const smsMessage = `📢 ${announcement.title}\n\n${announcement.description}`;
-  const smsPromises = phones.map((phone) => sendSMS(phone, smsMessage));
-  await Promise.all(smsPromises);
 };
 
 // ─── Get Announcements for Officer ────────────────────────

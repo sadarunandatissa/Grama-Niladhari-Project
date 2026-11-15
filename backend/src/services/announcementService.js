@@ -64,6 +64,7 @@ const publishAnnouncementLogic = async (announcement, officer) => {
       title: `📢 ${announcement.title}`,
       message: announcement.description,
       link: `/citizen/announcements/${announcement._id}`,
+      priority: announcement.priority,
       isRead: false,
     });
   });
@@ -76,7 +77,15 @@ const publishAnnouncementLogic = async (announcement, officer) => {
   );
   const smsMessage = `📢 ${announcement.title}\n\n${announcement.description}`;
   const smsPromises = phones.map((phone) => sendSMS(phone, smsMessage));
-  await Promise.all(smsPromises);
+  const smsResults = await Promise.all(smsPromises);
+  const smsFailed = smsResults.filter((result) => !result.success).length;
+  if (smsFailed > 0) {
+    console.error(
+      `Announcement ${announcement._id}: SMS delivery failed for ${smsFailed} of ${phones.length} recipients`,
+    );
+  }
+
+  return { smsSent: phones.length - smsFailed, smsFailed };
 };
 
 module.exports = {

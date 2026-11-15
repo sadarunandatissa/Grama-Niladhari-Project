@@ -13,6 +13,7 @@ const {
   validateDateOfBirth,
 } = require("../utils/validators");
 const { generateFamilyRegNo } = require("../utils/helpers");
+const sendSMS = require("../services/smsService");
 
 exports.submitRegistration = async (req, res) => {
   try {
@@ -264,7 +265,17 @@ exports.verifyRegistration = async (req, res) => {
       } catch (auditErr) {
         console.error("Audit log failed (reject):", auditErr.message);
       }
-      return res.json({ success: true, message: "Registration rejected" });
+      const smsResult = await sendSMS(
+        registration.phone_numbers?.[0],
+        `Your Grama Niladhari registration request was rejected. Reason: ${registration.rejection_reason}`,
+      );
+      return res.json({
+        success: true,
+        message: smsResult.success
+          ? "Registration rejected"
+          : "Registration rejected, but the SMS notification could not be sent.",
+        sms_sent: smsResult.success,
+      });
     }
 
     // ---- VERIFY ----
@@ -381,9 +392,17 @@ exports.verifyRegistration = async (req, res) => {
       console.error("Audit log failed (verify):", auditErr.message);
     }
 
+    const smsResult = await sendSMS(
+      registration.phone_numbers?.[0],
+      "Your Grama Niladhari registration request has been accepted. You can now sign in to your account.",
+    );
+
     res.json({
       success: true,
-      message: "Registration verified",
+      message: smsResult.success
+        ? "Registration verified"
+        : "Registration verified, but the SMS notification could not be sent.",
+      sms_sent: smsResult.success,
       data: { citizen_id: citizen._id, family_id: familyId },
     });
   } catch (error) {

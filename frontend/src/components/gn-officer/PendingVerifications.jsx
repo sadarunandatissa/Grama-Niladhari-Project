@@ -41,12 +41,20 @@ const PendingVerifications = () => {
     if (!window.confirm("Are you sure you want to verify this registration?"))
       return;
     try {
-      await axios.put(
+      const response = await axios.put(
         `${API_URL}/api/registration/verify/${requestId}`,
         { action: "verify" },
         { headers: { Authorization: `Bearer ${token}` } },
       );
-      setSuccess("Registration verified!");
+      const message = response.data.message || "Registration verified!";
+      if (response.data.sms_sent === false) {
+        setError(message);
+        setSuccess("");
+        setTimeout(() => setError(""), 5000);
+      } else {
+        setSuccess(message);
+        setError("");
+      }
       fetchPending();
       setTimeout(() => setSuccess(""), 5000);
     } catch (error) {
@@ -62,12 +70,20 @@ const PendingVerifications = () => {
     }
     if (!window.confirm("Reject this registration?")) return;
     try {
-      await axios.put(
+      const response = await axios.put(
         `${API_URL}/api/registration/verify/${requestId}`,
         { action: "reject", rejection_reason: rejectReason },
         { headers: { Authorization: `Bearer ${token}` } },
       );
-      setSuccess("Registration rejected.");
+      const message = response.data.message || "Registration rejected.";
+      if (response.data.sms_sent === false) {
+        setError(message);
+        setSuccess("");
+        setTimeout(() => setError(""), 5000);
+      } else {
+        setSuccess(message);
+        setError("");
+      }
       fetchPending();
       setSelectedRequest(null);
       setRejectReason("");

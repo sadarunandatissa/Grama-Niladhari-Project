@@ -1,33 +1,75 @@
-// SMS Service – uses Twilio if credentials exist, otherwise mock
-const twilio = require("twilio");
+const { randomUUID } = require("node:crypto");
 
-const accountSid = process.env.TWILIO_ACCOUNT_SID || null;
-const authToken = process.env.TWILIO_AUTH_TOKEN || null;
-const fromPhone = process.env.TWILIO_PHONE_NUMBER || null;
+const API_URL = "https://api.instsms.com/send-sms";
 
-let client = null;
-if (accountSid && authToken && fromPhone) {
-  client = twilio(accountSid, authToken);
-}
+const normalizeContact = (phone) => {
+  let contact = String(phone || "").replace(/\D/g, "");
+  if (contact.startsWith("0") && contact.length === 10) {
+    contact = `94${contact.slice(1)}`;
+  } else if (contact.length === 9) {
+    contact = `94${contact}`;
+  }
+  return contact;
+};
 
 const sendSMS = async (to, message) => {
-  if (client) {
-    try {
-      await client.messages.create({
-        body: message,
-        from: fromPhone,
-        to: to,
-      });
-      console.log(`✅ SMS sent to ${to}`);
-      return { success: true };
-    } catch (err) {
-      console.error(`❌ SMS failed to ${to}:`, err.message);
-      return { success: false, error: err.message };
+  const userId = process.env.INSTSMS_USER_ID;
+  const apiKey = process.env.INSTSMS_API_KEY;
+  const senderId = process.env.INSTSMS_SENDER_ID || "INSTSMSDEMO";
+  const contact = normalizeContact(to);
+
+  if (!userId || !apiKey) {
+    const error = "INSTSMS_USER_ID and INSTSMS_API_KEY must be configured";
+    console.error(`SMS failed: ${error}`);
+    return { success: false, error };
+  }
+
+  if (!contact) {
+    const error = "A valid SMS recipient phone number is required";
+    console.error(`SMS failed: ${error}`);
+    return { success: false, error };
+  }
+
+  try {
+    const response = await fetch(API_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Idempotency-Key": randomUUID(),
+      },
+      body: JSON.stringify({
+        user_id: userId,
+        api_key: apiKey,
+        sender_id: senderId,
+        contact,
+        message,
+      }),
+    });
+
+    const responseText = await response.text();
+    let responseBody;
+    if (responseText) {
+      try {
+        responseBody = JSON.parse(responseText);
+      } catch {
+        responseBody = null;
+      }
     }
-  } else {
-    // Mock mode – log to console
-    console.log(`📱 [MOCK] SMS to ${to}: ${message}`);
-    return { success: true, mock: true };
+
+    if (!response.ok || responseBody?.success === false) {
+      const error =
+        responseBody?.message ||
+        responseBody?.error ||
+        `InstSMS request failed with status ${response.status}`;
+      console.error(`SMS failed to ${contact}: ${error}`);
+      return { success: false, error };
+    }
+
+    console.log(`SMS sent to ${contact}`);
+    return { success: true };
+  } catch (error) {
+    console.error(`SMS failed to ${contact}:`, error.message);
+    return { success: false, error: error.message };
   }
 };
 
