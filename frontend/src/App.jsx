@@ -21,6 +21,8 @@ import OfficerLayout from "./layouts/OfficerLayout";
 import OfficerPermits from "./pages/OfficerPermits";
 import ResidentSearch from "./pages/ResidentSearch";
 
+import OfficerWelfare from "./pages/OfficerWelfare";
+
 function App() {
   return (
     <BrowserRouter>
@@ -159,6 +161,10 @@ function App() {
               element={<OfficerAnnouncements />}
             />
             <Route path="/officer/residents" element={<ResidentSearch />} />
+            <Route
+              path="/officer/welfare"
+              element={<OfficerWelfare />}
+            />
           </Route>
         </Routes>
       </AuthProvider>

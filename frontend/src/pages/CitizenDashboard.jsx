@@ -12,6 +12,7 @@ import CitizenNotifications from "../components/certificate/CitizenNotifications
 import AppointmentModal from "../components/appointments/AppointmentModal";
 import ResidentAppointmentList from "../components/appointments/ResidentAppointmentList";
 import ResidentAnnouncements from "../components/announcements/ResidentAnnouncements";
+import CitizenWelfare from "../components/welfare/CitizenWelfare";
 
 const getApiUrl = () => {
   if (import.meta.env && import.meta.env.VITE_API_URL) {
@@ -157,12 +158,28 @@ const IconFamily = () => (
   </svg>
 );
 
+const IconWelfare = () => (
+  <svg
+    width="18"
+    height="18"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <path d="M12 21s-8-4.5-8-11a4.5 4.5 0 0 1 8-2.5A4.5 4.5 0 0 1 20 10c0 6.5-8 11-8 11z" />
+  </svg>
+);
+
 const NAV_ITEMS = [
   { key: "profile", label: "Profile", icon: IconProfile },
   { key: "certificates", label: "Certificates", icon: IconCertificate },
   { key: "appointments", label: "Appointments", icon: IconCalendar },
   { key: "notifications", label: "Notifications", icon: IconBell },
   { key: "announcements", label: "Announcements", icon: IconMegaphone },
+  { key: "welfare", label: "Welfare", icon: IconWelfare },
 ];
 
 const TAB_TITLES = {
@@ -171,6 +188,7 @@ const TAB_TITLES = {
   appointments: "Appointments",
   notifications: "Notifications",
   announcements: "Announcements",
+  welfare: "Welfare Assistance",
 };
 
 const CitizenDashboard = () => {
@@ -478,6 +496,12 @@ const CitizenDashboard = () => {
                 <h2>Announcements</h2>
               </div>
               <ResidentAnnouncements announcements={announcements} />
+            </div>
+          )}
+
+          {activeTab === "welfare" && (
+            <div className="tab-content welfare-tab">
+              <CitizenWelfare />
             </div>
           )}
         </div>
