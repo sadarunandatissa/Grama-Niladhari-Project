@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import axios from "axios";
 import { useAuth } from "../../context/AuthContext";
+import { getCitizenNameParts } from "../../utils/getCitizenNameParts";
 import "./CertificateComponents.css";
 
 const CertificateRequestModal = ({ citizen, onClose, onSuccess }) => {
@@ -13,13 +14,12 @@ const CertificateRequestModal = ({ citizen, onClose, onSuccess }) => {
   const [success, setSuccess] = useState("");
 
   const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+  const citizenName = getCitizenNameParts(citizen);
 
   // Use the full profile loaded by the citizen dashboard, not login's limited user object.
   const citizenDetails = {
     nic: citizen?.nic || "",
-    first_name: citizen?.first_name || "",
-    middle_name: citizen?.middle_name || "",
-    last_name: citizen?.last_name || "",
+    ...citizenName,
     surname: citizen?.surname || "",
     address: citizen?.address || "",
     telephone: citizen?.phone_numbers?.[0] || "",

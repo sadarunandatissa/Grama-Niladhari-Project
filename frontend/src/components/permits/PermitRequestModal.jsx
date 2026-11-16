@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import axios from "axios";
 import { useAuth } from "../../context/AuthContext";
+import { getCitizenNameParts } from "../../utils/getCitizenNameParts";
 import "./PermitRequestModal.css";
 
 const PermitRequestModal = ({ citizen, onClose, onSuccess }) => {
@@ -18,6 +19,7 @@ const PermitRequestModal = ({ citizen, onClose, onSuccess }) => {
   const [success, setSuccess] = useState("");
 
   const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+  const applicantName = getCitizenNameParts(citizen);
 
   const handleTypeSelect = (type) => {
     setPermitType(type);
@@ -132,7 +134,7 @@ const PermitRequestModal = ({ citizen, onClose, onSuccess }) => {
                   <label>First Name</label>
                   <input
                     type="text"
-                    value={citizen?.first_name || ""}
+                    value={applicantName.first_name}
                     readOnly
                   />
                 </div>
@@ -140,7 +142,7 @@ const PermitRequestModal = ({ citizen, onClose, onSuccess }) => {
                   <label>Middle Name</label>
                   <input
                     type="text"
-                    value={citizen?.middle_name || ""}
+                    value={applicantName.middle_name}
                     readOnly
                   />
                 </div>
@@ -148,7 +150,7 @@ const PermitRequestModal = ({ citizen, onClose, onSuccess }) => {
                   <label>Last Name</label>
                   <input
                     type="text"
-                    value={citizen?.last_name || ""}
+                    value={applicantName.last_name}
                     readOnly
                   />
                 </div>
