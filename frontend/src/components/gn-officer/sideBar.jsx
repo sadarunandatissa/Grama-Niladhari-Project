@@ -15,6 +15,7 @@ import {
   MapPin,
   LogOut,
   Landmark,
+  HandHeart
 } from "lucide-react";
 
 const MENU_SECTIONS = [
@@ -50,6 +51,11 @@ const MENU_SECTIONS = [
         to: "/officer/land-management",
         label: "Land Management",
         icon: MapPin,
+      },
+      {
+        to: "/officer/welfare",
+        label: "Welfare",
+        icon: HandHeart,
       },
     ],
   },

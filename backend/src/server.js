@@ -89,7 +89,11 @@ app.use("/api/announcements", require("./routes/announcementRoutes"));
 app.use("/api/gn-officer", require("./routes/gnOfficerRoutes"));
 app.use("/api/permits", require("./routes/permitRoutes"));
 app.use("/api/dashboard", require("./routes/dashboardRoutes"));
+
+app.use("/api/welfare", require("./routes/welfareRoutes"));
+
 app.use("/api/location", locationRoutes);
+
 app.get("/api/health", (req, res) => {
   res.json({ success: true, message: "Server running" });
 });

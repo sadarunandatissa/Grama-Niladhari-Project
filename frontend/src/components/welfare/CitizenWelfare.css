@@ -1,0 +1,211 @@
+.citizen-welfare {
+    width: 100%;
+}
+
+.welfare-page-header {
+    margin-bottom: 24px;
+}
+
+.welfare-page-header h2 {
+    margin: 0 0 8px;
+    color: #1f2937;
+    font-size: 24px;
+}
+
+.welfare-page-header p,
+.welfare-form-card > p {
+    color: #6b7280;
+    margin: 0;
+}
+
+.welfare-form-card,
+.welfare-status-card {
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 24px;
+    max-width: 760px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.welfare-form-card h3,
+.welfare-status-card h3 {
+    margin: 0 0 8px;
+    color: #1f2937;
+}
+
+.welfare-form-card > p {
+    margin-bottom: 24px;
+}
+
+.welfare-form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 18px;
+}
+
+.welfare-form-group label {
+    color: #374151;
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.welfare-form-group input,
+.welfare-form-group textarea {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    font: inherit;
+    outline: none;
+}
+
+.welfare-form-group input:focus,
+.welfare-form-group textarea:focus {
+    border-color: #2563eb;
+}
+
+.welfare-form-group textarea {
+    resize: vartical;
+}
+
+.welfare-form-card button {
+    border: none;
+    border-radius: 8px;
+    background: #2563eb;
+    color: white;
+    padding: 12px 20px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.welfare-form-card button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.welfare-status-heading {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.welfare-status-heading p {
+    color: #6b7280;
+    font-size: 13px;
+    margin: 0;
+}
+
+.welfare-status-badge {
+    border-radius: 20px;
+    padding: 7px 12px;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.welfare-status-badge.pending {
+    background: #fcf3e7;
+    color: #92400e;
+}
+
+.welfare-status-badge.approved {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.welfare-status-badge.rejected {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+.welfare-details-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 22px;
+}
+
+.welfare-details.grid div {
+    background: #f9fafb;
+    border-radius: 8px;
+    padding: 16px;
+}
+
+.welfare-details-grid span,
+.welfare-reason span {
+    display: block;
+    color: #6b7280;
+    font-size: 13px;
+    margin-bottom: 8px;
+}
+
+.welfare-details-grid strong {
+    color: #1f2937;
+    font-size: 18px;
+}
+
+.welfare-reason,
+.welfare-officer-notes {
+    margin-top: 18px;
+    color: #374151;
+}
+
+.welfare-reason p,
+.welfare-officer-notes p {
+    margin: 8px 0 0;
+    line-height: 1.6;
+}
+
+.welfare-officer-notes {
+    padding: 14px;
+    background: #eff6ff;
+    border-radius: 8px;
+}
+
+.welfare-status-message {
+    margin: 22px 0 0;
+    padding-top: 16px;
+    border-top: 1px solid #e5e7eb;
+    color: #374151;
+}
+
+.welfare-alert {
+    max-width: 760px;
+    padding: 12px 16px;
+    border-radius: 8px;
+    margin-bottom: 16px;
+}
+
+.welfare-alert.error {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+.welfare-alert.success {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.welfare-loading {
+    padding: 24px;
+    color: #6b7280;
+}
+
+@media (max-width: 600px) {
+    .welfare-status-heading {
+        flex-direction: column;
+    }
+
+    .welfare-details-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .welfare-form-card,
+    .welfare-status-card {
+        padding: 18px;
+    }
+}
