@@ -1,9 +1,11 @@
 // backend/src/controllers/gnOfficerController.js
 
+const mongoose = require("mongoose");
 const GNOfficer = require("../models/GNOfficer");
 const Citizen = require("../models/Citizen");
 const Family = require("../models/Family");
 const Land = require("../models/Land");
+const Village = require("../models/Village");
 const bcrypt = require("bcryptjs");
 const { validatePhone, validateEmail } = require("../utils/validators");
 
@@ -11,19 +13,24 @@ const { validatePhone, validateEmail } = require("../utils/validators");
 exports.getProfile = async (req, res) => {
   try {
     const officer = await GNOfficer.findById(req.user.id)
-      .populate({
-        path: "village_id",
-        model: "Village",
-        select: "name village_id",
-        foreignField: "village_id",
-      })
-      .select("-password_hash");
+      .select("-password_hash")
+      .lean();
     if (!officer)
       return res
         .status(404)
         .json({ success: false, message: "Officer not found" });
+
+    if (!officer.village_id || !mongoose.Types.ObjectId.isValid(officer.village_id)) {
+      officer.village = null;
+    } else {
+      officer.village = await Village.findById(officer.village_id)
+        .select("name")
+        .lean();
+    }
+
     res.json({ success: true, data: officer });
   } catch (error) {
+    console.error("Get GN officer profile error:", error);
     res.status(500).json({ success: false, message: "Server error" });
   }
 };

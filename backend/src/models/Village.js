@@ -1,11 +1,12 @@
 const mongoose = require("mongoose");
 
-const VillageSchema = new mongoose.Schema({
-  village_id: { type: String, required: true, unique: true },
+const villageSchema = new mongoose.Schema({
   name: { type: String, required: true },
-  ds_division: { type: String, required: true },
-  district: { type: String, required: true },
-  province: { type: String, required: true },
+  dsDivision: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "DSDivision",
+    required: true,
+  },
 });
 
-module.exports = mongoose.model("Village", VillageSchema);
+module.exports = mongoose.model("Village", villageSchema);

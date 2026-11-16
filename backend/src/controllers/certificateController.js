@@ -135,6 +135,7 @@ exports.requestCertificate = async (req, res) => {
       surname: citizen.surname,
       address: formData.address || citizen.address,
       telephone: formData.telephone || citizen.phone_numbers?.[0] || "",
+      email: citizen.email,
       reason: formData.reason || "",
       survey_number: formData.survey_number || "",
       anual_income: formData.anual_income || "",

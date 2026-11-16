@@ -74,7 +74,7 @@
 /* ── KPI strip ──────────────────────────────────────── */
 .kpi-strip {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
+  grid-template-columns: repeat(6, minmax(0, 1fr));
   gap: 12px;
 }
 
@@ -159,6 +159,20 @@
 
 .panel-note strong {
   color: #1e293b;
+}
+
+.monthly-chart-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 14px;
+}
+
+.monthly-legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #64748b;
+  font-size: 10px;
 }
 
 .panel-total {

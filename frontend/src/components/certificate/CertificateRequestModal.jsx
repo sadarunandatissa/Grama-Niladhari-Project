@@ -3,8 +3,8 @@ import axios from "axios";
 import { useAuth } from "../../context/AuthContext";
 import "./CertificateComponents.css";
 
-const CertificateRequestModal = ({ onClose, onSuccess }) => {
-  const { user, token } = useAuth();
+const CertificateRequestModal = ({ citizen, onClose, onSuccess }) => {
+  const { token } = useAuth();
   const [step, setStep] = useState(1);
   const [certificateType, setCertificateType] = useState("");
   const [formData, setFormData] = useState({});
@@ -14,15 +14,16 @@ const CertificateRequestModal = ({ onClose, onSuccess }) => {
 
   const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
-  // Auto‑fill fields from user context
+  // Use the full profile loaded by the citizen dashboard, not login's limited user object.
   const citizenDetails = {
-    nic: user?.nic || "",
-    first_name: user?.first_name || "",
-    middle_name: user?.middle_name || "",
-    last_name: user?.last_name || "",
-    surname: user?.surname || "",
-    address: user?.address || "",
-    telephone: user?.phone_numbers?.[0] || "",
+    nic: citizen?.nic || "",
+    first_name: citizen?.first_name || "",
+    middle_name: citizen?.middle_name || "",
+    last_name: citizen?.last_name || "",
+    surname: citizen?.surname || "",
+    address: citizen?.address || "",
+    telephone: citizen?.phone_numbers?.[0] || "",
+    email: citizen?.email || "",
   };
 
   const handleTypeSelect = (type) => {
@@ -35,6 +36,7 @@ const CertificateRequestModal = ({ onClose, onSuccess }) => {
       surname: citizenDetails.surname,
       address: citizenDetails.address,
       telephone: citizenDetails.telephone,
+      email: citizenDetails.email,
       reason: "",
       survey_number: "",
       anual_income: "",
@@ -232,6 +234,15 @@ const CertificateRequestModal = ({ onClose, onSuccess }) => {
               <input
                 type="text"
                 value={formData.telephone || ""}
+                readOnly
+                onChange={() => {}}
+              />
+            </div>
+            <div className="form-group">
+              <label>Email</label>
+              <input
+                type="email"
+                value={formData.email || ""}
                 readOnly
                 onChange={() => {}}
               />

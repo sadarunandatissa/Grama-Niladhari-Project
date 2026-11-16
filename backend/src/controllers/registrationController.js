@@ -13,6 +13,7 @@ const {
   validateDateOfBirth,
 } = require("../utils/validators");
 const { generateFamilyRegNo } = require("../utils/helpers");
+const sendSMS = require("../services/smsService");
 
 exports.submitRegistration = async (req, res) => {
   try {
@@ -29,6 +30,7 @@ exports.submitRegistration = async (req, res) => {
       last_name,
       full_name,
       date_of_birth,
+      gender,
       address,
       village_id,
       phone_numbers,
@@ -71,6 +73,10 @@ exports.submitRegistration = async (req, res) => {
       return res
         .status(400)
         .json({ success: false, message: "Invalid date of birth" });
+    if (!["male", "female"].includes(gender))
+      return res
+        .status(400)
+        .json({ success: false, message: "Valid gender required" });
     if (!address || address.length < 5)
       return res
         .status(400)
@@ -123,7 +129,7 @@ exports.submitRegistration = async (req, res) => {
         .status(400)
         .json({ success: false, message: "Email or NIC already verified" });
 
-    const village = await Village.findOne({ village_id });
+    const village = await Village.findById(village_id);
     if (!village)
       return res
         .status(404)
@@ -144,6 +150,7 @@ exports.submitRegistration = async (req, res) => {
       last_name,
       full_name,
       date_of_birth: new Date(date_of_birth),
+      gender,
       address,
       village_id,
       phone_numbers,
@@ -191,7 +198,9 @@ exports.getPendingRegistrations = async (req, res) => {
     const pending = await RegistrationRequest.find({
       status: "pending",
       village_id: officer.village_id,
-    }).sort({ created_at: -1 });
+    })
+      .populate("village_id", "name")
+      .sort({ created_at: -1 });
     res.json({ success: true, count: pending.length, data: pending });
   } catch (error) {
     console.error("Get pending error:", error);
@@ -256,7 +265,17 @@ exports.verifyRegistration = async (req, res) => {
       } catch (auditErr) {
         console.error("Audit log failed (reject):", auditErr.message);
       }
-      return res.json({ success: true, message: "Registration rejected" });
+      const smsResult = await sendSMS(
+        registration.phone_numbers?.[0],
+        `Your Grama Niladhari registration request was rejected. Reason: ${registration.rejection_reason}`,
+      );
+      return res.json({
+        success: true,
+        message: smsResult.success
+          ? "Registration rejected"
+          : "Registration rejected, but the SMS notification could not be sent.",
+        sms_sent: smsResult.success,
+      });
     }
 
     // ---- VERIFY ----
@@ -271,10 +290,21 @@ exports.verifyRegistration = async (req, res) => {
         "🔍 Searching family for reg_no:",
         registration.family_reg_no,
       );
-      const family = await Family.findOne({
-        family_reg_no: registration.family_reg_no,
+      const familyRegNo = registration.family_reg_no.trim();
+      let family = await Family.findOne({
+        family_reg_no: familyRegNo,
         village_id: officer.village_id,
       });
+      const legacyFamilyNumber = familyRegNo.match(/^FAM-(\d+)$/i);
+      if (!family && legacyFamilyNumber) {
+        family = await Family.findOne({
+          village_id: officer.village_id,
+          family_reg_no: {
+            $regex: `^[a-f\\d]{24}-FAM-${legacyFamilyNumber[1]}$`,
+            $options: "i",
+          },
+        });
+      }
       if (!family) {
         return res.status(400).json({
           success: false,
@@ -287,7 +317,7 @@ exports.verifyRegistration = async (req, res) => {
         "🏷️ Generating new family number for village:",
         officer.village_id,
       );
-      const familyRegNo = await generateFamilyRegNo(officer.village_id);
+      const familyRegNo = await generateFamilyRegNo();
       console.log("✅ Generated family reg no:", familyRegNo);
       const newFamily = new Family({
         village_id: officer.village_id,
@@ -312,6 +342,7 @@ exports.verifyRegistration = async (req, res) => {
       middle_name: registration.middle_name || "",
       last_name: registration.last_name || "",
       date_of_birth: registration.date_of_birth,
+      gender: registration.gender,
       address: registration.address,
       phone_numbers: registration.phone_numbers,
       occupation: registration.occupation || "",
@@ -361,9 +392,17 @@ exports.verifyRegistration = async (req, res) => {
       console.error("Audit log failed (verify):", auditErr.message);
     }
 
+    const smsResult = await sendSMS(
+      registration.phone_numbers?.[0],
+      "Your Grama Niladhari registration request has been accepted. You can now sign in to your account.",
+    );
+
     res.json({
       success: true,
-      message: "Registration verified",
+      message: smsResult.success
+        ? "Registration verified"
+        : "Registration verified, but the SMS notification could not be sent.",
+      sms_sent: smsResult.success,
       data: { citizen_id: citizen._id, family_id: familyId },
     });
   } catch (error) {
