@@ -10,6 +10,8 @@ const Permit = require("../models/Permit");
 const Citizen = require("../models/Citizen");
 const Family = require("../models/Family");
 const GNOfficer = require("../models/GNOfficer");
+const RegistrationRequest = require("../models/RegistrationRequest");
+const Appointment = require("../models/Appointment");
 
 const MONTH_LABELS = [
   "Jan",
@@ -31,6 +33,19 @@ const CERT_PENDING_STATUSES = ["not_seen", "in_progress"];
 // Permit statuses in your schema: not_seen, in_progress, accepted, rejected
 const PERMIT_PENDING_STATUSES = ["not_seen", "in_progress"];
 
+const createStatusCounts = () => ({
+  pending: 0,
+  approved: 0,
+  rejected: 0,
+});
+
+const getStatusGroup = (status, pendingStatuses, approvedStatus) => {
+  if (pendingStatuses.includes(status)) return "pending";
+  if (status === approvedStatus) return "approved";
+  if (status === "rejected") return "rejected";
+  return null;
+};
+
 // ─── GN Officer: Dashboard Stats ───────────────────────────
 exports.getOfficerDashboardStats = async (req, res) => {
   try {
@@ -51,19 +66,25 @@ exports.getOfficerDashboardStats = async (req, res) => {
       village_id: villageId,
     }).select("status requestedAt certificateType citizenId");
 
-    let certPending = 0;
-    let certApproved = 0;
-    let certRejected = 0;
-    const certMonthly = new Array(12).fill(0);
+    const certCounts = createStatusCounts();
+    const certMonthly = {
+      pending: new Array(12).fill(0),
+      approved: new Array(12).fill(0),
+      rejected: new Array(12).fill(0),
+    };
 
     allCertificates.forEach((c) => {
-      if (CERT_PENDING_STATUSES.includes(c.status)) certPending += 1;
-      else if (c.status === "completed") certApproved += 1;
-      else if (c.status === "rejected") certRejected += 1;
+      const statusGroup = getStatusGroup(
+        c.status,
+        CERT_PENDING_STATUSES,
+        "completed",
+      );
+      if (!statusGroup) return;
+      certCounts[statusGroup] += 1;
 
       const d = new Date(c.requestedAt);
-      if (d >= yearStart && d < yearEnd) {
-        certMonthly[d.getMonth()] += 1;
+      if (!Number.isNaN(d.getTime()) && d >= yearStart && d < yearEnd) {
+        certMonthly[statusGroup][d.getMonth()] += 1;
       }
     });
 
@@ -72,39 +93,48 @@ exports.getOfficerDashboardStats = async (req, res) => {
       village_id: villageId,
     }).select("status requestedAt permitType citizenId");
 
-    let permitPending = 0;
-    let permitApproved = 0;
-    let permitRejected = 0;
-    const permitMonthly = new Array(12).fill(0);
+    const permitCounts = createStatusCounts();
+    const permitMonthly = {
+      pending: new Array(12).fill(0),
+      approved: new Array(12).fill(0),
+      rejected: new Array(12).fill(0),
+    };
 
     allPermits.forEach((p) => {
-      if (PERMIT_PENDING_STATUSES.includes(p.status)) permitPending += 1;
-      else if (p.status === "accepted") permitApproved += 1;
-      else if (p.status === "rejected") permitRejected += 1;
+      const statusGroup = getStatusGroup(
+        p.status,
+        PERMIT_PENDING_STATUSES,
+        "accepted",
+      );
+      if (!statusGroup) return;
+      permitCounts[statusGroup] += 1;
 
       const d = new Date(p.requestedAt);
-      if (d >= yearStart && d < yearEnd) {
-        permitMonthly[d.getMonth()] += 1;
+      if (!Number.isNaN(d.getTime()) && d >= yearStart && d < yearEnd) {
+        permitMonthly[statusGroup][d.getMonth()] += 1;
       }
     });
 
-    // ── Citizens / Families / Houses ───────────────────────
-    const totalCitizens = await Citizen.countDocuments({
-      village_id: villageId,
-      is_active: true,
-    });
-    const totalFamilies = await Family.countDocuments({
-      village_id: villageId,
-    });
-
-    // No dedicated House model in what you shared — approximated here as
-    // the number of distinct addresses among active citizens in the
-    // village. Swap this out if you have (or add) a real House model.
-    const addresses = await Citizen.distinct("address", {
-      village_id: villageId,
-      is_active: true,
-    });
-    const totalHouses = addresses.filter(Boolean).length;
+    // ── Village totals ─────────────────────────────────────
+    const activeCitizensFilter = { village_id: villageId, is_active: true };
+    const [
+      totalCitizens,
+      totalFamilies,
+      maleCitizens,
+      femaleCitizens,
+      pendingRegistrations,
+      pendingAppointments,
+    ] = await Promise.all([
+      Citizen.countDocuments(activeCitizensFilter),
+      Family.countDocuments({ village_id: villageId }),
+      Citizen.countDocuments({ ...activeCitizensFilter, gender: "male" }),
+      Citizen.countDocuments({ ...activeCitizensFilter, gender: "female" }),
+      RegistrationRequest.countDocuments({
+        village_id: villageId,
+        status: "pending",
+      }),
+      Appointment.countDocuments({ village_id: villageId, status: "pending" }),
+    ]);
 
     // ── Recent activity (latest 2 certs + 2 permits) ───────
     const recentCertificates = await Certificate.find({ village_id: villageId })
@@ -122,9 +152,7 @@ exports.getOfficerDashboardStats = async (req, res) => {
       data: {
         monthLabels: MONTH_LABELS,
         certificates: {
-          pending: certPending,
-          approved: certApproved,
-          rejected: certRejected,
+          ...certCounts,
           monthly: certMonthly,
           recent: recentCertificates.map((c) => ({
             id: c._id,
@@ -133,9 +161,7 @@ exports.getOfficerDashboardStats = async (req, res) => {
           })),
         },
         permits: {
-          pending: permitPending,
-          approved: permitApproved,
-          rejected: permitRejected,
+          ...permitCounts,
           monthly: permitMonthly,
           recent: recentPermits.map((p) => ({
             id: p._id,
@@ -146,8 +172,10 @@ exports.getOfficerDashboardStats = async (req, res) => {
         citizenStats: {
           totalCitizens,
           totalFamilies,
-          totalHouses,
         },
+        genderStats: { male: maleCitizens, female: femaleCitizens },
+        pendingRegistrations,
+        pendingAppointments,
       },
     });
   } catch (error) {

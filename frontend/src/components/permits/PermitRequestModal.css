@@ -124,6 +124,26 @@
 }
 
 /* Form fields */
+.applicant-info {
+  margin-bottom: 18px;
+  padding: 14px;
+  border: 1px solid var(--border-light);
+  border-radius: 10px;
+  background: var(--bg-soft);
+}
+
+.applicant-info h4 {
+  margin: 0 0 10px;
+  color: var(--brand-navy);
+  font-size: 14px;
+}
+
+.applicant-info-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0 12px;
+}
+
 .form-group {
   margin-bottom: 16px;
 }
@@ -272,6 +292,9 @@
 @media (max-width: 600px) {
   .modal {
     padding: 20px;
+  }
+  .applicant-info-grid {
+    grid-template-columns: 1fr;
   }
   .tree-group {
     grid-template-columns: 1fr 1fr;

@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useAuth } from "../../context/AuthContext";
+import formatFamilyRegNo from "../../utils/formatFamilyRegNo";
 import "./PendingVerifications.css";
 
 const PendingVerifications = () => {
@@ -40,12 +41,20 @@ const PendingVerifications = () => {
     if (!window.confirm("Are you sure you want to verify this registration?"))
       return;
     try {
-      await axios.put(
+      const response = await axios.put(
         `${API_URL}/api/registration/verify/${requestId}`,
         { action: "verify" },
         { headers: { Authorization: `Bearer ${token}` } },
       );
-      setSuccess("Registration verified!");
+      const message = response.data.message || "Registration verified!";
+      if (response.data.sms_sent === false) {
+        setError(message);
+        setSuccess("");
+        setTimeout(() => setError(""), 5000);
+      } else {
+        setSuccess(message);
+        setError("");
+      }
       fetchPending();
       setTimeout(() => setSuccess(""), 5000);
     } catch (error) {
@@ -61,12 +70,20 @@ const PendingVerifications = () => {
     }
     if (!window.confirm("Reject this registration?")) return;
     try {
-      await axios.put(
+      const response = await axios.put(
         `${API_URL}/api/registration/verify/${requestId}`,
         { action: "reject", rejection_reason: rejectReason },
         { headers: { Authorization: `Bearer ${token}` } },
       );
-      setSuccess("Registration rejected.");
+      const message = response.data.message || "Registration rejected.";
+      if (response.data.sms_sent === false) {
+        setError(message);
+        setSuccess("");
+        setTimeout(() => setError(""), 5000);
+      } else {
+        setSuccess(message);
+        setError("");
+      }
       fetchPending();
       setSelectedRequest(null);
       setRejectReason("");
@@ -103,7 +120,8 @@ const PendingVerifications = () => {
                   <strong>NIC:</strong> {req.nic}
                 </p>
                 <p>
-                  <strong>Village:</strong> {req.village_id}
+                  <strong>Village:</strong>{" "}
+                  {req.village_id?.name || req.village_id}
                 </p>
                 <p>
                   <strong>Username:</strong> {req.email}
@@ -120,7 +138,8 @@ const PendingVerifications = () => {
                 )}
                 {!req.is_family_head && (
                   <p>
-                    <strong>Family Reg No:</strong> {req.family_reg_no}
+                    <strong>Family Reg No:</strong>{" "}
+                    {formatFamilyRegNo(req.family_reg_no)}
                   </p>
                 )}
               </div>

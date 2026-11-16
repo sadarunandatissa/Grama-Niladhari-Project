@@ -281,7 +281,7 @@ const OfficerCertificateDetails = () => {
   if (error) return <div className="error-state">{error}</div>;
   if (!cert) return <div className="error-state">Certificate not found.</div>;
 
-  const citizen = cert.citizen || {};
+  const citizen = cert.citizenId || cert.citizen || {};
   const formData = cert.formData || {};
   const isResidential = cert.certificateType === "residential";
   const isIncome = cert.certificateType === "income";
@@ -339,7 +339,7 @@ const OfficerCertificateDetails = () => {
               </div>
               <div>
                 <label>Email</label>
-                <span>{citizen.email || "N/A"}</span>
+                <span>{citizen.email || formData.email || "N/A"}</span>
               </div>
             </div>
           </div>

@@ -3,8 +3,8 @@ import axios from "axios";
 import { useAuth } from "../../context/AuthContext";
 import "./PermitRequestModal.css";
 
-const PermitRequestModal = ({ onClose, onSuccess }) => {
-  const { user, token } = useAuth();
+const PermitRequestModal = ({ citizen, onClose, onSuccess }) => {
+  const { token } = useAuth();
   const [step, setStep] = useState(1);
   const [permitType, setPermitType] = useState("");
   const [formData, setFormData] = useState({
@@ -124,6 +124,60 @@ const PermitRequestModal = ({ onClose, onSuccess }) => {
           <form onSubmit={handleSubmit}>
             {error && <div className="alert error">{error}</div>}
             {success && <div className="alert success">{success}</div>}
+
+            <div className="applicant-info">
+              <h4>Applicant Information</h4>
+              <div className="applicant-info-grid">
+                <div className="form-group">
+                  <label>First Name</label>
+                  <input
+                    type="text"
+                    value={citizen?.first_name || ""}
+                    readOnly
+                  />
+                </div>
+                <div className="form-group">
+                  <label>Middle Name</label>
+                  <input
+                    type="text"
+                    value={citizen?.middle_name || ""}
+                    readOnly
+                  />
+                </div>
+                <div className="form-group">
+                  <label>Last Name</label>
+                  <input
+                    type="text"
+                    value={citizen?.last_name || ""}
+                    readOnly
+                  />
+                </div>
+                <div className="form-group">
+                  <label>Full Name</label>
+                  <input
+                    type="text"
+                    value={citizen?.full_name || ""}
+                    readOnly
+                  />
+                </div>
+                <div className="form-group">
+                  <label>Telephone</label>
+                  <input
+                    type="tel"
+                    value={citizen?.phone_numbers?.[0] || ""}
+                    readOnly
+                  />
+                </div>
+                <div className="form-group">
+                  <label>Email</label>
+                  <input
+                    type="email"
+                    value={citizen?.email || ""}
+                    readOnly
+                  />
+                </div>
+              </div>
+            </div>
 
             {permitType === "timber" && (
               <>
