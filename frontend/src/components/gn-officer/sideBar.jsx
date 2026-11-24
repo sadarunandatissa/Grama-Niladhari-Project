@@ -59,14 +59,14 @@ const MENU_SECTIONS = [
       },
     ],
   },
-  {
-    title: "System",
-    items: [
-      { to: "#", label: "Messages", icon: MessageSquare, disabled: true },
-      { to: "#", label: "Alerts", icon: Bell, disabled: true },
-      { to: "#", label: "Settings", icon: Settings, disabled: true },
-    ],
-  },
+  // {
+  //   title: "System",
+  //   items: [
+  //     { to: "#", label: "Messages", icon: MessageSquare, disabled: true },
+  //     { to: "#", label: "Alerts", icon: Bell, disabled: true },
+  //     { to: "#", label: "Settings", icon: Settings, disabled: true },
+  //   ],
+  // },
 ];
 
 const Sidebar = ({ onLogout }) => {
